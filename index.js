@@ -8,15 +8,27 @@ var Operations = {};
 Operations.chooseLetter = function chooseLetter(state, op) {
     var start = op.isInitial ? 1 : 0;
 
+    var pend = false;
+    var pendDigit = start;
+
     for (var digit = start; digit < op.base; digit++) {
         if (!state.chosen[digit]) {
-            var next = (state.alloc()).copyFrom(state);
-            next.chosen[digit] = true;
-            next.values[op.letter] = digit;
+            if (pend) {
+                var next = (state.alloc()).copyFrom(state);
+                next.chosen[pendDigit] = true;
+                next.values[op.letter] = pendDigit;
+            }
+            pend = true;
+            pendDigit = digit;
         }
     }
 
-    state.valid = false;
+    if (pend) {
+        state.chosen[pendDigit] = true;
+        state.values[op.letter] = pendDigit;
+    } else {
+        state.valid = false;
+    }
 };
 
 Operations.result = function result(state, op) {
