@@ -122,7 +122,6 @@ function compileWordProblem(word1, word2, word3) {
     var lastCarry = null;
     for (var i = 1; i <= word1.length; i++) {
         var quo = 'quo' + i;
-        var rem = 'rem' + i;
 
         var let1 = addLetter(word1, word1.length - i);
         var let2 = addLetter(word2, word2.length - i);
@@ -135,7 +134,7 @@ function compileWordProblem(word1, word2, word3) {
         });
         plan.push({
             op: Operations.remainder,
-            store: rem,
+            store: 'rem',
             dividend: 'sum',
             divisor: base
         });
@@ -147,7 +146,7 @@ function compileWordProblem(word1, word2, word3) {
         });
         plan.push({
             op: Operations.equal,
-            arg1: rem,
+            arg1: 'rem',
             arg2: let3
         });
         lastCarry = quo;
@@ -239,6 +238,7 @@ function WordProblemValues() {
     self.z = null;
 
     self.sum = null;
+    self.rem = null;
 
     self.quo1 = null;
     self.quo2 = null;
@@ -249,16 +249,6 @@ function WordProblemValues() {
     self.quo7 = null;
     self.quo8 = null;
     self.quo9 = null;
-
-    self.rem1 = null;
-    self.rem2 = null;
-    self.rem3 = null;
-    self.rem4 = null;
-    self.rem5 = null;
-    self.rem6 = null;
-    self.rem7 = null;
-    self.rem8 = null;
-    self.rem9 = null;
 
     self.word1 = null;
     self.word2 = null;
@@ -296,6 +286,7 @@ WordProblemValues.prototype.copyFrom = function copyFrom(other) {
     self.z = other.z;
 
     self.sum = other.sum;
+    self.rem = other.rem;
 
     self.quo1 = other.quo1;
     self.quo2 = other.quo2;
@@ -306,16 +297,6 @@ WordProblemValues.prototype.copyFrom = function copyFrom(other) {
     self.quo7 = other.quo7;
     self.quo8 = other.quo8;
     self.quo9 = other.quo9;
-
-    self.rem1 = other.rem1;
-    self.rem2 = other.rem2;
-    self.rem3 = other.rem3;
-    self.rem4 = other.rem4;
-    self.rem5 = other.rem5;
-    self.rem6 = other.rem6;
-    self.rem7 = other.rem7;
-    self.rem8 = other.rem8;
-    self.rem9 = other.rem9;
 
     self.word1 = other.word1;
     self.word2 = other.word2;
