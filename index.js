@@ -435,10 +435,6 @@ ProgSearch.prototype.run = function run(plan, each) {
     while (self.frontier.length) {
         self.free(self.frontier.shift());
     }
-
-    console.log('search done: executed %s, expanded %s',
-                self.executed, self.expanded,
-                self.executed / self.expanded);
 };
 
 ProgSearch.prototype.expand = function expand(plan, state) {
@@ -544,32 +540,18 @@ function main() {
     var search = new ProgSearch(WordProblemState);
     var plan = compileWordProblem('send', 'more', 'money');
 
-    var start = Date.now();
-    var results = [];
-    search.run(plan, function eachResult(state) {
-        results.push(state.result)
-        return false;
-    });
-    var end = Date.now();
-    console.log(end - start);
-
-    var start = Date.now();
-    var results = [];
-    search.run(plan, function eachResult(state) {
-        results.push(state.result)
-        return false;
-    });
-    var end = Date.now();
-    console.log(end - start);
-
-    var start = Date.now();
-    var results = [];
-    search.run(plan, function eachResult(state) {
-        results.push(state.result)
-        return false;
-    });
-    var end = Date.now();
-    console.log(end - start);
+    for (var i = 0; i < 5; i++) {
+        var start = Date.now();
+        var results = [];
+        search.run(plan, function eachResult(state) {
+            results.push(state.result)
+            return false;
+        });
+        var end = Date.now();
+        console.log(
+            'search done in %s (executed %s, expanded %s) found: %j',
+            end - start, search.executed, search.expanded, results);
+    }
 
 }
 
