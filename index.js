@@ -30,32 +30,26 @@ Operations.result = function result(state, op) {
 };
 
 Operations.sum = function sum(state, op) {
+    var base = op.base;
 
-    var sum = 0;
-    for (var i = 0; i < op.values.length; i++) {
-        var letter = op.values[i];
-        var digit = state.values[letter];
-        sum += digit;
-    }
-    state.values[op.store] = sum;
+    var sum = state.values.carry +
+              state.values[op.let1] +
+              state.values[op.let2];
+
+    var rem = sum % base;
+    state.valid = rem === state.values[op.let3];
+
+    state.values.carry = Math.floor(sum / base);
 };
 
-Operations.remainder = function remainder(state, op) {
-    var dividend = state.values[op.dividend];
-    state.values[op.store] = dividend % op.divisor;
+Operations.checkNoCarry = function checkNoCarry(state, op) {
+    state.valid = state.valid &&
+                  state.values.carry === 0;
 };
 
-Operations.floordiv = function floordiv(state, op) {
-    var dividend = state.values[op.dividend];
-    state.values[op.store] = Math.floor(dividend / op.divisor);
-};
-
-Operations.equal = function equal(state, op) {
-    if (state.valid) {
-        var arg1 = state.values[op.arg1];
-        var arg2 = state.values[op.arg2];
-        state.valid = arg1 === arg2;
-    }
+Operations.checkCarry = function checkCarry(state, op) {
+    state.valid = state.valid &&
+                  state.values.carry === state.values[op.let3];
 };
 
 Operations.toNumber = function toNumber(state, op) {
@@ -118,41 +112,26 @@ function compileWordProblem(word1, word2, word3) {
     });
 
     var seen = {};
-
     for (var i = 1; i <= word1.length; i++) {
-        var let1 = addLetter(word1, word1.length - i);
-        var let2 = addLetter(word2, word2.length - i);
-        var let3 = addLetter(word3, word3.length - i);
-
         plan.push({
             op: Operations.sum,
-            store: 'sum',
-            values: ['carry', let1, let2],
-        });
-        plan.push({
-            op: Operations.remainder,
-            store: 'rem',
-            dividend: 'sum',
-            divisor: base
-        });
-        plan.push({
-            op: Operations.floordiv,
-            store: 'carry',
-            dividend: 'sum',
-            divisor: base
-        });
-        plan.push({
-            op: Operations.equal,
-            arg1: 'rem',
-            arg2: let3
+            base: base,
+            let1: addLetter(word1, word1.length - i),
+            let2: addLetter(word2, word2.length - i),
+            let3: addLetter(word3, word3.length - i)
         });
     }
 
-    plan.push({
-        op: Operations.equal,
-        arg1: 'carry',
-        arg2: lenDiff ? addLetter(word3, 0) : 0
-    });
+    if (lenDiff) {
+        plan.push({
+            op: Operations.checkCarry,
+            let3: addLetter(word3, 0)
+        });
+    } else {
+        plan.push({
+            op: Operations.checkNoCarry
+        });
+    }
 
     plan.push({
         op: Operations.toNumber,
@@ -227,7 +206,6 @@ function WordProblemValues() {
     self.y = null;
     self.z = null;
 
-    self.sum = null;
     self.rem = null;
     self.carry = 0;
 
@@ -266,7 +244,6 @@ WordProblemValues.prototype.copyFrom = function copyFrom(other) {
     self.y = other.y;
     self.z = other.z;
 
-    self.sum = other.sum;
     self.rem = other.rem;
     self.carry = other.carry;
 
