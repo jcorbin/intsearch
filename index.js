@@ -339,19 +339,7 @@ ProgSearch.prototype.run = function run(plan, each) {
 ProgSearch.prototype.expand = function expand(plan, state) {
     var self = this;
 
-    var succ = self.execute(plan, state);
-    if (succ) {
-        self.expanded += succ.length;
-        self.frontier.push.apply(self.frontier, succ);
-        self.heapify();
-    }
-};
-
-ProgSearch.prototype.execute = function execute(plan, state) {
-    var self = this;
-
     var succ = null;
-
     while (!succ && state.valid && state.pi < plan.length) {
         self.executed++;
         var op = plan[state.pi++];
@@ -362,7 +350,11 @@ ProgSearch.prototype.execute = function execute(plan, state) {
         state.valid = false;
     }
 
-    return succ;
+    if (succ) {
+        self.expanded += succ.length;
+        self.frontier.push.apply(self.frontier, succ);
+        self.heapify();
+    }
 };
 
 ProgSearch.prototype.heapify = function heapify() {
