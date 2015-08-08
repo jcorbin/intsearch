@@ -328,11 +328,8 @@ ProgSearch.prototype.run = function run(plan, each) {
 
     while (self.frontier.length) {
         var state = self.frontier.shift();
-        self.expand(plan, state);
-        if (state.valid && state.result) {
-            if (each(state)) {
-                break;
-            }
+        if (self.expand(plan, state, each)) {
+            break;
         }
         self.freelist.push(state);
     }
@@ -340,7 +337,7 @@ ProgSearch.prototype.run = function run(plan, each) {
     self.clear();
 };
 
-ProgSearch.prototype.expand = function expand(plan, state) {
+ProgSearch.prototype.expand = function expand(plan, state, each) {
     var self = this;
 
     while (!self.pushed && state.valid && state.pi < plan.length) {
@@ -353,11 +350,19 @@ ProgSearch.prototype.expand = function expand(plan, state) {
         state.valid = false;
     }
 
+    if (state.valid && state.result) {
+        if (each(state)) {
+            return true;
+        }
+    }
+
     if (self.pushed) {
         self.expanded += self.pushed;
         self.pushed = 0;
         self.heapify();
     }
+
+    return false;
 };
 
 ProgSearch.prototype.heapify = function heapify() {
