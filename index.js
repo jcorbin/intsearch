@@ -345,13 +345,13 @@ ProgSearch.prototype.expand = function expand(plan, each) {
         op.op(state, op);
     }
 
-    if (state.valid && state.result === null) {
-        state.valid = false;
-    }
-
-    if (state.valid && state.result) {
-        if (each(state)) {
-            return true;
+    if (state.valid) {
+        if (state.result !== null) {
+            if (each(state)) {
+                return true;
+            }
+        } else {
+            state.valid = false;
         }
     }
 
