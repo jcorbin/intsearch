@@ -152,14 +152,10 @@ function compileWordProblem(word1, word2, word3) {
         lastCarry = quo;
     }
 
-    if (lenDiff) {
-        addLetter(word3, 0);
-    }
-
     plan.push({
         op: Operations.equal,
         arg1: lastCarry,
-        arg2: lenDiff ? word3[0] : 0
+        arg2: lenDiff ? addLetter(word3, 0) : 0
     });
 
     plan.push({
