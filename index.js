@@ -540,6 +540,28 @@ ProgSearch.prototype.siftdown = function siftdown(i) {
     return i;
 };
 
+function hrtimeDiff(a, b) {
+    var r = [
+        a[0] - b[0],
+        a[1] - b[1]
+    ];
+    if (r[1] < 0) {
+        r[0]--;
+        r[1] += 1e9;
+    }
+    return r;
+}
+
+function hrtime2ms(h) {
+    return h[0] * 1e3 +
+           h[1] / 1e6;
+}
+
+function hrtime2us(h) {
+    return h[0] * 1e6 +
+           h[1] / 1e3;
+}
+
 /*
  *     S E N D
  * +   M O R E
@@ -554,17 +576,17 @@ function main() {
     var search = new ProgSearch(WordProblemState);
     var plan = compileWordProblem('send', 'more', 'money');
 
-    for (var i = 0; i < 5; i++) {
-        var start = Date.now();
+    for (var i = 0; i < 15; i++) {
+        var start = process.hrtime();
         var results = [];
         search.run(plan, function eachResult(state) {
             results.push(state.result)
             return false;
         });
-        var end = Date.now();
+        var end = process.hrtime();
         console.log(
             'search done in %s (executed %s, expanded %s) found: %j',
-            end - start, search.executed, search.expanded, results);
+            hrtime2us(hrtimeDiff(end, start)), search.executed, search.expanded, results);
     }
 
 }
