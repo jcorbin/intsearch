@@ -388,24 +388,16 @@ ProgSearch.prototype.heapify = function heapify() {
     }
 };
 
-ProgSearch.prototype.swap = function swap(i, j) {
-    var self = this;
-
-    var a = self.frontier[i];
-    var b = self.frontier[j];
-    self.frontier[i] = b;
-    self.frontier[j] = a;
-
-    return a;
-};
-
 ProgSearch.prototype.siftup = function siftup(i) {
     var self = this;
 
     while (i > 0) {
         var j = Math.floor((i - 1) / 2);
-        if (self.frontier[i].pi > self.frontier[j].pi) {
-            self.swap(i, j);
+        var child = self.frontier[i];
+        var par = self.frontier[j];
+        if (child.pi > par.pi) {
+            self.frontier[i] = par
+            self.frontier[j] = child;
             i = j;
         }
     }
@@ -415,25 +407,31 @@ ProgSearch.prototype.siftdown = function siftdown(i) {
     var self = this;
 
     while (true) {
-        var left = (2 * i) + 1;
-        if (left >= self.frontier.length) {
+        var par = self.frontier[i];
+
+        // left
+        var j = (2 * i) + 1;
+        if (j >= self.frontier.length) {
             return;
         }
 
-        var right = left + 1;
-        var child = left;
-        if (right < self.frontier.length &&
-            self.frontier[right].pi > self.frontier[left].pi) {
-            child = right;
+        // maybe right
+        var child = self.frontier[j];
+        if (++j >= self.frontier.length ||
+            self.frontier[j].pi <= child.pi) {
+            j--;
+        } else {
+            child = self.frontier[j];
         }
 
-        if (self.frontier[child].pi <= self.frontier[i].pi) {
+        if (child.pi <= par.pi) {
             return;
         }
 
-        self.swap(child, i);
-        i = child;
+        self.frontier[i] = child;
+        self.frontier[j] = par;
 
+        i = j;
     }
 };
 
