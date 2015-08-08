@@ -352,24 +352,23 @@ ProgSearch.prototype.run = function run(plan, each) {
 ProgSearch.prototype.expand = function expand(plan, each) {
     var self = this;
 
-    var state = self.frontier[0];
+    var state = self.frontier.shift();
     while (!self.pushed && state.valid && state.pi < plan.length) {
         self.executed++;
         var op = plan[state.pi++];
         op.op(state, op);
     }
 
-    if (state.valid) {
-        if (state.result !== null) {
-            self.freelist.push(self.frontier.shift());
-            if (each(state)) {
-                return true;
-            }
-        } else if (!self.pushed) {
-            self.siftdown(0);
+    if (!state.valid) {
+        self.freelist.push(state);
+    } else if (state.result !== null) {
+        self.freelist.push(state);
+        if (each(state)) {
+            return true;
         }
     } else {
-        self.freelist.push(self.frontier.shift());
+        self.frontier.push(state);
+        self.pushed++;
     }
 
     if (self.pushed) {
