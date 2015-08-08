@@ -121,7 +121,6 @@ function compileWordProblem(word1, word2, word3) {
 
     var lastCarry = null;
     for (var i = 1; i <= word1.length; i++) {
-        var sum = 'sum' + i;
         var quo = 'quo' + i;
         var rem = 'rem' + i;
 
@@ -131,19 +130,19 @@ function compileWordProblem(word1, word2, word3) {
 
         plan.push({
             op: Operations.sum,
-            store: sum,
+            store: 'sum',
             values: lastCarry ? [lastCarry, let1, let2] : [let1, let2],
         });
         plan.push({
             op: Operations.remainder,
             store: rem,
-            dividend: sum,
+            dividend: 'sum',
             divisor: base
         });
         plan.push({
             op: Operations.floordiv,
             store: quo,
-            dividend: sum,
+            dividend: 'sum',
             divisor: base
         });
         plan.push({
@@ -239,15 +238,7 @@ function WordProblemValues() {
     self.y = null;
     self.z = null;
 
-    self.sum1 = null;
-    self.sum2 = null;
-    self.sum3 = null;
-    self.sum4 = null;
-    self.sum5 = null;
-    self.sum6 = null;
-    self.sum7 = null;
-    self.sum8 = null;
-    self.sum9 = null;
+    self.sum = null;
 
     self.quo1 = null;
     self.quo2 = null;
@@ -304,15 +295,7 @@ WordProblemValues.prototype.copyFrom = function copyFrom(other) {
     self.y = other.y;
     self.z = other.z;
 
-    self.sum1 = other.sum1;
-    self.sum2 = other.sum2;
-    self.sum3 = other.sum3;
-    self.sum4 = other.sum4;
-    self.sum5 = other.sum5;
-    self.sum6 = other.sum6;
-    self.sum7 = other.sum7;
-    self.sum8 = other.sum8;
-    self.sum9 = other.sum9;
+    self.sum = other.sum;
 
     self.quo1 = other.quo1;
     self.quo2 = other.quo2;
