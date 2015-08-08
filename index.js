@@ -23,12 +23,12 @@ Operations.chooseLetter = function chooseLetter(state, op) {
 };
 
 Operations.result = function result(state, op) {
-    var res = {};
+    var res = new Array(op.values.length);
     for (var i = 0; i < op.values.length; i++) {
-        res[op.values[i]] = state.values[op.values[i]];
+        res[i] = state.values[op.values[i]];
     }
-    // state.log('[result %s] => %j', op.values, res);
     state.result = res;
+    // state.log('[result %s] => %j', op.values, res);
 };
 
 Operations.sum = function sum(state, op) {
@@ -187,28 +187,28 @@ function compileWordProblem(word1, word2, word3) {
 
     plan.push({
         op: Operations.toNumber,
-        store: word1,
+        store: 'word1',
         values: word1.split(''),
         base: base
     });
 
     plan.push({
         op: Operations.toNumber,
-        store: word2,
+        store: 'word2',
         values: word2.split(''),
         base: base
     });
 
     plan.push({
         op: Operations.toNumber,
-        store: word3,
+        store: 'word3',
         values: word3.split(''),
         base: base
     });
 
     plan.push({
         op: Operations.result,
-        values: [word1, word2, word3]
+        values: ['word1', 'word2', 'word3']
     });
 
     return plan;
@@ -257,6 +257,7 @@ function WordProblemValues() {
     self.x = null;
     self.y = null;
     self.z = null;
+
     self.sum1 = null;
     self.sum2 = null;
     self.sum3 = null;
@@ -266,6 +267,7 @@ function WordProblemValues() {
     self.sum7 = null;
     self.sum8 = null;
     self.sum9 = null;
+
     self.quo1 = null;
     self.quo2 = null;
     self.quo3 = null;
@@ -275,6 +277,7 @@ function WordProblemValues() {
     self.quo7 = null;
     self.quo8 = null;
     self.quo9 = null;
+
     self.rem1 = null;
     self.rem2 = null;
     self.rem3 = null;
@@ -284,6 +287,10 @@ function WordProblemValues() {
     self.rem7 = null;
     self.rem8 = null;
     self.rem9 = null;
+
+    self.word1 = null;
+    self.word2 = null;
+    self.word3 = null;
 }
 
 WordProblemValues.prototype.copyFrom = function copyFrom(other) {
@@ -315,6 +322,7 @@ WordProblemValues.prototype.copyFrom = function copyFrom(other) {
     self.x = other.x;
     self.y = other.y;
     self.z = other.z;
+
     self.sum1 = other.sum1;
     self.sum2 = other.sum2;
     self.sum3 = other.sum3;
@@ -324,6 +332,7 @@ WordProblemValues.prototype.copyFrom = function copyFrom(other) {
     self.sum7 = other.sum7;
     self.sum8 = other.sum8;
     self.sum9 = other.sum9;
+
     self.quo1 = other.quo1;
     self.quo2 = other.quo2;
     self.quo3 = other.quo3;
@@ -333,6 +342,7 @@ WordProblemValues.prototype.copyFrom = function copyFrom(other) {
     self.quo7 = other.quo7;
     self.quo8 = other.quo8;
     self.quo9 = other.quo9;
+
     self.rem1 = other.rem1;
     self.rem2 = other.rem2;
     self.rem3 = other.rem3;
@@ -342,6 +352,10 @@ WordProblemValues.prototype.copyFrom = function copyFrom(other) {
     self.rem7 = other.rem7;
     self.rem8 = other.rem8;
     self.rem9 = other.rem9;
+
+    self.word1 = other.word1;
+    self.word2 = other.word2;
+    self.word3 = other.word3;
 };
 
 function WordProblemState() {
