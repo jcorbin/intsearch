@@ -6,7 +6,6 @@ var assert = require('assert');
 var Operations = {};
 
 Operations.chooseLetter = function chooseLetter(state, op) {
-    var nexts = [];
     var start = op.isInitial ? 1 : 0;
 
     for (var digit = start; digit < op.base; digit++) {
@@ -14,11 +13,8 @@ Operations.chooseLetter = function chooseLetter(state, op) {
             var next = (state.alloc()).copyFrom(state);
             next.chosen[digit] = true;
             next.values[op.letter] = digit;
-            nexts.push(next);
         }
     }
-
-    return nexts;
 };
 
 Operations.result = function result(state, op) {
@@ -288,6 +284,7 @@ function ProgSearch(stateType) {
     self.stateType = stateType;
     self.freelist = [];
     self.frontier = [];
+    self.pushed = 0;
     self.executed = 0;
     self.expanded = 1;
     self.dirty = false;
@@ -301,6 +298,9 @@ function ProgSearch(stateType) {
             state = new self.stateType();
             state.alloc = self.alloc;
         }
+
+        self.frontier.push(state);
+        self.pushed++;
 
         return state;
     };
@@ -322,13 +322,13 @@ ProgSearch.prototype.clear = function clear() {
 ProgSearch.prototype.run = function run(plan, each) {
     var self = this;
 
+    self.alloc().copyFrom(plan[0].state);
+    self.pushed = 0;
     self.executed = 0;
     self.expanded = 1;
-    var state = self.alloc().copyFrom(plan[0].state);
-    self.frontier.push(state);
 
     while (self.frontier.length) {
-        state = self.frontier.shift();
+        var state = self.frontier.shift();
         self.expand(plan, state);
         if (state.valid && state.result) {
             if (each(state)) {
@@ -344,20 +344,19 @@ ProgSearch.prototype.run = function run(plan, each) {
 ProgSearch.prototype.expand = function expand(plan, state) {
     var self = this;
 
-    var succ = null;
-    while (!succ && state.valid && state.pi < plan.length) {
+    while (!self.pushed && state.valid && state.pi < plan.length) {
         self.executed++;
         var op = plan[state.pi++];
-        succ = op.op(state, op);
+        op.op(state, op);
     }
 
     if (state.valid && state.result === null) {
         state.valid = false;
     }
 
-    if (succ) {
-        self.expanded += succ.length;
-        self.frontier.push.apply(self.frontier, succ);
+    if (self.pushed) {
+        self.expanded += self.pushed;
+        self.pushed = 0;
         self.heapify();
     }
 };
