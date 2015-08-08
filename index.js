@@ -291,34 +291,25 @@ function ProgSearch(stateType) {
     self.executed = 0;
     self.expanded = 1;
     self.dirty = false;
+
+    self.alloc = function alloc() {
+        var state;
+
+        if (self.freelist.length) {
+            state = self.freelist.shift();
+        } else {
+            state = new self.stateType();
+            state.alloc = self.alloc;
+        }
+
+        return state;
+    };
 }
 
 ProgSearch.prototype.free = function free(state) {
     var self = this;
 
     self.freelist.push(state);
-};
-
-ProgSearch.prototype.makeNewState = function makeNewState() {
-    var self = this;
-
-    var state = new self.stateType();
-    state.alloc = alloc;
-    return state;
-
-    function alloc() {
-        return self.alloc();
-    }
-};
-
-ProgSearch.prototype.alloc = function alloc() {
-    var self = this;
-
-    if (self.freelist.length) {
-        return self.freelist.shift();
-    } else {
-        return self.makeNewState();
-    }
 };
 
 ProgSearch.prototype.run = function run(plan, each) {
