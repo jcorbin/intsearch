@@ -409,8 +409,6 @@ ProgSearch.prototype.siftup = function siftup(i) {
             i = j;
         }
     }
-
-    return i;
 };
 
 ProgSearch.prototype.siftdown = function siftdown(i) {
@@ -437,7 +435,6 @@ ProgSearch.prototype.siftdown = function siftdown(i) {
         i = child;
 
     }
-    return i;
 };
 
 function hrtimeDiff(a, b) {
