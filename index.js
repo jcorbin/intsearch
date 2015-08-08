@@ -30,14 +30,14 @@ Operations.result = function result(state, op) {
 };
 
 Operations.sum = function sum(state, op) {
-    var res = 0;
 
+    var sum = 0;
     for (var i = 0; i < op.values.length; i++) {
         var letter = op.values[i];
         var digit = state.values[letter];
-        res += digit;
+        sum += digit;
     }
-    state.values[op.store] = res;
+    state.values[op.store] = sum;
 };
 
 Operations.remainder = function remainder(state, op) {
