@@ -306,6 +306,19 @@ function ProgSearch(stateType) {
     };
 }
 
+ProgSearch.prototype.clear = function clear() {
+    var self = this;
+
+    if (self.frontier.length) {
+        if (self.freelist.length) {
+            self.freelist = self.freelist.concat(self.frontier);
+        } else {
+            self.freelist = self.frontier;
+        }
+        self.frontier = [];
+    }
+};
+
 ProgSearch.prototype.free = function free(state) {
     var self = this;
 
@@ -331,9 +344,7 @@ ProgSearch.prototype.run = function run(plan, each) {
         self.free(state);
     }
 
-    while (self.frontier.length) {
-        self.free(self.frontier.shift());
-    }
+    self.clear();
 };
 
 ProgSearch.prototype.expand = function expand(plan, state) {
