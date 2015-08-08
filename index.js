@@ -127,7 +127,7 @@ function compileWordProblem(word1, word2, word3) {
         plan.push({
             op: Operations.sum,
             store: 'sum',
-            values: i > 1 ? ['carry', let1, let2] : [let1, let2],
+            values: ['carry', let1, let2],
         });
         plan.push({
             op: Operations.remainder,
@@ -229,7 +229,7 @@ function WordProblemValues() {
 
     self.sum = null;
     self.rem = null;
-    self.carry = null;
+    self.carry = 0;
 
     self.word1 = null;
     self.word2 = null;
