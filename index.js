@@ -319,12 +319,6 @@ ProgSearch.prototype.clear = function clear() {
     }
 };
 
-ProgSearch.prototype.free = function free(state) {
-    var self = this;
-
-    self.freelist.push(state);
-};
-
 ProgSearch.prototype.run = function run(plan, each) {
     var self = this;
 
@@ -341,7 +335,7 @@ ProgSearch.prototype.run = function run(plan, each) {
                 break;
             }
         }
-        self.free(state);
+        self.freelist.push(state);
     }
 
     self.clear();
