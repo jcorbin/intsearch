@@ -14,7 +14,6 @@ Operations.chooseLetter = function chooseLetter(state, op) {
             var next = (state.alloc()).copyFrom(state);
             next.chosen[digit] = true;
             next.values[op.letter] = digit;
-            // next.log('choose %s => %s', op.letter, digit);
             nexts.push(next);
         }
     }
@@ -28,39 +27,27 @@ Operations.result = function result(state, op) {
         res[i] = state.values[op.values[i]];
     }
     state.result = res;
-    // state.log('[result %s] => %j', op.values, res);
 };
 
 Operations.sum = function sum(state, op) {
     var res = 0;
 
-    var out = [];
     for (var i = 0; i < op.values.length; i++) {
         var letter = op.values[i];
         var digit = state.values[letter];
-        out.push(util.format('%s(%s)', letter, digit));
         res += digit;
     }
     state.values[op.store] = res;
-    // state.log('[+ %s] => %s(%s)', out.join(' '), op.store, res);
 };
 
 Operations.remainder = function remainder(state, op) {
     var dividend = state.values[op.dividend];
     state.values[op.store] = dividend % op.divisor;
-    // state.log('[% %s(%s) %s] => %s(%s)',
-    //     op.dividend, state.values[op.dividend],
-    //     op.divisor,
-    //     op.store, state.values[op.store]);
 };
 
 Operations.floordiv = function floordiv(state, op) {
     var dividend = state.values[op.dividend];
     state.values[op.store] = Math.floor(dividend / op.divisor);
-    // state.log('[// %s(%s) %s] => %s(%s)',
-    //     op.dividend, state.values[op.dividend],
-    //     op.divisor,
-    //     op.store, state.values[op.store]);
 };
 
 Operations.equal = function equal(state, op) {
@@ -68,10 +55,6 @@ Operations.equal = function equal(state, op) {
         var arg1 = state.values[op.arg1];
         var arg2 = state.values[op.arg2];
         state.valid = arg1 === arg2;
-        // state.log('[== %s(%s) %s(%s)] => %s',
-        //     op.arg1, state.values[op.arg1],
-        //     op.arg2, state.values[op.arg2],
-        //     state.valid );
     }
 };
 
@@ -83,8 +66,6 @@ Operations.toNumber = function toNumber(state, op) {
         value += state.values[op.values[i]];
     }
     state.values[op.store] = value;
-    // state.log('[toNumber %s] => %s(%s)',
-    //       op.values, op.store, value);
 };
 
 function letterValuesFrom(words) {
