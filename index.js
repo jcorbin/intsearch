@@ -119,10 +119,7 @@ function compileWordProblem(word1, word2, word3) {
 
     var seen = {};
 
-    var lastCarry = null;
     for (var i = 1; i <= word1.length; i++) {
-        var quo = 'quo' + i;
-
         var let1 = addLetter(word1, word1.length - i);
         var let2 = addLetter(word2, word2.length - i);
         var let3 = addLetter(word3, word3.length - i);
@@ -130,7 +127,7 @@ function compileWordProblem(word1, word2, word3) {
         plan.push({
             op: Operations.sum,
             store: 'sum',
-            values: lastCarry ? [lastCarry, let1, let2] : [let1, let2],
+            values: i > 1 ? ['carry', let1, let2] : [let1, let2],
         });
         plan.push({
             op: Operations.remainder,
@@ -140,7 +137,7 @@ function compileWordProblem(word1, word2, word3) {
         });
         plan.push({
             op: Operations.floordiv,
-            store: quo,
+            store: 'carry',
             dividend: 'sum',
             divisor: base
         });
@@ -149,12 +146,11 @@ function compileWordProblem(word1, word2, word3) {
             arg1: 'rem',
             arg2: let3
         });
-        lastCarry = quo;
     }
 
     plan.push({
         op: Operations.equal,
-        arg1: lastCarry,
+        arg1: 'carry',
         arg2: lenDiff ? addLetter(word3, 0) : 0
     });
 
@@ -233,16 +229,7 @@ function WordProblemValues() {
 
     self.sum = null;
     self.rem = null;
-
-    self.quo1 = null;
-    self.quo2 = null;
-    self.quo3 = null;
-    self.quo4 = null;
-    self.quo5 = null;
-    self.quo6 = null;
-    self.quo7 = null;
-    self.quo8 = null;
-    self.quo9 = null;
+    self.carry = null;
 
     self.word1 = null;
     self.word2 = null;
@@ -281,16 +268,7 @@ WordProblemValues.prototype.copyFrom = function copyFrom(other) {
 
     self.sum = other.sum;
     self.rem = other.rem;
-
-    self.quo1 = other.quo1;
-    self.quo2 = other.quo2;
-    self.quo3 = other.quo3;
-    self.quo4 = other.quo4;
-    self.quo5 = other.quo5;
-    self.quo6 = other.quo6;
-    self.quo7 = other.quo7;
-    self.quo8 = other.quo8;
-    self.quo9 = other.quo9;
+    self.carry = other.carry;
 
     self.word1 = other.word1;
     self.word2 = other.word2;
