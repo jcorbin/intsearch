@@ -15,6 +15,8 @@ Operations.chooseLetter = function chooseLetter(state, op) {
             next.values[op.letter] = digit;
         }
     }
+
+    state.valid = false;
 };
 
 Operations.result = function result(state, op) {
@@ -338,7 +340,7 @@ ProgSearch.prototype.run = function run(plan, each) {
 ProgSearch.prototype.expand = function expand(plan, each) {
     var self = this;
 
-    var state = self.frontier.shift();
+    var state = self.frontier[0];
     while (!self.pushed && state.valid && state.pi < plan.length) {
         self.executed++;
         var op = plan[state.pi++];
@@ -347,12 +349,15 @@ ProgSearch.prototype.expand = function expand(plan, each) {
 
     if (state.valid) {
         if (state.result !== null) {
+            self.freelist.push(self.frontier.shift());
             if (each(state)) {
                 return true;
             }
-        } else {
-            state.valid = false;
+        } else if (!self.pushed) {
+            self.siftdown(0);
         }
+    } else {
+        self.freelist.push(self.frontier.shift());
     }
 
     if (self.pushed) {
@@ -360,8 +365,6 @@ ProgSearch.prototype.expand = function expand(plan, each) {
         self.pushed = 0;
         self.heapify();
     }
-
-    self.freelist.push(state);
 
     return false;
 };
