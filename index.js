@@ -287,7 +287,6 @@ function ProgSearch(stateType) {
     self.pushed = 0;
     self.executed = 0;
     self.expanded = 1;
-    self.dirty = false;
 
     self.alloc = function alloc() {
         var state;
@@ -467,7 +466,9 @@ function main() {
         var end = process.hrtime();
         console.log(
             'search done in %s (executed %s, expanded %s) found: %j',
-            hrtime2us(hrtimeDiff(end, start)), search.executed, search.expanded, results);
+            hrtime2us(hrtimeDiff(end, start)),
+            search.executed, search.expanded,
+            results);
     }
 
 }
