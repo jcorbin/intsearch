@@ -34,7 +34,7 @@ Operations.chooseLetter = function chooseLetter(state, op) {
 Operations.result = function result(state, op) {
     var res = new Array(op.values.length);
     for (var i = 0; i < op.values.length; i++) {
-        res[i] = state.values[op.values[i]];
+        res[i] = state[op.values[i]];
     }
     state.result = res;
 };
@@ -42,46 +42,53 @@ Operations.result = function result(state, op) {
 Operations.sum = function sum(state, op) {
     var base = op.base;
 
-    var sum = state.values.carry +
+    var sum = state.carry +
               state.values[op.let1] +
               state.values[op.let2];
 
     var rem = sum % base;
     state.valid = rem === state.values[op.let3];
 
-    state.values.carry = Math.floor(sum / base);
+    state.carry = Math.floor(sum / base);
 };
 
 Operations.checkNoCarry = function checkNoCarry(state, op) {
     state.valid = state.valid &&
-                  state.values.carry === 0;
+                  state.carry === 0;
 };
 
 Operations.checkCarry = function checkCarry(state, op) {
     state.valid = state.valid &&
-                  state.values.carry === state.values[op.let3];
+                  state.carry === state.values[op.let3];
 };
+
+var letterBase = 'a'.charCodeAt(0) - 1;
 
 Operations.toNumber = function toNumber(state, op) {
     var value = 0;
     // for (var i = op.values.length-1; i >= 0; i--)
-    for (var i = 0; i < op.values.length; i++) {
+    for (var i = 0; i < op.word.length; i++) {
+        var n = op.word.charCodeAt(i) - letterBase;
         value *= op.base;
-        value += state.values[op.values[i]];
+        value += state.values[n];
     }
-    state.values[op.store] = value;
+    state[op.store] = value;
 };
 
-function letterValuesFrom(words) {
-    var values = {};
+function lettersFrom(words) {
+    var letters = [];
+    var seen = {};
     words.forEach(function each(word) {
+        word = word.toLowerCase();
         for (var i = 0; i < word.length; i++) {
-            if (values[word[i]] === undefined) {
-                values[word[i]] = null;
+            var n = word.charCodeAt(i) - letterBase;
+            if (!seen[n]) {
+                seen[n] = true;
+                letters.push[n];
             }
         }
     });
-    return values;
+    return letters;
 }
 
 function baseFor(n) {
@@ -104,8 +111,7 @@ function compileWordProblem(word1, word2, word3) {
     assert(word1.length === word2.length);
     assert(lenDiff === 0 || lenDiff === 1);
 
-    var values = letterValuesFrom([word1, word2, word3]);
-    var letters = Object.keys(values);
+    var letters = lettersFrom([word1, word2, word3]);
     var base = baseFor(letters.length);
 
     var plan = [];
@@ -146,21 +152,21 @@ function compileWordProblem(word1, word2, word3) {
     plan.push({
         op: Operations.toNumber,
         store: 'word1',
-        values: word1.split(''),
+        word: word1.toLowerCase(),
         base: base
     });
 
     plan.push({
         op: Operations.toNumber,
         store: 'word2',
-        values: word2.split(''),
+        word: word2.toLowerCase(),
         base: base
     });
 
     plan.push({
         op: Operations.toNumber,
         store: 'word3',
-        values: word3.split(''),
+        word: word3.toLowerCase(),
         base: base
     });
 
@@ -172,95 +178,19 @@ function compileWordProblem(word1, word2, word3) {
     return plan;
 
     function addLetter(word, i) {
-        var letter = word[i];
-        if (!seen[letter]) {
-            seen[letter] = true;
+        var n = word.charCodeAt(i) - letterBase;
+        if (!seen[n]) {
+            seen[n] = true;
             plan.push({
                 op: Operations.chooseLetter,
-                letter: letter,
+                letter: n,
                 base: base,
                 isInitial: i === 0
             });
         }
-        return letter;
+        return n;
     }
 }
-
-function WordProblemValues() {
-    var self = this;
-
-    self.a = null;
-    self.b = null;
-    self.c = null;
-    self.d = null;
-    self.e = null;
-    self.f = null;
-    self.g = null;
-    self.h = null;
-    self.i = null;
-    self.j = null;
-    self.k = null;
-    self.l = null;
-    self.m = null;
-    self.n = null;
-    self.o = null;
-    self.p = null;
-    self.q = null;
-    self.r = null;
-    self.s = null;
-    self.t = null;
-    self.u = null;
-    self.v = null;
-    self.w = null;
-    self.x = null;
-    self.y = null;
-    self.z = null;
-
-    self.rem = null;
-    self.carry = 0;
-
-    self.word1 = null;
-    self.word2 = null;
-    self.word3 = null;
-}
-
-WordProblemValues.prototype.copyFrom = function copyFrom(other) {
-    var self = this;
-
-    self.a = other.a;
-    self.b = other.b;
-    self.c = other.c;
-    self.d = other.d;
-    self.e = other.e;
-    self.f = other.f;
-    self.g = other.g;
-    self.h = other.h;
-    self.i = other.i;
-    self.j = other.j;
-    self.k = other.k;
-    self.l = other.l;
-    self.m = other.m;
-    self.n = other.n;
-    self.o = other.o;
-    self.p = other.p;
-    self.q = other.q;
-    self.r = other.r;
-    self.s = other.s;
-    self.t = other.t;
-    self.u = other.u;
-    self.v = other.v;
-    self.w = other.w;
-    self.x = other.x;
-    self.y = other.y;
-    self.z = other.z;
-
-    self.rem = other.rem;
-    self.carry = other.carry;
-
-    self.word1 = other.word1;
-    self.word2 = other.word2;
-    self.word3 = other.word3;
-};
 
 function WordProblemState() {
     var self = this;
@@ -269,7 +199,12 @@ function WordProblemState() {
     self.valid = true;
     self.result = null;
     self.chosen = [];
-    self.values = new WordProblemValues();
+    self.values = new Uint8Array(26);
+
+    self.carry = 0;
+    self.word1 = null;
+    self.word2 = null;
+    self.word3 = null;
 }
 
 WordProblemState.prototype.alloc = function alloc() {
@@ -279,15 +214,23 @@ WordProblemState.prototype.alloc = function alloc() {
 WordProblemState.prototype.copyFrom = function copyFrom(state) {
     var self = this;
 
+    var i;
     self.pi = state.pi;
     self.valid = true;
     self.result = null;
 
     self.chosen.length = state.chosen.length;
-    for (var i = 0; i < state.chosen.length; i++) {
+    for (i = 0; i < state.chosen.length; i++) {
         self.chosen[i] = state.chosen[i];
     }
-    self.values.copyFrom(state.values);
+    for (i = 0; i < self.values.length; i++) {
+        self.values[i] = state.values[i];
+    }
+
+    self.carry = state.carry;
+    self.word1 = state.word1;
+    self.word2 = state.word2;
+    self.word3 = state.word3;
 
     return self;
 };
