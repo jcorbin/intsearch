@@ -447,6 +447,22 @@ function printSol(sol) {
                 sol.result);
 }
 
+function find(words, each) {
+    var search = new ProgSearch(WordProblemState);
+    var prob = new WordProblem();
+    for (var i = 0; i < words.length; i++) {
+        prob.word1 = words[i];
+        for (var j = i + 1; j < words.length; j++) {
+            prob.word2 = words[j];
+            for (var k = 0; k < words.length; k++) {
+                prob.word3 = words[k];
+                solve(search, prob);
+                each(prob);
+            }
+        }
+    }
+}
+
 /*
  *     S E N D
  * +   M O R E
@@ -455,14 +471,28 @@ function printSol(sol) {
  */
 
 function main() {
-    var search = new ProgSearch(WordProblemState);
+    find(['send', 'more', 'money'], each);
 
-    var prob = new WordProblem();
-    prob.word1 = 'send';
-    prob.word2 = 'more';
-    prob.word3 = 'money';
-    solve(search, prob);
-    printSol(prob);
+    var n = 0;
+    var attempted = 0;
+    var skipped = 0;
+    var found = 0;
+    function each(sol) {
+        if (sol.skip) {
+            skipped++;
+        } else {
+            attempted++;
+            if (sol.result) {
+                found++;
+                printSol(sol);
+            }
+        }
+        if (++n % 1000 === 0) {
+            console.log(
+                'attempted %s skipped %s found %s',
+                attempted, skipped, found);
+        }
+    }
 }
 
 main();
