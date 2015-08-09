@@ -463,15 +463,18 @@ function find(words, each) {
     }
 }
 
-/*
- *     S E N D
- * +   M O R E
- * -----------
- *   M O N E Y
- */
-
 function main() {
-    find(['send', 'more', 'money'], each);
+    var split2 = require('split2');
+
+    var lines = [];
+    process.stdin
+        .pipe(split2())
+        .on('data', function each(line) {
+            lines.push(line);
+        })
+        .on('end', function readDone() {
+            find(lines, each);
+        });
 
     var n = 0;
     var attempted = 0;
