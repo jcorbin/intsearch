@@ -107,9 +107,17 @@ function baseFor(n) {
 
 function compileWordProblem(word1, word2, word3) {
     var lenDiff = word3.length - word2.length;
-    assert(word1.length <= 8);
-    assert(word1.length === word2.length);
-    assert(lenDiff === 0 || lenDiff === 1);
+    if (word1.length > 8) {
+        return null;
+    }
+
+    if (word1.length !== word2.length) {
+        return null;
+    }
+
+    if (lenDiff !== 0 && lenDiff !== 1) {
+        return null;
+    }
 
     var letters = lettersFrom([word1, word2, word3]);
     var base = baseFor(letters.length);
@@ -400,6 +408,45 @@ function hrtime2us(h) {
            h[1] / 1e3;
 }
 
+function WordProblem() {
+    this.word1 = '';
+    this.word2 = '';
+    this.word3 = '';
+    this.skip = false;
+    this.result = null;
+    this.time = [0, 0];
+    this.executed = 0;
+    this.expanded = 0;
+};
+
+function solve(search, prob) {
+    var start = process.hrtime();
+    var plan = compileWordProblem(prob.word1, prob.word2, prob.word3);
+    if (plan) {
+        search.run(plan, function eachResult(state) {
+            prob.result = state.result;
+            return true;
+        });
+        prob.skip = false;
+        prob.executed = search.executed;
+        prob.expanded = search.expanded;
+    } else {
+        prob.result = null;
+        prob.skip = true;
+        prob.executed = 0;
+        prob.expanded = 0;
+    }
+    prob.time = hrtimeDiff(process.hrtime(), start);
+}
+
+function printSol(sol) {
+    console.log('%s(%s, %s, %s) in %sus result: %s ',
+                sol.skip ? 'skipped' : 'solved',
+                sol.word1, sol.word2, sol.word3,
+                hrtime2us(sol.time),
+                sol.result);
+}
+
 /*
  *     S E N D
  * +   M O R E
@@ -408,27 +455,14 @@ function hrtime2us(h) {
  */
 
 function main() {
-    // var fs = require('fs');
-    // fs.readFileSync('/usr/share/dict/words', 'utf8')
-
     var search = new ProgSearch(WordProblemState);
-    var plan = compileWordProblem('send', 'more', 'money');
 
-    for (var i = 0; i < 15; i++) {
-        var start = process.hrtime();
-        var results = [];
-        search.run(plan, function eachResult(state) {
-            results.push(state.result)
-            return false;
-        });
-        var end = process.hrtime();
-        console.log(
-            'search done in %s (executed %s, expanded %s) found: %j',
-            hrtime2us(hrtimeDiff(end, start)),
-            search.executed, search.expanded,
-            results);
-    }
-
+    var prob = new WordProblem();
+    prob.word1 = 'send';
+    prob.word2 = 'more';
+    prob.word3 = 'money';
+    solve(search, prob);
+    printSol(prob);
 }
 
 main();
