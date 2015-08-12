@@ -4,6 +4,8 @@ var assert = require('assert');
 var split2 = require('split2');
 var util = require('util');
 
+var letterBase = 'a'.charCodeAt(0) - 1;
+
 var Operations = {};
 
 Operations.chooseLetter = function chooseLetter(state, op) {
@@ -62,8 +64,6 @@ Operations.checkCarry = function checkCarry(state, op) {
     state.valid = state.valid &&
                   state.carry === state.values[op.let3];
 };
-
-var letterBase = 'a'.charCodeAt(0) - 1;
 
 Operations.toNumber = function toNumber(state, op) {
     var value = 0;
