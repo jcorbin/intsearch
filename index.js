@@ -8,9 +8,16 @@ var StreamSample = require('./stream_sample.js');
 
 var letterBase = 'a'.charCodeAt(0) - 1;
 
-function InitialStateOperaion(state) {
-    this.state = state;
+function InitialStateOperaion() {
+    this.state = null;
 }
+
+InitialStateOperaion.prototype.init = function init(state) {
+    if (state !== this.state) {
+        this.state = state;
+    }
+    return this;
+};
 
 InitialStateOperaion.prototype.run = function initialState(state) {
     var pi = state.pi;
@@ -18,11 +25,18 @@ InitialStateOperaion.prototype.run = function initialState(state) {
     state.pi = pi;
 };
 
-function ChooseLetterOperation(letter, base, isInitial) {
+function ChooseLetterOperation() {
+    this.letter = '';
+    this.base = 2;
+    this.start = 0;
+}
+
+ChooseLetterOperation.prototype.init = function init(letter, base, isInitial) {
     this.letter = letter;
     this.base = base;
     this.start = isInitial ? 1 : 0;
-}
+    return this;
+};
 
 ChooseLetterOperation.prototype.run = function chooseLetter(state) {
     var pend = false;
@@ -48,9 +62,14 @@ ChooseLetterOperation.prototype.run = function chooseLetter(state) {
     }
 };
 
-function ResultOperation(values) {
-    this.values = values;
+function ResultOperation() {
+    this.values = null;
 }
+
+ResultOperation.prototype.init = function init(values) {
+    this.values = values;
+    return this;
+};
 
 ResultOperation.prototype.run = function result(state) {
     var res = new Array(this.values.length);
@@ -60,12 +79,20 @@ ResultOperation.prototype.run = function result(state) {
     state.result = res;
 };
 
-function SumOperation(let1, let2, let3, base) {
+function SumOperation() {
+    this.let1 = '';
+    this.let2 = '';
+    this.let3 = '';
+    this.base = 2;
+}
+
+SumOperation.prototype.init = function init(let1, let2, let3, base) {
     this.let1 = let1;
     this.let2 = let2;
     this.let3 = let3;
     this.base = base;
-}
+    return this;
+};
 
 SumOperation.prototype.run = function sum(state) {
     var sum = state.carry +
@@ -78,10 +105,15 @@ SumOperation.prototype.run = function sum(state) {
     state.carry = Math.floor(sum / this.base);
 };
 
-function CheckCarryOperation(letter) {
+function CheckCarryOperation() {
+    this.letter = '';
+}
+
+CheckCarryOperation.prototype.init = function init(letter) {
     this.letter = letter;
     this.run = this.letter ? this.runWithLetter : this.runNoLetter;
-}
+    return this;
+};
 
 CheckCarryOperation.prototype.runWithLetter = function checkCarry(state) {
     state.valid = state.valid &&
@@ -93,11 +125,18 @@ CheckCarryOperation.prototype.runNoLetter = function checkNoCarry(state) {
                   state.carry === 0;
 };
 
-function ToNumberOperation(word, base, store) {
+function ToNumberOperation() {
+    this.word = '';
+    this.base = 0;
+    this.store = '';
+}
+
+ToNumberOperation.prototype.init = function init(word, base, store) {
     this.word = word;
     this.base = base;
     this.store = store;
-}
+    return this;
+};
 
 ToNumberOperation.prototype.run = function toNumber(state) {
     var value = 0;
@@ -423,22 +462,22 @@ WordProblem.prototype.compile = function compile() {
     var plan = [];
 
     var initialState = (new WordProblemState()).init(self.base);
-    plan.push(new InitialStateOperaion(initialState));
+    plan.push((new InitialStateOperaion).init(initialState));
 
     var seen = {};
     for (var i = 1; i <= self.word1.length; i++) {
         var let1 = addLetter(self.word1, self.word1.length - i);
         var let2 = addLetter(self.word2, self.word2.length - i);
         var let3 = addLetter(self.word3, self.word3.length - i);
-        plan.push(new SumOperation(let1, let2, let3, self.base));
+        plan.push((new SumOperation).init(let1, let2, let3, self.base));
     }
     var lastLetter = lenDiff ? addLetter(self.word3, 0) : '';
-    plan.push(new CheckCarryOperation(lastLetter));
+    plan.push((new CheckCarryOperation).init(lastLetter));
 
-    plan.push(new ToNumberOperation(self.word1, self.base, 'word1'));
-    plan.push(new ToNumberOperation(self.word2, self.base, 'word2'));
-    plan.push(new ToNumberOperation(self.word3, self.base, 'word3'));
-    plan.push(new ResultOperation(['word1', 'word2', 'word3']));
+    plan.push((new ToNumberOperation).init(self.word1, self.base, 'word1'));
+    plan.push((new ToNumberOperation).init(self.word2, self.base, 'word2'));
+    plan.push((new ToNumberOperation).init(self.word3, self.base, 'word3'));
+    plan.push((new ResultOperation).init(['word1', 'word2', 'word3']));
 
     self.plan = plan;
 
@@ -448,7 +487,7 @@ WordProblem.prototype.compile = function compile() {
         if (!seen[n]) {
             seen[n] = true;
             var isInitial = i === 0 || c === word.charCodeAt(0);
-            plan.push(new ChooseLetterOperation(n, self.base, isInitial));
+            plan.push((new ChooseLetterOperation).init(n, self.base, isInitial));
         }
         return n;
     }
