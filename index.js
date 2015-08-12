@@ -435,11 +435,13 @@ WordProblem.prototype.reset = function reset() {
 };
 
 WordProblem.prototype.compile = function compile() {
-    if (this.plan) {
-        this.reset();
+    var self = this;
+
+    if (self.plan) {
+        self.reset();
     }
 
-    this.plan = compileWordProblem(this.word1, this.word2, this.word3);
+    self.plan = compileWordProblem(self.word1, self.word2, self.word3);
 };
 
 WordProblem.prototype.run = function run(search) {
