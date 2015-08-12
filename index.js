@@ -11,6 +11,9 @@ var letterBase = 'a'.charCodeAt(0) - 1;
 var Operations = {};
 
 Operations.initialState = function initialState(state, op) {
+    var pi = state.pi;
+    state.copyFrom(op.state);
+    state.pi = pi;
 };
 
 Operations.chooseLetter = function chooseLetter(state, op) {
@@ -224,7 +227,6 @@ ProgSearch.prototype.run = function run(plan, each) {
     var self = this;
 
     var state = self.alloc().reset();
-    state.copyFrom(plan[0].state);
     self.pushed = 0;
     self.executed = 0;
     self.expanded = 1;
