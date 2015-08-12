@@ -82,7 +82,6 @@ function lettersFrom(words) {
     var letters = [];
     var seen = {};
     words.forEach(function each(word) {
-        word = word.toLowerCase();
         for (var i = 0; i < word.length; i++) {
             var n = word.charCodeAt(i) - letterBase;
             if (!seen[n]) {
@@ -109,6 +108,10 @@ function baseFor(n) {
 }
 
 function compileWordProblem(word1, word2, word3) {
+    word1 = word1.toLowerCase();
+    word2 = word2.toLowerCase();
+    word3 = word3.toLowerCase();
+
     var lenDiff = word3.length - word2.length;
     if (word1.length > 8) {
         return null;
@@ -163,21 +166,21 @@ function compileWordProblem(word1, word2, word3) {
     plan.push({
         op: Operations.toNumber,
         store: 'word1',
-        word: word1.toLowerCase(),
+        word: word1,
         base: base
     });
 
     plan.push({
         op: Operations.toNumber,
         store: 'word2',
-        word: word2.toLowerCase(),
+        word: word2,
         base: base
     });
 
     plan.push({
         op: Operations.toNumber,
         store: 'word3',
-        word: word3.toLowerCase(),
+        word: word3,
         base: base
     });
 
