@@ -1,7 +1,8 @@
 'use strict';
 
-var util = require('util');
 var assert = require('assert');
+var split2 = require('split2');
+var util = require('util');
 
 var Operations = {};
 
@@ -464,8 +465,6 @@ function find(words, each) {
 }
 
 function main() {
-    var split2 = require('split2');
-
     var lines = [];
     process.stdin
         .pipe(split2())
