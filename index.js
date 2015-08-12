@@ -10,24 +10,24 @@ var letterBase = 'a'.charCodeAt(0) - 1;
 
 var Operations = {};
 
-Operations.initialState = function initialState(state, op) {
+Operations.initialState = function initialState(state) {
     var pi = state.pi;
-    state.copyFrom(op.state);
+    state.copyFrom(this.state);
     state.pi = pi;
 };
 
-Operations.chooseLetter = function chooseLetter(state, op) {
-    var start = op.isInitial ? 1 : 0;
+Operations.chooseLetter = function chooseLetter(state) {
+    var start = this.isInitial ? 1 : 0;
 
     var pend = false;
     var pendDigit = start;
 
-    for (var digit = start; digit < op.base; digit++) {
+    for (var digit = start; digit < this.base; digit++) {
         if (!state.chosen[digit]) {
             if (pend) {
                 var next = (state.alloc()).copyFrom(state);
                 next.chosen[pendDigit] = true;
-                next.values[op.letter] = pendDigit;
+                next.values[this.letter] = pendDigit;
             }
             pend = true;
             pendDigit = digit;
@@ -36,52 +36,51 @@ Operations.chooseLetter = function chooseLetter(state, op) {
 
     if (pend) {
         state.chosen[pendDigit] = true;
-        state.values[op.letter] = pendDigit;
+        state.values[this.letter] = pendDigit;
     } else {
         state.valid = false;
     }
 };
 
-Operations.result = function result(state, op) {
-    var res = new Array(op.values.length);
-    for (var i = 0; i < op.values.length; i++) {
-        res[i] = state[op.values[i]];
+Operations.result = function result(state) {
+    var res = new Array(this.values.length);
+    for (var i = 0; i < this.values.length; i++) {
+        res[i] = state[this.values[i]];
     }
     state.result = res;
 };
 
-Operations.sum = function sum(state, op) {
-    var base = op.base;
+Operations.sum = function sum(state) {
+    var base = this.base;
 
     var sum = state.carry +
-              state.values[op.let1] +
-              state.values[op.let2];
+              state.values[this.let1] +
+              state.values[this.let2];
 
     var rem = sum % base;
-    state.valid = rem === state.values[op.let3];
+    state.valid = rem === state.values[this.let3];
 
     state.carry = Math.floor(sum / base);
 };
 
-Operations.checkNoCarry = function checkNoCarry(state, op) {
+Operations.checkNoCarry = function checkNoCarry(state) {
     state.valid = state.valid &&
                   state.carry === 0;
 };
 
-Operations.checkCarry = function checkCarry(state, op) {
+Operations.checkCarry = function checkCarry(state) {
     state.valid = state.valid &&
-                  state.carry === state.values[op.let3];
+                  state.carry === state.values[this.let3];
 };
 
-Operations.toNumber = function toNumber(state, op) {
+Operations.toNumber = function toNumber(state) {
     var value = 0;
-    // for (var i = op.values.length-1; i >= 0; i--)
-    for (var i = 0; i < op.word.length; i++) {
-        var n = op.word.charCodeAt(i) - letterBase;
-        value *= op.base;
+    for (var i = 0; i < this.word.length; i++) {
+        var n = this.word.charCodeAt(i) - letterBase;
+        value *= this.base;
         value += state.values[n];
     }
-    state[op.store] = value;
+    state[this.store] = value;
 };
 
 function lettersFrom(words) {
@@ -247,7 +246,7 @@ ProgSearch.prototype.expand = function expand(plan, each) {
     while (!self.pushed && state.valid && state.pi < plan.length) {
         self.executed++;
         var op = plan[state.pi++];
-        op.op(state, op);
+        op.run(state);
     }
 
     if (!state.valid) {
@@ -399,14 +398,14 @@ WordProblem.prototype.compile = function compile() {
 
     var initialState = (new WordProblemState()).init(self.base);
     plan.push({
-        op: Operations.initialState,
+        run: Operations.initialState,
         state: initialState
     });
 
     var seen = {};
     for (var i = 1; i <= self.word1.length; i++) {
         plan.push({
-            op: Operations.sum,
+            run: Operations.sum,
             base: self.base,
             let1: addLetter(self.word1, self.word1.length - i),
             let2: addLetter(self.word2, self.word2.length - i),
@@ -416,38 +415,38 @@ WordProblem.prototype.compile = function compile() {
 
     if (lenDiff) {
         plan.push({
-            op: Operations.checkCarry,
+            run: Operations.checkCarry,
             let3: addLetter(self.word3, 0)
         });
     } else {
         plan.push({
-            op: Operations.checkNoCarry
+            run: Operations.checkNoCarry
         });
     }
 
     plan.push({
-        op: Operations.toNumber,
+        run: Operations.toNumber,
         store: 'word1',
         word: self.word1,
         base: self.base
     });
 
     plan.push({
-        op: Operations.toNumber,
+        run: Operations.toNumber,
         store: 'word2',
         word: self.word2,
         base: self.base
     });
 
     plan.push({
-        op: Operations.toNumber,
+        run: Operations.toNumber,
         store: 'word3',
         word: self.word3,
         base: self.base
     });
 
     plan.push({
-        op: Operations.result,
+        run: Operations.result,
         values: ['word1', 'word2', 'word3']
     });
 
@@ -459,7 +458,7 @@ WordProblem.prototype.compile = function compile() {
         if (!seen[n]) {
             seen[n] = true;
             plan.push({
-                op: Operations.chooseLetter,
+                run: Operations.chooseLetter,
                 letter: n,
                 base: self.base,
                 isInitial: i === 0 || c === word.charCodeAt(0)
