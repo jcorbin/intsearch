@@ -129,6 +129,30 @@ WordProblemState.prototype.alloc = function alloc() {
     return new WordProblemState();
 };
 
+WordProblemState.prototype.init = function init(base) {
+    var i;
+
+    this.pi = 0;
+    this.valid = true;
+    this.result = null;
+
+    this.chosen.length = base;
+    for (i = 0; i < base; i++) {
+        this.chosen[i] = false;
+    }
+
+    for (i = 0; i < this.values.length; i++) {
+        this.values[i] = 0;
+    }
+
+    this.carry = 0;
+    this.word1 = null;
+    this.word2 = null;
+    this.word3 = null;
+
+    return this;
+};
+
 WordProblemState.prototype.copyFrom = function copyFrom(state) {
     var i;
 
@@ -366,12 +390,7 @@ WordProblem.prototype.compile = function compile() {
 
     var plan = [];
 
-    var initialState = new WordProblemState();
-    initialState.chosen.length = self.base;
-    for (var i = 0; i < self.base; i++) {
-        initialState.chosen[i] = false;
-    }
-
+    var initialState = (new WordProblemState()).init(self.base);
     plan.push({
         op: Operations.initialState,
         state: initialState
