@@ -464,9 +464,9 @@ function find(words, each) {
     }
 }
 
-function main() {
+function searchStream(stream) {
     var lines = [];
-    process.stdin
+    stream
         .pipe(split2())
         .on('data', function each(line) {
             lines.push(line);
@@ -495,6 +495,10 @@ function main() {
                 attempted, skipped, found);
         }
     }
+}
+
+function main() {
+    searchStream(process.stdin);
 }
 
 main();
