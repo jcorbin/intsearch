@@ -427,16 +427,21 @@ function WordProblem() {
     this.plan = null;
 };
 
+WordProblem.prototype.reset = function reset() {
+    this.result = null;
+    this.time = [0, 0];
+    this.executed = 0;
+    this.expanded = 0;
+};
+
 WordProblem.prototype.run = function run(search) {
     var start = process.hrtime();
     this.plan = compileWordProblem(this.word1, this.word2, this.word3);
     if (this.plan) {
         this.runPlan(search);
     } else {
-        this.result = null;
+        this.reset();
         this.skip = true;
-        this.executed = 0;
-        this.expanded = 0;
     }
     this.time = hrtimeDiff(process.hrtime(), start);
 };
