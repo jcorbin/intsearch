@@ -21,16 +21,14 @@ InitialStateOperaion.prototype.run = function initialState(state) {
 function ChooseLetterOperation(letter, base, isInitial) {
     this.letter = letter;
     this.base = base;
-    this.isInitial = isInitial;
+    this.start = isInitial ? 1 : 0;
 }
 
 ChooseLetterOperation.prototype.run = function chooseLetter(state) {
-    var start = this.isInitial ? 1 : 0;
-
     var pend = false;
-    var pendDigit = start;
+    var pendDigit = this.start;
 
-    for (var digit = start; digit < this.base; digit++) {
+    for (var digit = this.start; digit < this.base; digit++) {
         if (!state.chosen[digit]) {
             if (pend) {
                 var next = (state.alloc()).copyFrom(state);
