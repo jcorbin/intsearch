@@ -4,6 +4,8 @@ var assert = require('assert');
 var split2 = require('split2');
 var util = require('util');
 
+var StreamSample = require('./stream_sample.js');
+
 var letterBase = 'a'.charCodeAt(0) - 1;
 
 var Operations = {};
@@ -509,26 +511,31 @@ function test() {
     }
 }
 
-function testFind() {
-    find([
-        'A',
-        'a',
-        'aa',
-        'aal',
-        'aalii',
-        'aam',
-        'Aani',
-        'aardvark',
-        'aardwolf',
-        'Aaron',
-    ], printSol);
+function testFind(stream, n, seed) {
+    if (typeof n !== 'number' || isNaN(n) ||
+        typeof seed !== 'number' || isNaN(seed)
+    ) {
+        console.error('usage: testFind N SEED');
+        process.exit(1);
+    }
+
+    StreamSample(stream.pipe(split2()), n, seed, onSample);
+
+    function onSample(err, sample) {
+        var words = new Array(sample.length);
+        for (var i = 0; i < sample.length; i++) {
+            words[i] = sample[i].item;
+        }
+
+        find(words, printSol);
+    }
 }
 
 function main(argv) {
     if (argv[1] === 'test') {
         test();
     } else if (argv[1] === 'testFind') {
-        testFind();
+        testFind(process.stdin, parseInt(argv[2]), parseInt(argv[3]));
     } else {
         searchStream(process.stdin);
     }
