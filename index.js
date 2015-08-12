@@ -10,6 +10,9 @@ var letterBase = 'a'.charCodeAt(0) - 1;
 
 var Operations = {};
 
+Operations.initialState = function initialState(state, op) {
+};
+
 Operations.chooseLetter = function chooseLetter(state, op) {
     var start = op.isInitial ? 1 : 0;
 
@@ -368,9 +371,9 @@ WordProblem.prototype.compile = function compile() {
     for (var i = 0; i < self.base; i++) {
         initialState.chosen[i] = false;
     }
-    initialState.pi = 1;
 
     plan.push({
+        op: Operations.initialState,
         state: initialState
     });
 
