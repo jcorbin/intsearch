@@ -18,9 +18,13 @@ InitialStateOperaion.prototype.run = function initialState(state) {
     state.pi = pi;
 };
 
-var Operations = {};
+function ChooseLetterOperation(letter, base, isInitial) {
+    this.letter = letter;
+    this.base = base;
+    this.isInitial = isInitial;
+}
 
-Operations.chooseLetter = function chooseLetter(state) {
+ChooseLetterOperation.prototype.run = function chooseLetter(state) {
     var start = this.isInitial ? 1 : 0;
 
     var pend = false;
@@ -45,6 +49,8 @@ Operations.chooseLetter = function chooseLetter(state) {
         state.valid = false;
     }
 };
+
+var Operations = {};
 
 Operations.result = function result(state) {
     var res = new Array(this.values.length);
@@ -461,12 +467,8 @@ WordProblem.prototype.compile = function compile() {
         var n = c - letterBase;
         if (!seen[n]) {
             seen[n] = true;
-            plan.push({
-                run: Operations.chooseLetter,
-                letter: n,
-                base: self.base,
-                isInitial: i === 0 || c === word.charCodeAt(0)
-            });
+            var isInitial = i === 0 || c === word.charCodeAt(0);
+            plan.push(new ChooseLetterOperation(n, self.base, isInitial));
         }
         return n;
     }
