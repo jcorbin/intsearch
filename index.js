@@ -85,7 +85,7 @@ function lettersFrom(words) {
             var n = word.charCodeAt(i) - letterBase;
             if (!seen[n]) {
                 seen[n] = true;
-                letters.push[n];
+                letters.push(n);
             }
         }
     });
