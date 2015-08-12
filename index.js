@@ -68,16 +68,14 @@ function SumOperation(let1, let2, let3, base) {
 }
 
 SumOperation.prototype.run = function sum(state) {
-    var base = this.base;
-
     var sum = state.carry +
               state.values[this.let1] +
               state.values[this.let2];
 
-    var rem = sum % base;
+    var rem = sum % this.base;
     state.valid = rem === state.values[this.let3];
 
-    state.carry = Math.floor(sum / base);
+    state.carry = Math.floor(sum / this.base);
 };
 
 function CheckCarryOperation(letter) {
