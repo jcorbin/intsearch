@@ -319,7 +319,6 @@ function WordProblem() {
     this.word1 = '';
     this.word2 = '';
     this.word3 = '';
-    this.skip = false;
     this.result = null;
     this.time = [0, 0];
     this.executed = 0;
@@ -447,8 +446,6 @@ WordProblem.prototype.run = function run(search) {
     this.compile();
     if (this.plan) {
         this.runPlan(search);
-    } else {
-        this.skip = true;
     }
     this.time = hrtimeDiff(process.hrtime(), start);
 };
@@ -457,7 +454,6 @@ WordProblem.prototype.runPlan = function runPlan(search) {
     var self = this;
 
     search.run(self.plan, eachResult);
-    self.skip = false;
     self.executed = search.executed;
     self.expanded = search.expanded;
 
@@ -469,7 +465,7 @@ WordProblem.prototype.runPlan = function runPlan(search) {
 
 function printSol(sol) {
     console.log('%s(%s, %s, %s) in %sus result: %s ',
-                sol.skip ? 'skipped' : 'solved',
+                sol.plan ? 'solved' : 'skipped',
                 sol.word1, sol.word2, sol.word3,
                 hrtime2us(sol.time),
                 sol.result);
@@ -507,14 +503,15 @@ function searchStream(stream) {
     var skipped = 0;
     var found = 0;
     function each(sol) {
-        if (sol.skip) {
-            skipped++;
-        } else {
+        // prob -> sol
+        if (sol.plan) {
             attempted++;
             if (sol.result) {
                 found++;
                 printSol(sol);
             }
+        } else {
+            skipped++;
         }
         if (++n % 1000 === 0) {
             console.log(
