@@ -99,9 +99,13 @@ CheckNoCarryOperation.prototype.run = function checkNoCarry(state) {
                   state.carry === 0;
 };
 
-var Operations = {};
+function ToNumberOperation(word, base, store) {
+    this.word = word;
+    this.base = base;
+    this.store = store;
+}
 
-Operations.toNumber = function toNumber(state) {
+ToNumberOperation.prototype.run = function toNumber(state) {
     var value = 0;
     for (var i = 0; i < this.word.length; i++) {
         var n = this.word.charCodeAt(i) - letterBase;
@@ -441,27 +445,9 @@ WordProblem.prototype.compile = function compile() {
         plan.push(new CheckNoCarryOperation());
     }
 
-    plan.push({
-        run: Operations.toNumber,
-        store: 'word1',
-        word: self.word1,
-        base: self.base
-    });
-
-    plan.push({
-        run: Operations.toNumber,
-        store: 'word2',
-        word: self.word2,
-        base: self.base
-    });
-
-    plan.push({
-        run: Operations.toNumber,
-        store: 'word3',
-        word: self.word3,
-        base: self.base
-    });
-
+    plan.push(new ToNumberOperation(self.word1, self.base, 'word1'));
+    plan.push(new ToNumberOperation(self.word2, self.base, 'word2'));
+    plan.push(new ToNumberOperation(self.word3, self.base, 'word3'));
     plan.push(new ResultOperation(['word1', 'word2', 'word3']));
 
     self.plan = plan;
