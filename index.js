@@ -62,9 +62,14 @@ ResultOperation.prototype.run = function result(state) {
     state.result = res;
 };
 
-var Operations = {};
+function SumOperation(let1, let2, let3, base) {
+    this.let1 = let1;
+    this.let2 = let2;
+    this.let3 = let3;
+    this.base = base;
+}
 
-Operations.sum = function sum(state) {
+SumOperation.prototype.run = function sum(state) {
     var base = this.base;
 
     var sum = state.carry +
@@ -76,6 +81,8 @@ Operations.sum = function sum(state) {
 
     state.carry = Math.floor(sum / base);
 };
+
+var Operations = {};
 
 Operations.checkNoCarry = function checkNoCarry(state) {
     state.valid = state.valid &&
@@ -418,13 +425,7 @@ WordProblem.prototype.compile = function compile() {
         var let1 = addLetter(self.word1, self.word1.length - i);
         var let2 = addLetter(self.word2, self.word2.length - i);
         var let3 = addLetter(self.word3, self.word3.length - i);
-        plan.push({
-            run: Operations.sum,
-            base: self.base,
-            let1: let1,
-            let2: let2,
-            let3: let3
-        });
+        plan.push(new SumOperation(let1, let2, let3, self.base));
     }
 
     if (lenDiff) {
