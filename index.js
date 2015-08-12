@@ -498,8 +498,12 @@ WordProblem.prototype.compile = function compile() {
 
     var plan = [];
 
-    var initialState = (new WordProblemState()).init(self.base);
-    plan.push(InitialStateOperaion.alloc().init(initialState));
+    var initialState = InitialStateOperaion.alloc();
+    if (!initialState.state) {
+        initialState.state = WordProblemState.alloc();
+    }
+    initialState.state.init(self.base)
+    plan.push(initialState);
 
     var seen = {};
     for (var i = 1; i <= self.word1.length; i++) {
