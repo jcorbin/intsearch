@@ -127,27 +127,26 @@ WordProblemState.prototype.alloc = function alloc() {
 };
 
 WordProblemState.prototype.copyFrom = function copyFrom(state) {
-    var self = this;
-
     var i;
-    self.pi = state.pi;
-    self.valid = true;
-    self.result = null;
 
-    self.chosen.length = state.chosen.length;
+    this.pi = state.pi;
+    this.valid = true;
+    this.result = null;
+
+    this.chosen.length = state.chosen.length;
     for (i = 0; i < state.chosen.length; i++) {
-        self.chosen[i] = state.chosen[i];
+        this.chosen[i] = state.chosen[i];
     }
-    for (i = 0; i < self.values.length; i++) {
-        self.values[i] = state.values[i];
+    for (i = 0; i < this.values.length; i++) {
+        this.values[i] = state.values[i];
     }
 
-    self.carry = state.carry;
-    self.word1 = state.word1;
-    self.word2 = state.word2;
-    self.word3 = state.word3;
+    this.carry = state.carry;
+    this.word1 = state.word1;
+    this.word2 = state.word2;
+    this.word3 = state.word3;
 
-    return self;
+    return this;
 };
 
 function ProgSearch(stateType) {
