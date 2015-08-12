@@ -129,6 +129,10 @@ WordProblemState.prototype.alloc = function alloc() {
     return new WordProblemState();
 };
 
+WordProblemState.prototype.reset = function reset() {
+    return this.init(this.chosen.length);
+};
+
 WordProblemState.prototype.init = function init(base) {
     var i;
 
@@ -219,7 +223,8 @@ ProgSearch.prototype.clear = function clear() {
 ProgSearch.prototype.run = function run(plan, each) {
     var self = this;
 
-    self.alloc().copyFrom(plan[0].state);
+    var state = self.alloc().reset();
+    state.copyFrom(plan[0].state);
     self.pushed = 0;
     self.executed = 0;
     self.expanded = 1;
