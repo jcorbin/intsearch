@@ -50,15 +50,19 @@ ChooseLetterOperation.prototype.run = function chooseLetter(state) {
     }
 };
 
-var Operations = {};
+function ResultOperation(values) {
+    this.values = values;
+}
 
-Operations.result = function result(state) {
+ResultOperation.prototype.run = function result(state) {
     var res = new Array(this.values.length);
     for (var i = 0; i < this.values.length; i++) {
         res[i] = state[this.values[i]];
     }
     state.result = res;
 };
+
+var Operations = {};
 
 Operations.sum = function sum(state) {
     var base = this.base;
@@ -455,10 +459,7 @@ WordProblem.prototype.compile = function compile() {
         base: self.base
     });
 
-    plan.push({
-        run: Operations.result,
-        values: ['word1', 'word2', 'word3']
-    });
+    plan.push(new ResultOperation(['word1', 'word2', 'word3']));
 
     self.plan = plan;
 
