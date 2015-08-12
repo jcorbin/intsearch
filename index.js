@@ -325,6 +325,7 @@ function WordProblem() {
     this.executed = 0;
     this.expanded = 0;
     this.plan = null;
+    this.base = 0;
 };
 
 WordProblem.prototype.reset = function reset() {
@@ -360,13 +361,13 @@ WordProblem.prototype.compile = function compile() {
     self.word3 = self.word3.toLowerCase();
 
     var letters = lettersFrom([self.word1, self.word2, self.word3]);
-    var base = baseFor(letters.length);
+    self.base = baseFor(letters.length);
 
     var plan = [];
 
     var initialState = new WordProblemState();
-    initialState.chosen.length = base;
-    for (var i = 0; i < base; i++) {
+    initialState.chosen.length = self.base;
+    for (var i = 0; i < self.base; i++) {
         initialState.chosen[i] = false;
     }
     initialState.pi = 1;
@@ -379,7 +380,7 @@ WordProblem.prototype.compile = function compile() {
     for (var i = 1; i <= self.word1.length; i++) {
         plan.push({
             op: Operations.sum,
-            base: base,
+            base: self.base,
             let1: addLetter(self.word1, self.word1.length - i),
             let2: addLetter(self.word2, self.word2.length - i),
             let3: addLetter(self.word3, self.word3.length - i)
@@ -401,21 +402,21 @@ WordProblem.prototype.compile = function compile() {
         op: Operations.toNumber,
         store: 'word1',
         word: self.word1,
-        base: base
+        base: self.base
     });
 
     plan.push({
         op: Operations.toNumber,
         store: 'word2',
         word: self.word2,
-        base: base
+        base: self.base
     });
 
     plan.push({
         op: Operations.toNumber,
         store: 'word3',
         word: self.word3,
-        base: base
+        base: self.base
     });
 
     plan.push({
@@ -433,7 +434,7 @@ WordProblem.prototype.compile = function compile() {
             plan.push({
                 op: Operations.chooseLetter,
                 letter: n,
-                base: base,
+                base: self.base,
                 isInitial: i === 0 || c === word.charCodeAt(0)
             });
         }
