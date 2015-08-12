@@ -405,12 +405,15 @@ WordProblem.prototype.compile = function compile() {
 
     var seen = {};
     for (var i = 1; i <= self.word1.length; i++) {
+        var let1 = addLetter(self.word1, self.word1.length - i);
+        var let2 = addLetter(self.word2, self.word2.length - i);
+        var let3 = addLetter(self.word3, self.word3.length - i);
         plan.push({
             run: Operations.sum,
             base: self.base,
-            let1: addLetter(self.word1, self.word1.length - i),
-            let2: addLetter(self.word2, self.word2.length - i),
-            let3: addLetter(self.word3, self.word3.length - i)
+            let1: let1,
+            let2: let2,
+            let3: let3
         });
     }
 
