@@ -436,11 +436,11 @@ WordProblem.prototype.reset = function reset() {
 
 WordProblem.prototype.run = function run(search) {
     var start = process.hrtime();
+    this.reset();
     this.plan = compileWordProblem(this.word1, this.word2, this.word3);
     if (this.plan) {
         this.runPlan(search);
     } else {
-        this.reset();
         this.skip = true;
     }
     this.time = hrtimeDiff(process.hrtime(), start);
