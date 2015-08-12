@@ -434,10 +434,17 @@ WordProblem.prototype.reset = function reset() {
     this.expanded = 0;
 };
 
+WordProblem.prototype.compile = function compile() {
+    if (this.plan) {
+        this.reset();
+    }
+
+    this.plan = compileWordProblem(this.word1, this.word2, this.word3);
+};
+
 WordProblem.prototype.run = function run(search) {
     var start = process.hrtime();
-    this.reset();
-    this.plan = compileWordProblem(this.word1, this.word2, this.word3);
+    this.compile();
     if (this.plan) {
         this.runPlan(search);
     } else {
