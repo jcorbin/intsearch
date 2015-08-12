@@ -8,13 +8,17 @@ var StreamSample = require('./stream_sample.js');
 
 var letterBase = 'a'.charCodeAt(0) - 1;
 
-var Operations = {};
+function InitialStateOperaion(state) {
+    this.state = state;
+}
 
-Operations.initialState = function initialState(state) {
+InitialStateOperaion.prototype.run = function initialState(state) {
     var pi = state.pi;
     state.copyFrom(this.state);
     state.pi = pi;
 };
+
+var Operations = {};
 
 Operations.chooseLetter = function chooseLetter(state) {
     var start = this.isInitial ? 1 : 0;
@@ -397,10 +401,7 @@ WordProblem.prototype.compile = function compile() {
     var plan = [];
 
     var initialState = (new WordProblemState()).init(self.base);
-    plan.push({
-        run: Operations.initialState,
-        state: initialState
-    });
+    plan.push(new InitialStateOperaion(initialState));
 
     var seen = {};
     for (var i = 1; i <= self.word1.length; i++) {
