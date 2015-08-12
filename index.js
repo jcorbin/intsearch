@@ -473,7 +473,7 @@ WordProblem.prototype.compile = function compile() {
 
     if (self.plan) {
         self.reset();
-        self.plan = null;
+        self.freePlan();
     }
 
     var lenDiff = self.word3.length - self.word2.length;
@@ -527,6 +527,15 @@ WordProblem.prototype.compile = function compile() {
             plan.push(ChooseLetterOperation.alloc().init(n, self.base, isInitial));
         }
         return n;
+    }
+};
+
+WordProblem.prototype.freePlan = function freePlan() {
+    if (this.plan) {
+        for (var i = 0; i < this.plan.length; i++) {
+            this.plan[i].free();
+        }
+        this.plan = null;
     }
 };
 
