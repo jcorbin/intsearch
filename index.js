@@ -8,9 +8,34 @@ var StreamSample = require('./stream_sample.js');
 
 var letterBase = 'a'.charCodeAt(0) - 1;
 
+function poolize(Cons) {
+    Cons.pool = [];
+
+    Cons.alloc = function alloc() {
+        var self;
+        if (Cons.pool.length) {
+            self = Cons.pool.shift();
+        } else {
+            self = new Cons();
+        }
+        return self;
+    };
+
+    Cons.free = function free(self) {
+        Cons.pool.push(self);
+    };
+
+    Cons.prototype.free = function free() {
+        Cons.pool.push(this);
+    };
+
+}
+
 function InitialStateOperaion() {
     this.state = null;
 }
+
+poolize(InitialStateOperaion);
 
 InitialStateOperaion.prototype.init = function init(state) {
     if (state !== this.state) {
@@ -30,6 +55,8 @@ function ChooseLetterOperation() {
     this.base = 2;
     this.start = 0;
 }
+
+poolize(ChooseLetterOperation);
 
 ChooseLetterOperation.prototype.init = function init(letter, base, isInitial) {
     this.letter = letter;
@@ -71,6 +98,8 @@ ResultOperation.prototype.init = function init(values) {
     return this;
 };
 
+poolize(ResultOperation);
+
 ResultOperation.prototype.run = function result(state) {
     var res = new Array(this.values.length);
     for (var i = 0; i < this.values.length; i++) {
@@ -85,6 +114,8 @@ function SumOperation() {
     this.let3 = '';
     this.base = 2;
 }
+
+poolize(SumOperation);
 
 SumOperation.prototype.init = function init(let1, let2, let3, base) {
     this.let1 = let1;
@@ -109,6 +140,8 @@ function CheckCarryOperation() {
     this.letter = '';
 }
 
+poolize(CheckCarryOperation);
+
 CheckCarryOperation.prototype.init = function init(letter) {
     this.letter = letter;
     this.run = this.letter ? this.runWithLetter : this.runNoLetter;
@@ -130,6 +163,8 @@ function ToNumberOperation() {
     this.base = 0;
     this.store = '';
 }
+
+poolize(ToNumberOperation);
 
 ToNumberOperation.prototype.init = function init(word, base, store) {
     this.word = word;
@@ -191,6 +226,8 @@ function WordProblemState() {
     self.word2 = null;
     self.word3 = null;
 }
+
+poolize(WordProblemState);
 
 WordProblemState.prototype.alloc = function alloc() {
     return new WordProblemState();
@@ -462,22 +499,22 @@ WordProblem.prototype.compile = function compile() {
     var plan = [];
 
     var initialState = (new WordProblemState()).init(self.base);
-    plan.push((new InitialStateOperaion).init(initialState));
+    plan.push(InitialStateOperaion.alloc().init(initialState));
 
     var seen = {};
     for (var i = 1; i <= self.word1.length; i++) {
         var let1 = addLetter(self.word1, self.word1.length - i);
         var let2 = addLetter(self.word2, self.word2.length - i);
         var let3 = addLetter(self.word3, self.word3.length - i);
-        plan.push((new SumOperation).init(let1, let2, let3, self.base));
+        plan.push(SumOperation.alloc().init(let1, let2, let3, self.base));
     }
     var lastLetter = lenDiff ? addLetter(self.word3, 0) : '';
-    plan.push((new CheckCarryOperation).init(lastLetter));
+    plan.push(CheckCarryOperation.alloc().init(lastLetter));
 
-    plan.push((new ToNumberOperation).init(self.word1, self.base, 'word1'));
-    plan.push((new ToNumberOperation).init(self.word2, self.base, 'word2'));
-    plan.push((new ToNumberOperation).init(self.word3, self.base, 'word3'));
-    plan.push((new ResultOperation).init(['word1', 'word2', 'word3']));
+    plan.push(ToNumberOperation.alloc().init(self.word1, self.base, 'word1'));
+    plan.push(ToNumberOperation.alloc().init(self.word2, self.base, 'word2'));
+    plan.push(ToNumberOperation.alloc().init(self.word3, self.base, 'word3'));
+    plan.push(ResultOperation.alloc().init(['word1', 'word2', 'word3']));
 
     self.plan = plan;
 
@@ -487,7 +524,7 @@ WordProblem.prototype.compile = function compile() {
         if (!seen[n]) {
             seen[n] = true;
             var isInitial = i === 0 || c === word.charCodeAt(0);
-            plan.push((new ChooseLetterOperation).init(n, self.base, isInitial));
+            plan.push(ChooseLetterOperation.alloc().init(n, self.base, isInitial));
         }
         return n;
     }
