@@ -84,17 +84,15 @@ SumOperation.prototype.run = function sum(state) {
 
 function CheckCarryOperation(letter) {
     this.letter = letter;
+    this.run = this.letter ? this.runWithLetter : this.runNoLetter;
 }
 
-CheckCarryOperation.prototype.run = function checkCarry(state) {
+CheckCarryOperation.prototype.runWithLetter = function checkCarry(state) {
     state.valid = state.valid &&
                   state.carry === state.values[this.letter];
 };
 
-function CheckNoCarryOperation() {
-}
-
-CheckNoCarryOperation.prototype.run = function checkNoCarry(state) {
+CheckCarryOperation.prototype.runNoLetter = function checkNoCarry(state) {
     state.valid = state.valid &&
                   state.carry === 0;
 };
@@ -438,12 +436,8 @@ WordProblem.prototype.compile = function compile() {
         var let3 = addLetter(self.word3, self.word3.length - i);
         plan.push(new SumOperation(let1, let2, let3, self.base));
     }
-
-    if (lenDiff) {
-        plan.push(new CheckCarryOperation(addLetter(self.word3, 0)));
-    } else {
-        plan.push(new CheckNoCarryOperation());
-    }
+    var lastLetter = lenDiff ? addLetter(self.word3, 0) : '';
+    plan.push(new CheckCarryOperation(lastLetter));
 
     plan.push(new ToNumberOperation(self.word1, self.base, 'word1'));
     plan.push(new ToNumberOperation(self.word2, self.base, 'word2'));
