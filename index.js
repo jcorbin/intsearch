@@ -497,8 +497,41 @@ function searchStream(stream) {
     }
 }
 
-function main() {
-    searchStream(process.stdin);
+function test() {
+    var search = new ProgSearch(WordProblemState);
+    var prob = new WordProblem();
+    prob.word1 = 'send';
+    prob.word2 = 'more';
+    prob.word3 = 'money';
+    for (var i = 0; i < 5; i++) {
+        solve(search, prob);
+        printSol(prob);
+    }
 }
 
-main();
+function testFind() {
+    find([
+        'A',
+        'a',
+        'aa',
+        'aal',
+        'aalii',
+        'aam',
+        'Aani',
+        'aardvark',
+        'aardwolf',
+        'Aaron',
+    ], printSol);
+}
+
+function main(argv) {
+    if (argv[1] === 'test') {
+        test();
+    } else if (argv[1] === 'testFind') {
+        testFind();
+    } else {
+        searchStream(process.stdin);
+    }
+}
+
+main(process.argv.slice(1));
