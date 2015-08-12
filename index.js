@@ -424,27 +424,36 @@ function WordProblem() {
     this.time = [0, 0];
     this.executed = 0;
     this.expanded = 0;
+    this.plan = null;
 };
 
-function solve(search, prob) {
+WordProblem.prototype.run = function run(search) {
     var start = process.hrtime();
-    var plan = compileWordProblem(prob.word1, prob.word2, prob.word3);
-    if (plan) {
-        search.run(plan, function eachResult(state) {
-            prob.result = state.result;
-            return true;
-        });
-        prob.skip = false;
-        prob.executed = search.executed;
-        prob.expanded = search.expanded;
+    this.plan = compileWordProblem(this.word1, this.word2, this.word3);
+    if (this.plan) {
+        this.runPlan(search);
     } else {
-        prob.result = null;
-        prob.skip = true;
-        prob.executed = 0;
-        prob.expanded = 0;
+        this.result = null;
+        this.skip = true;
+        this.executed = 0;
+        this.expanded = 0;
     }
-    prob.time = hrtimeDiff(process.hrtime(), start);
-}
+    this.time = hrtimeDiff(process.hrtime(), start);
+};
+
+WordProblem.prototype.runPlan = function runPlan(search) {
+    var self = this;
+
+    search.run(self.plan, eachResult);
+    self.skip = false;
+    self.executed = search.executed;
+    self.expanded = search.expanded;
+
+    function eachResult(state) {
+        self.result = state.result;
+        return true;
+    }
+};
 
 function printSol(sol) {
     console.log('%s(%s, %s, %s) in %sus result: %s ',
@@ -463,7 +472,7 @@ function find(words, each) {
             prob.word2 = words[j];
             for (var k = 0; k < words.length; k++) {
                 prob.word3 = words[k];
-                solve(search, prob);
+                prob.run(search);
                 each(prob);
             }
         }
@@ -510,7 +519,7 @@ function test() {
     prob.word2 = 'more';
     prob.word3 = 'money';
     for (var i = 0; i < 5; i++) {
-        solve(search, prob);
+        prob.run(search);
         printSol(prob);
     }
 }
