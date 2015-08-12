@@ -107,106 +107,6 @@ function baseFor(n) {
     }
 }
 
-function compileWordProblem(word1, word2, word3) {
-    word1 = word1.toLowerCase();
-    word2 = word2.toLowerCase();
-    word3 = word3.toLowerCase();
-
-    var lenDiff = word3.length - word2.length;
-    if (word1.length > 8) {
-        return null;
-    }
-
-    if (word1.length !== word2.length) {
-        return null;
-    }
-
-    if (lenDiff !== 0 && lenDiff !== 1) {
-        return null;
-    }
-
-    var letters = lettersFrom([word1, word2, word3]);
-    var base = baseFor(letters.length);
-
-    var plan = [];
-
-    var initialState = new WordProblemState();
-    initialState.chosen.length = base;
-    for (var i = 0; i < base; i++) {
-        initialState.chosen[i] = false;
-    }
-    initialState.pi = 1;
-
-    plan.push({
-        state: initialState
-    });
-
-    var seen = {};
-    for (var i = 1; i <= word1.length; i++) {
-        plan.push({
-            op: Operations.sum,
-            base: base,
-            let1: addLetter(word1, word1.length - i),
-            let2: addLetter(word2, word2.length - i),
-            let3: addLetter(word3, word3.length - i)
-        });
-    }
-
-    if (lenDiff) {
-        plan.push({
-            op: Operations.checkCarry,
-            let3: addLetter(word3, 0)
-        });
-    } else {
-        plan.push({
-            op: Operations.checkNoCarry
-        });
-    }
-
-    plan.push({
-        op: Operations.toNumber,
-        store: 'word1',
-        word: word1,
-        base: base
-    });
-
-    plan.push({
-        op: Operations.toNumber,
-        store: 'word2',
-        word: word2,
-        base: base
-    });
-
-    plan.push({
-        op: Operations.toNumber,
-        store: 'word3',
-        word: word3,
-        base: base
-    });
-
-    plan.push({
-        op: Operations.result,
-        values: ['word1', 'word2', 'word3']
-    });
-
-    return plan;
-
-    function addLetter(word, i) {
-        var c = word.charCodeAt(i);
-        var n = c - letterBase;
-        if (!seen[n]) {
-            seen[n] = true;
-            plan.push({
-                op: Operations.chooseLetter,
-                letter: n,
-                base: base,
-                isInitial: i === 0 || c === word.charCodeAt(0)
-            });
-        }
-        return n;
-    }
-}
-
 function WordProblemState() {
     var self = this;
 
@@ -439,9 +339,106 @@ WordProblem.prototype.compile = function compile() {
 
     if (self.plan) {
         self.reset();
+        self.plan = null;
     }
 
-    self.plan = compileWordProblem(self.word1, self.word2, self.word3);
+    var lenDiff = self.word3.length - self.word2.length;
+    if (self.word1.length > 8) {
+        return;
+    }
+
+    if (self.word1.length !== self.word2.length) {
+        return;
+    }
+
+    if (lenDiff !== 0 && lenDiff !== 1) {
+        return;
+    }
+
+    self.word1 = self.word1.toLowerCase();
+    self.word2 = self.word2.toLowerCase();
+    self.word3 = self.word3.toLowerCase();
+
+    var letters = lettersFrom([self.word1, self.word2, self.word3]);
+    var base = baseFor(letters.length);
+
+    var plan = [];
+
+    var initialState = new WordProblemState();
+    initialState.chosen.length = base;
+    for (var i = 0; i < base; i++) {
+        initialState.chosen[i] = false;
+    }
+    initialState.pi = 1;
+
+    plan.push({
+        state: initialState
+    });
+
+    var seen = {};
+    for (var i = 1; i <= self.word1.length; i++) {
+        plan.push({
+            op: Operations.sum,
+            base: base,
+            let1: addLetter(self.word1, self.word1.length - i),
+            let2: addLetter(self.word2, self.word2.length - i),
+            let3: addLetter(self.word3, self.word3.length - i)
+        });
+    }
+
+    if (lenDiff) {
+        plan.push({
+            op: Operations.checkCarry,
+            let3: addLetter(self.word3, 0)
+        });
+    } else {
+        plan.push({
+            op: Operations.checkNoCarry
+        });
+    }
+
+    plan.push({
+        op: Operations.toNumber,
+        store: 'word1',
+        word: self.word1,
+        base: base
+    });
+
+    plan.push({
+        op: Operations.toNumber,
+        store: 'word2',
+        word: self.word2,
+        base: base
+    });
+
+    plan.push({
+        op: Operations.toNumber,
+        store: 'word3',
+        word: self.word3,
+        base: base
+    });
+
+    plan.push({
+        op: Operations.result,
+        values: ['word1', 'word2', 'word3']
+    });
+
+    self.plan = plan;
+
+    function addLetter(word, i) {
+        var c = word.charCodeAt(i);
+        var n = c - letterBase;
+        if (!seen[n]) {
+            seen[n] = true;
+            plan.push({
+                op: Operations.chooseLetter,
+                letter: n,
+                base: base,
+                isInitial: i === 0 || c === word.charCodeAt(0)
+            });
+        }
+        return n;
+    }
 };
 
 WordProblem.prototype.run = function run(search) {
