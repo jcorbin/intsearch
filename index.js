@@ -189,14 +189,15 @@ function compileWordProblem(word1, word2, word3) {
     return plan;
 
     function addLetter(word, i) {
-        var n = word.charCodeAt(i) - letterBase;
+        var c = word.charCodeAt(i);
+        var n = c - letterBase;
         if (!seen[n]) {
             seen[n] = true;
             plan.push({
                 op: Operations.chooseLetter,
                 letter: n,
                 base: base,
-                isInitial: i === 0
+                isInitial: i === 0 || c === word.charCodeAt(0)
             });
         }
         return n;
