@@ -685,11 +685,10 @@ void Problem_fix(Problem *prob, const char c, const short digit, const bool chec
 #endif
 }
 
-void Problem_choose(Problem *prob, const char c) {
+void Problem_choose_dfs(Problem *prob, const char c) {
 #ifdef PRINT_PLAN
-    printf("    - choose %c\n", c);
+    printf("    - choose dfs %c\n", c);
 #endif
-    // TODO: evaluate using fork N=base form for BFS expansion
     /* for i=0; i<base; ++i
      *   if !fork continue
      *   if set_seen i continue
@@ -726,6 +725,49 @@ void Problem_choose(Problem *prob, const char c) {
 #endif
 }
 
+void Problem_choose_bfs(Problem *prob, const char c) {
+#ifdef PRINT_PLAN
+    printf("    - choose bfs %c\n", c);
+#endif
+
+    /* // not is_first
+     * if !fork base exit dead
+     * --N
+     * if set_seen N exit dead
+     * store letter, N
+     *
+     * // is_first
+     * if !fork base-1 exit dead
+     * if set_seen N exit dead
+     * store letter, N
+     */
+
+    bool is_first =
+        prob->w1[0] == c ||
+        prob->w2[0] == c ||
+        prob->w3[0] == c;
+    short forks = is_first ? prob->base - 1 : prob->base;
+
+    Problem_push_op(prob, OP_FORK, forks);         // [..., N]
+    Problem_push_op(prob, OP_DUP, 0);              // [..., N, N]
+    Problem_push_op(prob, OP_JNZ, 2);              // [..., N]
+    Problem_push_op(prob, OP_EXIT, EXITCODE_DEAD); // ...
+    if (!is_first) {                               // ...
+        Problem_push_op(prob, OP_PUSH, 1);         // [..., N, 1]
+        Problem_push_op(prob, OP_SUB,  0);         // [..., N - 1]
+    }                                              // ...
+    Problem_push_op(prob, OP_DUP, 0);              // [..., N, N]
+    Problem_push_op(prob, OP_SET_SEEN, 0);         // [..., N, was_seen]
+    Problem_push_op(prob, OP_JZ, 2);               // [..., N]
+    Problem_push_op(prob, OP_EXIT, EXITCODE_DEAD); // ...
+    Problem_push_op(prob, OP_STORE, c);            // [..., N]
+
+    prob->known[c] = true;
+#ifdef PRINT_PLAN
+    printf("    - known %c\n", c);
+#endif
+}
+
 void Problem_load_or_choose(Problem *prob, const char c) {
     if (prob->known[c]) {
 #ifdef PRINT_PLAN
@@ -734,7 +776,8 @@ void Problem_load_or_choose(Problem *prob, const char c) {
         Problem_push_op(prob, OP_LOAD, c);
         return;
     }
-    Problem_choose(prob, c);
+    /* Problem_choose_dfs(prob, c); */
+    Problem_choose_bfs(prob, c);
 }
 
 void Problem_solve_sum(Problem *prob, const char c1, const char c2, const char c3) {                                                // [carry]
