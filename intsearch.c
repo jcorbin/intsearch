@@ -25,6 +25,8 @@
 #define   OP_GT           0x0026
 #define   OP_LTE          0x0027
 #define   OP_GTE          0x0028
+#define   OP_INC          0x0029
+#define   OP_DEC          0x002a
 #define   OP_STORE        0x0030
 #define   OP_LOAD         0x0031
 #define   OP_IS_SEEN      0x0032
@@ -119,6 +121,12 @@ int Operation_toString(char *str, size_t n, const Operation *oper) {
 
         case OP_GTE:
             return snprintf(str, n, "gte");
+
+        case OP_INC:
+            return snprintf(str, n, "inc %i", oper->arg);
+
+        case OP_DEC:
+            return snprintf(str, n, "dec %i", oper->arg);
 
         case OP_STORE:
             return snprintf(str, n, "store %c", oper->arg);
@@ -510,6 +518,26 @@ void do_op_gte(StateSpace *space, State *state, const Operation *oper) {
     state->prog_index++;
 }
 
+void do_op_inc(StateSpace *space, State *state, const Operation *oper) {
+    if (state->stack_length == 0) {
+        state->done = true;
+        state->exitcode = EXITCODE_CRASH_STACK_UNDERFLOW;
+        return;
+    }
+    state->stack[state->stack_length - 1] += oper->arg;
+    state->prog_index++;
+}
+
+void do_op_dec(StateSpace *space, State *state, const Operation *oper) {
+    if (state->stack_length == 0) {
+        state->done = true;
+        state->exitcode = EXITCODE_CRASH_STACK_UNDERFLOW;
+        return;
+    }
+    state->stack[state->stack_length - 1] -= oper->arg;
+    state->prog_index++;
+}
+
 void do_op_fork(StateSpace *space, State *state, const Operation *oper) {
     const short n = oper->arg;
     if (space->index >= (space->length - n)) {
@@ -622,6 +650,14 @@ void StateSpace_state_tick(StateSpace *space, State *state) {
             do_op_gte(space, state, oper);
             break;
 
+        case OP_INC:
+            do_op_inc(space, state, oper);
+            break;
+
+        case OP_DEC:
+            do_op_dec(space, state, oper);
+            break;
+
         case OP_STORE:
             do_op_store(space, state, oper);
             break;
@@ -710,14 +746,13 @@ void Problem_choose_dfs(Problem *prob, const char c) {
     Problem_push_op(prob,   OP_JZ, 2);               // 5  // [..., i]           // exit if seen already
     Problem_push_op(prob,   OP_EXIT, EXITCODE_DEAD); // 6  // [..., i]           // exit if seen already
     Problem_push_op(prob,   OP_STORE, c);            // 7  // [..., i]           // store letter = i
-    Problem_push_op(prob,   OP_JUMP, 8);             // 8  // [..., i]           // break
-    Problem_push_op(prob, OP_PUSH, 1);               // 9  // [..., i, 1]        // push for add
-    Problem_push_op(prob, OP_ADD, 0);                // 10 // [..., i + 1]       // ++i
-    Problem_push_op(prob, OP_DUP, 0);                // 11 // [..., i, i]        // dup for cmp
-    Problem_push_op(prob, OP_PUSH, prob->base);      // 12 // [..., i, i, base]  // push for cmp
-    Problem_push_op(prob, OP_LT, 0);                 // 13 // [..., i, i < base] // i < base
-    Problem_push_op(prob, OP_JNZ, -13);              // 14 // [..., i]           // loop check
-    Problem_push_op(prob, OP_EXIT, EXITCODE_DEAD);   // 15 // [..., i]           // parent exit
+    Problem_push_op(prob,   OP_JUMP, 7);             // 8  // [..., i]           // break
+    Problem_push_op(prob, OP_INC, 1);                // 9  // [..., ++i]         // ++i
+    Problem_push_op(prob, OP_DUP, 0);                // 10 // [..., i, i]        // dup for cmp
+    Problem_push_op(prob, OP_PUSH, prob->base);      // 11 // [..., i, i, base]  // push for cmp
+    Problem_push_op(prob, OP_LT, 0);                 // 12 // [..., i, i < base] // i < base
+    Problem_push_op(prob, OP_JNZ, -12);              // 13 // [..., i]           // loop check
+    Problem_push_op(prob, OP_EXIT, EXITCODE_DEAD);   // 14 // [..., i]           // parent exit
 
     prob->known[c] = true;
 #ifdef PRINT_PLAN
@@ -753,8 +788,7 @@ void Problem_choose_bfs(Problem *prob, const char c) {
     Problem_push_op(prob, OP_JNZ, 2);              // [..., N]
     Problem_push_op(prob, OP_EXIT, EXITCODE_DEAD); // ...
     if (!is_first) {                               // ...
-        Problem_push_op(prob, OP_PUSH, 1);         // [..., N, 1]
-        Problem_push_op(prob, OP_SUB,  0);         // [..., N - 1]
+        Problem_push_op(prob, OP_DEC,  1);         // [..., --N]
     }                                              // ...
     Problem_push_op(prob, OP_DUP, 0);              // [..., N, N]
     Problem_push_op(prob, OP_SET_SEEN, 0);         // [..., N, was_seen]
