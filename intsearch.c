@@ -665,7 +665,7 @@ void Problem_push_op(Problem *prob, unsigned short op, unsigned short arg) {
 
 void Problem_fix(Problem *prob, const char c, const short digit, const bool check_seen) {
 #ifdef PRINT_PLAN
-    printf("- fix %c = %i (%s)\n",
+    printf("  - fix %c = %i (%s)\n",
             c, digit,
             check_seen ? "check" : "no check");
 #endif
@@ -681,13 +681,13 @@ void Problem_fix(Problem *prob, const char c, const short digit, const bool chec
     Problem_push_op(prob, OP_STORE, c);                // ...
     prob->known[c] = true;                             // ...
 #ifdef PRINT_PLAN
-    printf("  - known %c\n", c);
+    printf("    - known %c\n", c);
 #endif
 }
 
 void Problem_choose(Problem *prob, const char c) {
 #ifdef PRINT_PLAN
-    printf("  - choose %c\n", c);
+    printf("    - choose %c\n", c);
 #endif
     // TODO: evaluate using fork N=base form for BFS expansion
     /* for i=0; i<base; ++i
@@ -722,14 +722,14 @@ void Problem_choose(Problem *prob, const char c) {
 
     prob->known[c] = true;
 #ifdef PRINT_PLAN
-    printf("  - known %c\n", c);
+    printf("    - known %c\n", c);
 #endif
 }
 
 void Problem_load_or_choose(Problem *prob, const char c) {
     if (prob->known[c]) {
 #ifdef PRINT_PLAN
-        printf("  - load %c\n", c);
+        printf("    - load %c\n", c);
 #endif
         Problem_push_op(prob, OP_LOAD, c);
         return;
@@ -739,7 +739,7 @@ void Problem_load_or_choose(Problem *prob, const char c) {
 
 void Problem_solve_sum(Problem *prob, const char c1, const char c2, const char c3) {                                                // [carry]
 #ifdef PRINT_PLAN
-    printf("- solve %c + %c = %c for %c\n", c1, c2, c3, c3);
+    printf("  - solve %c + %c = %c for %c\n", c1, c2, c3, c3);
 #endif
     Problem_load_or_choose(prob, c1);              // [carry, c1]
     Problem_push_op(prob, OP_ADD, 0);              // [carry + c1]
@@ -758,7 +758,7 @@ void Problem_solve_sum(Problem *prob, const char c1, const char c2, const char c
     Problem_push_op(prob, OP_DIV, 0);              // [(carry + c1 + c2) / base]
     prob->known[c3] = true;                        // [carry]
 #ifdef PRINT_PLAN
-    printf("  - known %c\n", c3);
+    printf("    - known %c\n", c3);
 #endif
 }
 
@@ -770,7 +770,7 @@ void Problem_solve_sum(Problem *prob, const char c1, const char c2, const char c
 
 void Problem_solve_summand(Problem *prob, const char c1, const char c2, const char c3) {                                                // [carry]
 #ifdef PRINT_PLAN
-    printf("- solve %c + %c = %c for %c\n", c1, c2, c3, c1);
+    printf("  - solve %c + %c = %c for %c\n", c1, c2, c3, c1);
 #endif
     Problem_load_or_choose(prob, c2);              // [carry, c2]
     Problem_push_op(prob, OP_ADD, 0);              // [carry + c2]
@@ -792,13 +792,13 @@ void Problem_solve_summand(Problem *prob, const char c1, const char c2, const ch
     Problem_push_op(prob, OP_DIV, 0);              // [(carry + c2 + c1) / base]
     prob->known[c1] = true;                        // [carry]
 #ifdef PRINT_PLAN
-    printf("  - known %c\n", c1);
+    printf("    - known %c\n", c1);
 #endif
 }
 
 void Problem_check_sum(Problem *prob, const char c1, const char c2, const char c3) {                                                // [carry]
 #ifdef PRINT_PLAN
-    printf("- check %c + %c = %c\n", c1, c2, c3);
+    printf("  - check %c + %c = %c\n", c1, c2, c3);
 #endif
     Problem_push_op(prob, OP_LOAD, c1);            // [carry, c1]
     Problem_push_op(prob, OP_ADD, 0);              // [carry + c1]
@@ -817,7 +817,7 @@ void Problem_check_sum(Problem *prob, const char c1, const char c2, const char c
 
 void Problem_check_final(Problem *prob, const char c1, const char c2, const char c3) {                                                // [carry]
 #ifdef PRINT_PLAN
-    printf("- load %c\n", c3);
+    printf("  - load %c\n", c3);
 #endif
     Problem_push_op(prob, OP_LOAD, c3);            // [carry, c3]
     if (c1 != 0x00) {                              //
@@ -828,7 +828,7 @@ void Problem_check_final(Problem *prob, const char c1, const char c2, const char
         Problem_push_op(prob, OP_ADD, 0);          // [carry, c3 + c2]
     }                                              // [carry, X]
 #ifdef PRINT_PLAN
-    printf("- check final\n");
+    printf("  - check final\n");
 #endif
     Problem_push_op(prob, OP_SUB, 0);              // [cmp]
     Problem_push_op(prob, OP_JZ, 2);               // []
@@ -838,7 +838,7 @@ void Problem_check_final(Problem *prob, const char c1, const char c2, const char
 
 void Problem_compile(Problem *prob) {
 #ifdef PRINT_PLAN
-    printf("solution plan:\n");
+    printf("plan:\n");
 #endif
 
     size_t
@@ -932,7 +932,8 @@ int Problem_setup(Problem *prob, const char *w1, const char *w2, const char *w3)
 #ifdef PRINT_PLAN
     unsigned short i;
     char buf[255];
-    printf("program, %i instructions:\n", prob->proglen);
+    printf("program:\n");
+    printf("  - %i instructions\n", prob->proglen);
     for (i = 0; i < prob->proglen; ++i) {
         Operation_toString(buf, 256, &(prob->prog[i]));
         printf("  0x%04x: %s\n", i, buf);
