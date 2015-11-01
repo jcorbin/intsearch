@@ -10,4 +10,5 @@ clean:
 	rm intsearch
 
 log: intsearch_trace
+	rm $@
 	./intsearch_trace send more money | tee $@
