@@ -2,6 +2,10 @@
 #include <string.h>
 #include <stdbool.h>
 
+#if defined(MEASURE_TIME)
+#include <time.h>
+#endif
+
 #define   EXITCODE_DEAD                    0x00ff
 #define   EXITCODE_CRASH_SEARCH_OVERFLOW   0xfffb
 #define   EXITCODE_CRASH_STACK_UNDERFLOW   0xfffc
@@ -1028,9 +1032,20 @@ int main(const int argc, const char *argv[]) {
 
     Problem prob;
 
+#ifdef MEASURE_TIME
+    clock_t begin = clock();
+#endif
     if (Problem_setup(&prob, argv[1], argv[2], argv[3]) != 0) {
         return 2;
     }
+
+#ifdef MEASURE_TIME
+    clock_t setup_done = clock();
+    printf("time_setup:\n");
+    printf("  %li clocks\n", setup_done - begin);
+    printf("  %.1fµs\n\n", (double)(setup_done - begin) * 1e6 / CLOCKS_PER_SEC);
+    setup_done = clock();
+#endif
 
     StateSpace search;
     State states[SEARCH_SIZE];
@@ -1045,12 +1060,29 @@ int main(const int argc, const char *argv[]) {
     unsigned int i = 0;
     while (i < MAX_LETTERS) state->letter_map[i++] = -1;
 
+#ifdef MEASURE_TIME
+    clock_t run_start = clock();
+    printf("time_alloc:\n");
+    printf("  %li clocks\n", run_start - setup_done);
+    printf("  %.1fµs\n\n", (double)(run_start - setup_done) * 1e6 / CLOCKS_PER_SEC);
+    run_start = clock();
+    clock_t end;
+#endif
+
     bool running = true;
     RunSearch: do {
         StateSpace_state_tick(&search, state);
         state = &(search.states[search.index]);
         while (state->done) {
             if (state->exitcode == 0) {
+
+#ifdef MEASURE_TIME
+                end = clock();
+                printf("time_run:\n");
+                printf("  %li clocks\n", end - run_start);
+                printf("  %.1fµs\n", (double)(end - run_start) * 1e6 / CLOCKS_PER_SEC);
+#endif
+
                 printf("\nfound\n");
                 State_printWords(state);
                 return 0;
@@ -1062,6 +1094,13 @@ int main(const int argc, const char *argv[]) {
             state = &(search.states[--search.index]);
         }
     } while (running);
+
+#ifdef MEASURE_TIME
+    end = clock();
+    printf("time_run:\n");
+    printf("  %li clocks\n", end - run_start);
+    printf("  %.1fµs\n", (double)(end - run_start) * 1e6 / CLOCKS_PER_SEC);
+#endif
 
     printf("\nno result\n");
     return 3;
