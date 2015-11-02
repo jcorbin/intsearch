@@ -97,9 +97,42 @@ def extract_program(lines):
     return D
 
 
+def extract_prob_timing(prob):
+    keys = [
+        key
+        for key in ('time_setup', 'time_alloc', 'time_run')
+        if key in prob
+    ]
+    if not keys:
+        return None
+
+    time_index, time_data = zip(*(
+        (key, line)
+        for key in keys
+        for line in prob[key]
+    ))
+    if not len(time_data):
+        return None
+
+    prob_time = pandas.Series(data=time_data, index=time_index)
+    prob_time = prob_time[prob_time.str.endswith(' clocks')]
+    if not len(prob_time):
+        return None
+
+    prob_time = prob_time.str.rsplit(None, 1).str[0]
+    prob_time = prob_time.astype('int')
+    prob_time.name = 'clocks'
+    return prob_time
+
+
 prob = extract_prob(sys.stdin)
 trace = extract_trace(prob['trace'])
 prog = extract_program(prob['program'])
+
+prob_time = extract_prob_timing(prob)
+if prob_time is not None:
+    print prob_time
+    print
 
 print 'plan:'
 print '\n'.join(prob['plan'])
