@@ -68,7 +68,7 @@ def extract_trace(parts):
     # trace['pi'] = trace['pi'].astype('int', base=16)
 
     time = extract_timing(parts)
-    if len(time):
+    if time is not None:
         trace = trace.join(time)
 
     return trace
@@ -81,6 +81,8 @@ def extract_timing(parts):
         for line in part
         if line.startswith('  op_time:')
     ])
+    if not len(time_lines):
+        return None
     time = time_lines.str.extract(r'''
         \s*
         op_time:
@@ -89,6 +91,8 @@ def extract_timing(parts):
         \s+
         ns=(?P<ns>\d+)
     ''', re.VERBOSE)
+    if not len(time):
+        return None
     time['clocks'] = time['clocks'].astype('int')
     time['ns'] = time['ns'].astype('int')
     return time
