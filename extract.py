@@ -67,7 +67,31 @@ def extract_trace(parts):
     # TODO: y u no base?
     # trace['pi'] = trace['pi'].astype('int', base=16)
 
+    time = extract_timing(parts)
+    if len(time):
+        trace = trace.join(time)
+
     return trace
+
+
+def extract_timing(parts):
+    time_lines = pandas.Series([
+        line
+        for part in parts
+        for line in part
+        if line.startswith('  op_time:')
+    ])
+    time = time_lines.str.extract(r'''
+        \s*
+        op_time:
+        \s+
+        clocks=(?P<clocks>\d+)
+        \s+
+        ns=(?P<ns>\d+)
+    ''', re.VERBOSE)
+    time['clocks'] = time['clocks'].astype('int')
+    time['ns'] = time['ns'].astype('int')
+    return time
 
 
 def dist_table(name, S):
@@ -171,3 +195,7 @@ for pi in top10_pi.index:
 # print
 
 # print trace[trace['op'] == 'push']
+
+if 'clocks' in trace:
+    print 'op clocks:'
+    print trace.groupby('op')['clocks'].describe().unstack()
