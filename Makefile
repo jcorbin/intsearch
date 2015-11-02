@@ -7,7 +7,7 @@ intsearch_trace: intsearch.c
 	$(CC) -DPRINT_TRACE -DPRINT_PLAN $(CFLAGS) -o $@ $<
 
 clean:
-	rm intsearch
+	rm intsearch intsearch_trace
 
 log: intsearch_trace
 	rm $@
