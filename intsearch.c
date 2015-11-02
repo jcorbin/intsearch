@@ -246,10 +246,6 @@ void StateSpace_printState(const StateSpace *space, const State *state, const un
         "[%i] %-10s @0x%04x stack=%s\n",
         StateSpace_indexof_state(space, state),
         buf1, prog_index, buf2);
-
-    if (oper->op == OP_STORE) {
-        State_printWords(state);
-    }
 }
 
 State *StateSpace_state_copy(StateSpace *space, State *state) {
@@ -689,6 +685,10 @@ void StateSpace_state_tick(StateSpace *space, State *state) {
 
 #ifdef PRINT_TRACE
     StateSpace_printState(space, state, prog_index);
+
+    if (oper->op == OP_STORE) {
+        State_printWords(state);
+    }
 #endif
 }
 
