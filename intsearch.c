@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdbool.h>
 
-#if defined(MEASURE_TIME)
+#if defined(MEASURE_TIME) || defined(MEASURE_OP_TIME)
 #include <time.h>
 #endif
 
@@ -584,6 +584,10 @@ void StateSpace_state_tick(StateSpace *space, State *state) {
     unsigned int prog_index = state->prog_index;
     const Operation *oper = &(state->prob->prog[prog_index]);
 
+#ifdef MEASURE_OP_TIME
+    clock_t op_start = clock();
+#endif
+
     switch (oper->op) {
 
         case OP_JUMP:
@@ -687,8 +691,18 @@ void StateSpace_state_tick(StateSpace *space, State *state) {
             break;
     }
 
+#ifdef MEASURE_OP_TIME
+    clock_t op_end = clock();
+#endif
+
 #ifdef PRINT_TRACE
     StateSpace_printState(space, state, prog_index);
+
+#ifdef MEASURE_OP_TIME
+    printf("  op_time: clocks=%li ns=%i\n",
+           op_end - op_start,
+           (int)((double)(op_end - op_start) * 1e9 / CLOCKS_PER_SEC));
+#endif
 
     if (oper->op == OP_STORE) {
         State_printWords(state);
