@@ -39,7 +39,7 @@
 #define   OP_EXIT         0x00ff
 
 #define   MAX_LETTERS   256
-#define   MAX_PROGLEN   0xffff
+#define   MAX_PROGLEN   0x0800
 #define   STACK_SIZE    16
 #define   SEARCH_SIZE   0x1000
 
