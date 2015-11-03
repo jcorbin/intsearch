@@ -35,8 +35,8 @@
 #define   OP_LOAD         0x0031
 #define   OP_IS_SEEN      0x0032
 #define   OP_SET_SEEN     0x0033
-#define   OP_FORK         0xfffe
-#define   OP_EXIT         0xffff
+#define   OP_FORK         0x00fe
+#define   OP_EXIT         0x00ff
 
 #define   MAX_LETTERS   256
 #define   MAX_PROGLEN   0xffff
