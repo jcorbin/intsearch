@@ -1081,7 +1081,7 @@ int main(const int argc, const char *argv[]) {
     clock_t end;
 #endif
 
-    RunSearch: do {
+    do {
         StateSpace_state_tick(&search, state);
         state = &(search.states[search.index]);
         while (state->done) {
