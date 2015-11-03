@@ -1081,39 +1081,32 @@ int main(const int argc, const char *argv[]) {
     clock_t end;
 #endif
 
-    bool running = true;
     RunSearch: do {
         StateSpace_state_tick(&search, state);
         state = &(search.states[search.index]);
         while (state->done) {
             if (state->exitcode == 0) {
-
 #ifdef MEASURE_TIME
                 end = clock();
                 printf("time_run:\n");
                 printf("  %li clocks\n", end - run_start);
                 printf("  %.1fµs\n", (double)(end - run_start) * 1e6 / CLOCKS_PER_SEC);
 #endif
-
                 printf("\nfound\n");
                 State_printWords(state);
                 return 0;
             }
             if (search.index == 0) {
-                running = false;
-                break;
+#ifdef MEASURE_TIME
+                end = clock();
+                printf("time_run:\n");
+                printf("  %li clocks\n", end - run_start);
+                printf("  %.1fµs\n", (double)(end - run_start) * 1e6 / CLOCKS_PER_SEC);
+#endif
+                printf("\nno result\n");
+                return 3;
             }
             state = &(search.states[--search.index]);
         }
-    } while (running);
-
-#ifdef MEASURE_TIME
-    end = clock();
-    printf("time_run:\n");
-    printf("  %li clocks\n", end - run_start);
-    printf("  %.1fµs\n", (double)(end - run_start) * 1e6 / CLOCKS_PER_SEC);
-#endif
-
-    printf("\nno result\n");
-    return 3;
+    } while (true);
 }
