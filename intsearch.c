@@ -44,17 +44,12 @@
 #define   SEARCH_SIZE   0x1000
 
 
-typedef struct OperationStruct {
-    unsigned short op;
-    short arg;
-} Operation;
-
 typedef struct ProblemStruct {
     const char *w1, *w2, *w3;
     size_t l1, l2, l3;
     unsigned int base;
     bool known[MAX_LETTERS];
-    Operation prog[MAX_PROGLEN];
+    unsigned short prog[2 * MAX_PROGLEN];
     unsigned short proglen;
 } Problem;
 
@@ -75,20 +70,22 @@ typedef struct StateSpaceStruct {
     State *states;
 } StateSpace;
 
-int Operation_toString(char *str, size_t n, const Operation *oper) {
-    switch (oper->op) {
+int prog_toString(char *str, size_t n, const unsigned short *prog, const unsigned short pi) {
+    const unsigned short i = pi << 1;
+    const unsigned short j = i + 1;
+    switch (prog[i]) {
 
         case OP_JUMP:
-            return snprintf(str, n, "jump %+i", oper->arg);
+            return snprintf(str, n, "jump %+i", prog[j]);
 
         case OP_JZ:
-            return snprintf(str, n, "jz %+i", oper->arg);
+            return snprintf(str, n, "jz %+i", prog[j]);
 
         case OP_JNZ:
-            return snprintf(str, n, "jnz %+i", oper->arg);
+            return snprintf(str, n, "jnz %+i", prog[j]);
 
         case OP_PUSH:
-            return snprintf(str, n, "push %i", oper->arg);
+            return snprintf(str, n, "push %i", prog[j]);
 
         case OP_POP:
             return snprintf(str, n, "pop");
@@ -127,16 +124,16 @@ int Operation_toString(char *str, size_t n, const Operation *oper) {
             return snprintf(str, n, "gte");
 
         case OP_INC:
-            return snprintf(str, n, "inc %i", oper->arg);
+            return snprintf(str, n, "inc %i", prog[j]);
 
         case OP_DEC:
-            return snprintf(str, n, "dec %i", oper->arg);
+            return snprintf(str, n, "dec %i", prog[j]);
 
         case OP_STORE:
-            return snprintf(str, n, "store %c", oper->arg);
+            return snprintf(str, n, "store %c", prog[j]);
 
         case OP_LOAD:
-            return snprintf(str, n, "load %c", oper->arg);
+            return snprintf(str, n, "load %c", prog[j]);
 
         case OP_IS_SEEN:
             return snprintf(str, n, "is_seen");
@@ -148,10 +145,10 @@ int Operation_toString(char *str, size_t n, const Operation *oper) {
             return snprintf(str, n, "fork");
 
         case OP_EXIT:
-            return snprintf(str, n, "exit %i", oper->arg);
+            return snprintf(str, n, "exit %i", prog[j]);
 
         default:
-            return snprintf(str, n, "INVALID %i %i", oper->op, oper->arg);
+            return snprintf(str, n, "INVALID %04x %04x", prog[i], prog[j]);
     }
 }
 
@@ -239,11 +236,10 @@ int StateSpace_indexof_state(const StateSpace *space, const State *state) {
 }
 
 void StateSpace_printState(const StateSpace *space, const State *state, const unsigned int prog_index) {
-    const Operation *oper = &(state->prob->prog[prog_index]);
     char buf1[256];
     char buf2[256];
 
-    Operation_toString(buf1, 256, oper);
+    prog_toString(buf1, 256, state->prob->prog, prog_index);
     State_stackToString(buf2, 256, state);
 
     printf(
@@ -263,11 +259,11 @@ State *StateSpace_state_copy(StateSpace *space, State *state) {
         state, sizeof(State));
 }
 
-void do_op_jump(StateSpace *space, State *state, const Operation *oper) {
-    state->prog_index += oper->arg;
+void do_op_jump(StateSpace *space, State *state, const short arg) {
+    state->prog_index += arg;
 }
 
-void do_op_jz(StateSpace *space, State *state, const Operation *oper) {
+void do_op_jz(StateSpace *space, State *state, const short arg) {
     if (state->stack_length == 0) {
         state->done = true;
         state->exitcode = EXITCODE_CRASH_STACK_UNDERFLOW;
@@ -275,13 +271,13 @@ void do_op_jz(StateSpace *space, State *state, const Operation *oper) {
     }
     const short c = state->stack[--state->stack_length];
     if (c == 0) {
-        state->prog_index += oper->arg;
+        state->prog_index += arg;
     } else {
         state->prog_index++;
     }
 }
 
-void do_op_jnz(StateSpace *space, State *state, const Operation *oper) {
+void do_op_jnz(StateSpace *space, State *state, const short arg) {
     if (state->stack_length == 0) {
         state->done = true;
         state->exitcode = EXITCODE_CRASH_STACK_UNDERFLOW;
@@ -289,23 +285,23 @@ void do_op_jnz(StateSpace *space, State *state, const Operation *oper) {
     }
     const short c = state->stack[--state->stack_length];
     if (c != 0) {
-        state->prog_index += oper->arg;
+        state->prog_index += arg;
     } else {
         state->prog_index++;
     }
 }
 
-void do_op_push(StateSpace *space, State *state, const Operation *oper) {
+void do_op_push(StateSpace *space, State *state, const short arg) {
     if (state->stack_length >= STACK_SIZE) {
         state->done = true;
         state->exitcode = EXITCODE_CRASH_STACK_OVERFLOW;
         return;
     }
-    state->stack[state->stack_length++] = oper->arg;
+    state->stack[state->stack_length++] = arg;
     state->prog_index++;
 }
 
-void do_op_pop(StateSpace *space, State *state, const Operation *oper) {
+void do_op_pop(StateSpace *space, State *state, const short arg) {
     if (state->stack_length == 0) {
         state->done = true;
         state->exitcode = EXITCODE_CRASH_STACK_UNDERFLOW;
@@ -315,28 +311,28 @@ void do_op_pop(StateSpace *space, State *state, const Operation *oper) {
     state->prog_index++;
 }
 
-void do_op_store(StateSpace *space, State *state, const Operation *oper) {
+void do_op_store(StateSpace *space, State *state, const short arg) {
     // TODO: consider taking this guard off for perf
     if (state->stack_length == 0) {
         state->done = true;
         state->exitcode = EXITCODE_CRASH_STACK_UNDERFLOW;
         return;
     }
-    state->letter_map[oper->arg] = state->stack[state->stack_length - 1];
+    state->letter_map[arg] = state->stack[state->stack_length - 1];
     state->prog_index++;
 }
 
-void do_op_load(StateSpace *space, State *state, const Operation *oper) {
+void do_op_load(StateSpace *space, State *state, const short arg) {
     if (state->stack_length >= STACK_SIZE) {
         state->done = true;
         state->exitcode = EXITCODE_CRASH_STACK_OVERFLOW;
         return;
     }
-    state->stack[state->stack_length++] = state->letter_map[oper->arg];
+    state->stack[state->stack_length++] = state->letter_map[arg];
     state->prog_index++;
 }
 
-void do_op_is_seen(StateSpace *space, State *state, const Operation *oper) {
+void do_op_is_seen(StateSpace *space, State *state, const short arg) {
     if (state->stack_length == 0) {
         state->done = true;
         state->exitcode = EXITCODE_CRASH_STACK_UNDERFLOW;
@@ -348,7 +344,7 @@ void do_op_is_seen(StateSpace *space, State *state, const Operation *oper) {
     state->prog_index++;
 }
 
-void do_op_set_seen(StateSpace *space, State *state, const Operation *oper) {
+void do_op_set_seen(StateSpace *space, State *state, const short arg) {
     if (state->stack_length == 0) {
         state->done = true;
         state->exitcode = EXITCODE_CRASH_STACK_UNDERFLOW;
@@ -361,7 +357,7 @@ void do_op_set_seen(StateSpace *space, State *state, const Operation *oper) {
     state->prog_index++;
 }
 
-void do_op_dup(StateSpace *space, State *state, const Operation *oper) {
+void do_op_dup(StateSpace *space, State *state, const short arg) {
     unsigned short i = state->stack_length;
     if (i == 0) {
         state->done = true;
@@ -378,7 +374,7 @@ void do_op_dup(StateSpace *space, State *state, const Operation *oper) {
     state->prog_index++;
 }
 
-void do_op_swap(StateSpace *space, State *state, const Operation *oper) {
+void do_op_swap(StateSpace *space, State *state, const short arg) {
     if (state->stack_length <= 1) {
         state->done = true;
         state->exitcode = EXITCODE_CRASH_STACK_UNDERFLOW;
@@ -392,7 +388,7 @@ void do_op_swap(StateSpace *space, State *state, const Operation *oper) {
     state->prog_index++;
 }
 
-void do_op_add(StateSpace *space, State *state, const Operation *oper) {
+void do_op_add(StateSpace *space, State *state, const short arg) {
     if (state->stack_length <= 1) {
         state->done = true;
         state->exitcode = EXITCODE_CRASH_STACK_UNDERFLOW;
@@ -406,7 +402,7 @@ void do_op_add(StateSpace *space, State *state, const Operation *oper) {
     state->prog_index++;
 }
 
-void do_op_sub(StateSpace *space, State *state, const Operation *oper) {
+void do_op_sub(StateSpace *space, State *state, const short arg) {
     if (state->stack_length <= 1) {
         state->done = true;
         state->exitcode = EXITCODE_CRASH_STACK_UNDERFLOW;
@@ -420,7 +416,7 @@ void do_op_sub(StateSpace *space, State *state, const Operation *oper) {
     state->prog_index++;
 }
 
-void do_op_mul(StateSpace *space, State *state, const Operation *oper) {
+void do_op_mul(StateSpace *space, State *state, const short arg) {
     if (state->stack_length <= 1) {
         state->done = true;
         state->exitcode = EXITCODE_CRASH_STACK_UNDERFLOW;
@@ -434,7 +430,7 @@ void do_op_mul(StateSpace *space, State *state, const Operation *oper) {
     state->prog_index++;
 }
 
-void do_op_div(StateSpace *space, State *state, const Operation *oper) {
+void do_op_div(StateSpace *space, State *state, const short arg) {
     if (state->stack_length <= 1) {
         state->done = true;
         state->exitcode = EXITCODE_CRASH_STACK_UNDERFLOW;
@@ -448,7 +444,7 @@ void do_op_div(StateSpace *space, State *state, const Operation *oper) {
     state->prog_index++;
 }
 
-void do_op_mod(StateSpace *space, State *state, const Operation *oper) {
+void do_op_mod(StateSpace *space, State *state, const short arg) {
     if (state->stack_length <= 1) {
         state->done = true;
         state->exitcode = EXITCODE_CRASH_STACK_UNDERFLOW;
@@ -462,7 +458,7 @@ void do_op_mod(StateSpace *space, State *state, const Operation *oper) {
     state->prog_index++;
 }
 
-void do_op_lt(StateSpace *space, State *state, const Operation *oper) {
+void do_op_lt(StateSpace *space, State *state, const short arg) {
     if (state->stack_length <= 1) {
         state->done = true;
         state->exitcode = EXITCODE_CRASH_STACK_UNDERFLOW;
@@ -476,7 +472,7 @@ void do_op_lt(StateSpace *space, State *state, const Operation *oper) {
     state->prog_index++;
 }
 
-void do_op_gt(StateSpace *space, State *state, const Operation *oper) {
+void do_op_gt(StateSpace *space, State *state, const short arg) {
     if (state->stack_length <= 1) {
         state->done = true;
         state->exitcode = EXITCODE_CRASH_STACK_UNDERFLOW;
@@ -490,7 +486,7 @@ void do_op_gt(StateSpace *space, State *state, const Operation *oper) {
     state->prog_index++;
 }
 
-void do_op_lte(StateSpace *space, State *state, const Operation *oper) {
+void do_op_lte(StateSpace *space, State *state, const short arg) {
     if (state->stack_length <= 1) {
         state->done = true;
         state->exitcode = EXITCODE_CRASH_STACK_UNDERFLOW;
@@ -504,7 +500,7 @@ void do_op_lte(StateSpace *space, State *state, const Operation *oper) {
     state->prog_index++;
 }
 
-void do_op_gte(StateSpace *space, State *state, const Operation *oper) {
+void do_op_gte(StateSpace *space, State *state, const short arg) {
     if (state->stack_length <= 1) {
         state->done = true;
         state->exitcode = EXITCODE_CRASH_STACK_UNDERFLOW;
@@ -518,29 +514,28 @@ void do_op_gte(StateSpace *space, State *state, const Operation *oper) {
     state->prog_index++;
 }
 
-void do_op_inc(StateSpace *space, State *state, const Operation *oper) {
+void do_op_inc(StateSpace *space, State *state, const short arg) {
     if (state->stack_length == 0) {
         state->done = true;
         state->exitcode = EXITCODE_CRASH_STACK_UNDERFLOW;
         return;
     }
-    state->stack[state->stack_length - 1] += oper->arg;
+    state->stack[state->stack_length - 1] += arg;
     state->prog_index++;
 }
 
-void do_op_dec(StateSpace *space, State *state, const Operation *oper) {
+void do_op_dec(StateSpace *space, State *state, const short arg) {
     if (state->stack_length == 0) {
         state->done = true;
         state->exitcode = EXITCODE_CRASH_STACK_UNDERFLOW;
         return;
     }
-    state->stack[state->stack_length - 1] -= oper->arg;
+    state->stack[state->stack_length - 1] -= arg;
     state->prog_index++;
 }
 
-void do_op_fork(StateSpace *space, State *state, const Operation *oper) {
-    const short n = oper->arg;
-    if (space->index >= (space->length - n)) {
+void do_op_fork(StateSpace *space, State *state, const short arg) {
+    if (space->index >= (space->length - arg)) {
         state->done = true;
         state->exitcode = EXITCODE_CRASH_SEARCH_OVERFLOW;
         return;
@@ -556,138 +551,141 @@ void do_op_fork(StateSpace *space, State *state, const Operation *oper) {
     state->prog_index++;
 
     State *next_state = &(space->states[space->index]);
-    space->index += n;
+    space->index += arg;
     unsigned int j = 1;
-    for (; j <= n; ++j) {
+    for (; j <= arg; ++j) {
         memcpy(++next_state, state, sizeof(State));
         next_state->stack[i] = j;
     }
 }
 
-void do_op_exit(StateSpace *space, State *state, const Operation *oper) {
+void do_op_exit(StateSpace *space, State *state, const short arg) {
     state->done = true;
-    state->exitcode = oper->arg;
+    state->exitcode = arg;
 }
 
-void do_op_invalid(StateSpace *space, State *state, const Operation *oper) {
+void do_op_invalid(StateSpace *space, State *state, const short arg) {
     state->done = true;
     state->exitcode = EXITCODE_CRASH_INVALID_OP;
 }
 
 void StateSpace_state_tick(StateSpace *space, State *state) {
-    if (state->prog_index >= state->prob->proglen) {
+    const unsigned short i = state->prog_index;
+    if (i >= state->prob->proglen) {
         state->done = true;
         state->exitcode = EXITCODE_CRASH_INVALID_PI;
         return;
     }
 
-    unsigned int prog_index = state->prog_index;
-    const Operation *oper = &(state->prob->prog[prog_index]);
+    const unsigned short j = i << 1;
+    const unsigned short *prog = &(state->prob->prog[0]);
+    const unsigned short op = prog[j];
+    const unsigned short arg = prog[j + 1];
 
 #ifdef MEASURE_OP_TIME
     clock_t op_start = clock();
 #endif
 
-    switch (oper->op) {
+    switch (op) {
 
         case OP_JUMP:
-            do_op_jump(space, state, oper);
+            do_op_jump(space, state, arg);
             break;
 
         case OP_JZ:
-            do_op_jz(space, state, oper);
+            do_op_jz(space, state, arg);
             break;
 
         case OP_JNZ:
-            do_op_jnz(space, state, oper);
+            do_op_jnz(space, state, arg);
             break;
 
         case OP_PUSH:
-            do_op_push(space, state, oper);
+            do_op_push(space, state, arg);
             break;
 
         case OP_POP:
-            do_op_pop(space, state, oper);
+            do_op_pop(space, state, arg);
             break;
 
         case OP_DUP:
-            do_op_dup(space, state, oper);
+            do_op_dup(space, state, arg);
             break;
 
         case OP_SWAP:
-            do_op_swap(space, state, oper);
+            do_op_swap(space, state, arg);
             break;
 
         case OP_ADD:
-            do_op_add(space, state, oper);
+            do_op_add(space, state, arg);
             break;
 
         case OP_SUB:
-            do_op_sub(space, state, oper);
+            do_op_sub(space, state, arg);
             break;
 
         case OP_MUL:
-            do_op_mul(space, state, oper);
+            do_op_mul(space, state, arg);
             break;
 
         case OP_DIV:
-            do_op_div(space, state, oper);
+            do_op_div(space, state, arg);
             break;
 
         case OP_MOD:
-            do_op_mod(space, state, oper);
+            do_op_mod(space, state, arg);
             break;
 
         case OP_LT:
-            do_op_lt(space, state, oper);
+            do_op_lt(space, state, arg);
             break;
 
         case OP_GT:
-            do_op_gt(space, state, oper);
+            do_op_gt(space, state, arg);
             break;
 
         case OP_LTE:
-            do_op_lte(space, state, oper);
+            do_op_lte(space, state, arg);
             break;
 
         case OP_GTE:
-            do_op_gte(space, state, oper);
+            do_op_gte(space, state, arg);
             break;
 
         case OP_INC:
-            do_op_inc(space, state, oper);
+            do_op_inc(space, state, arg);
             break;
 
         case OP_DEC:
-            do_op_dec(space, state, oper);
+            do_op_dec(space, state, arg);
             break;
 
         case OP_STORE:
-            do_op_store(space, state, oper);
+            do_op_store(space, state, arg);
             break;
 
         case OP_LOAD:
-            do_op_load(space, state, oper);
+            do_op_load(space, state, arg);
             break;
 
         case OP_IS_SEEN:
-            do_op_is_seen(space, state, oper);
+            do_op_is_seen(space, state, arg);
             break;
 
         case OP_SET_SEEN:
-            do_op_set_seen(space, state, oper);
+            do_op_set_seen(space, state, arg);
             break;
 
         case OP_FORK:
-            do_op_fork(space, state, oper);
+            do_op_fork(space, state, arg);
             break;
 
         case OP_EXIT:
-            do_op_exit(space, state, oper);
+            do_op_exit(space, state, arg);
             break;
 
         default:
-            do_op_invalid(space, state, oper);
+            do_op_invalid(space, state, arg);
             break;
     }
 
@@ -696,7 +694,7 @@ void StateSpace_state_tick(StateSpace *space, State *state) {
 #endif
 
 #ifdef PRINT_TRACE
-    StateSpace_printState(space, state, prog_index);
+    StateSpace_printState(space, state, i);
 
 #ifdef MEASURE_OP_TIME
     printf("  op_time: clocks=%li ns=%i\n",
@@ -704,7 +702,7 @@ void StateSpace_state_tick(StateSpace *space, State *state) {
            (int)((double)(op_end - op_start) * 1e9 / CLOCKS_PER_SEC));
 #endif
 
-    if (oper->op == OP_STORE) {
+    if (op == OP_STORE) {
         State_printWords(state);
     }
 #endif
@@ -712,9 +710,9 @@ void StateSpace_state_tick(StateSpace *space, State *state) {
 
 void Problem_push_op(Problem *prob, unsigned short op, unsigned short arg) {
     // TODO: guard prob->proglen < MAX_PROGLEN
-    Operation *oper = &(prob->prog[prob->proglen++]);
-    oper->op = op;
-    oper->arg = arg;
+    const unsigned short i = prob->proglen++ << 1;
+    prob->prog[i] = op;
+    prob->prog[i + 1] = arg;
 }
 
 void Problem_fix(Problem *prob, const char c, const short digit, const bool check_seen) {
@@ -1030,7 +1028,7 @@ int Problem_setup(Problem *prob, const char *w1, const char *w2, const char *w3)
     printf("program:\n");
     printf("  - %i instructions\n", prob->proglen);
     for (i = 0; i < prob->proglen; ++i) {
-        Operation_toString(buf, 256, &(prob->prog[i]));
+        prog_toString(buf, 256, prob->prog, i);
         printf("  0x%04x: %s\n", i, buf);
     }
     printf("\n");
