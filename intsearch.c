@@ -6,37 +6,37 @@
 #include <time.h>
 #endif
 
-#define   EXITCODE_DEAD                    0x00ff
-#define   EXITCODE_CRASH_SEARCH_OVERFLOW   0xfffb
-#define   EXITCODE_CRASH_STACK_UNDERFLOW   0xfffc
-#define   EXITCODE_CRASH_STACK_OVERFLOW    0xfffd
-#define   EXITCODE_CRASH_INVALID_OP        0xfffe
-#define   EXITCODE_CRASH_INVALID_PI        0xffff
+#define   EXITCODE_DEAD                    0x01
+#define   EXITCODE_CRASH_SEARCH_OVERFLOW   0xfb
+#define   EXITCODE_CRASH_STACK_UNDERFLOW   0xfc
+#define   EXITCODE_CRASH_STACK_OVERFLOW    0xfd
+#define   EXITCODE_CRASH_INVALID_OP        0xfe
+#define   EXITCODE_CRASH_INVALID_PI        0xff
 
-#define   OP_JUMP         0x0001
-#define   OP_JZ           0x0002
-#define   OP_JNZ          0x0003
-#define   OP_PUSH         0x0004
-#define   OP_POP          0x0005
-#define   OP_DUP          0x0006
-#define   OP_SWAP         0x0007
-#define   OP_ADD          0x0020
-#define   OP_SUB          0x0021
-#define   OP_MUL          0x0022
-#define   OP_DIV          0x0023
-#define   OP_MOD          0x0024
-#define   OP_LT           0x0025
-#define   OP_GT           0x0026
-#define   OP_LTE          0x0027
-#define   OP_GTE          0x0028
-#define   OP_INC          0x0029
-#define   OP_DEC          0x002a
-#define   OP_STORE        0x0030
-#define   OP_LOAD         0x0031
-#define   OP_IS_SEEN      0x0032
-#define   OP_SET_SEEN     0x0033
-#define   OP_FORK         0x00fe
-#define   OP_EXIT         0x00ff
+#define   OP_JUMP         0x01
+#define   OP_JZ           0x02
+#define   OP_JNZ          0x03
+#define   OP_PUSH         0x04
+#define   OP_POP          0x05
+#define   OP_DUP          0x06
+#define   OP_SWAP         0x07
+#define   OP_ADD          0x20
+#define   OP_SUB          0x21
+#define   OP_MUL          0x22
+#define   OP_DIV          0x23
+#define   OP_MOD          0x24
+#define   OP_LT           0x25
+#define   OP_GT           0x26
+#define   OP_LTE          0x27
+#define   OP_GTE          0x28
+#define   OP_INC          0x29
+#define   OP_DEC          0x2a
+#define   OP_STORE        0x30
+#define   OP_LOAD         0x31
+#define   OP_IS_SEEN      0x32
+#define   OP_SET_SEEN     0x33
+#define   OP_FORK         0xfe
+#define   OP_EXIT         0xff
 
 #define   MAX_LETTERS   256
 #define   MAX_PROGLEN   0x0800
@@ -49,19 +49,19 @@ typedef struct ProblemStruct {
     size_t l1, l2, l3;
     unsigned int base;
     bool known[MAX_LETTERS];
-    unsigned short prog[2 * MAX_PROGLEN];
-    unsigned short proglen;
+    unsigned char prog[2 * MAX_PROGLEN];
+    unsigned char proglen;
 } Problem;
 
 typedef struct StateStruct {
     const Problem *prob;
     bool done;
-    unsigned short exitcode;
+    unsigned char exitcode;
     unsigned int prog_index;
     unsigned int stack_length;
-    short letter_map[MAX_LETTERS];
+    char letter_map[MAX_LETTERS];
     bool seen[MAX_LETTERS];
-    short stack[STACK_SIZE];
+    char stack[STACK_SIZE];
 } State;
 
 typedef struct StateSpaceStruct {
@@ -70,7 +70,7 @@ typedef struct StateSpaceStruct {
     State *states;
 } StateSpace;
 
-int prog_toString(char *str, size_t n, const unsigned short *prog, const unsigned short pi) {
+int prog_toString(char *str, size_t n, const unsigned char *prog, const unsigned short pi) {
     const unsigned short i = pi << 1;
     const unsigned short j = i + 1;
     switch (prog[i]) {
@@ -212,7 +212,7 @@ void State_printWords(const State *state) {
                 printf("    ");
             } else {
                 const char c = w[j];
-                const short digit = state->letter_map[c];
+                const char digit = state->letter_map[c];
                 if (digit < 0 || !state->seen[digit]) {
                     printf(" %c:_", c);
                 } else {
@@ -259,17 +259,17 @@ State *StateSpace_state_copy(StateSpace *space, State *state) {
         state, sizeof(State));
 }
 
-void do_op_jump(StateSpace *space, State *state, const short arg) {
+void do_op_jump(StateSpace *space, State *state, const char arg) {
     state->prog_index += arg;
 }
 
-void do_op_jz(StateSpace *space, State *state, const short arg) {
+void do_op_jz(StateSpace *space, State *state, const char arg) {
     if (state->stack_length == 0) {
         state->done = true;
         state->exitcode = EXITCODE_CRASH_STACK_UNDERFLOW;
         return;
     }
-    const short c = state->stack[--state->stack_length];
+    const char c = state->stack[--state->stack_length];
     if (c == 0) {
         state->prog_index += arg;
     } else {
@@ -277,13 +277,13 @@ void do_op_jz(StateSpace *space, State *state, const short arg) {
     }
 }
 
-void do_op_jnz(StateSpace *space, State *state, const short arg) {
+void do_op_jnz(StateSpace *space, State *state, const char arg) {
     if (state->stack_length == 0) {
         state->done = true;
         state->exitcode = EXITCODE_CRASH_STACK_UNDERFLOW;
         return;
     }
-    const short c = state->stack[--state->stack_length];
+    const char c = state->stack[--state->stack_length];
     if (c != 0) {
         state->prog_index += arg;
     } else {
@@ -291,7 +291,7 @@ void do_op_jnz(StateSpace *space, State *state, const short arg) {
     }
 }
 
-void do_op_push(StateSpace *space, State *state, const short arg) {
+void do_op_push(StateSpace *space, State *state, const char arg) {
     if (state->stack_length >= STACK_SIZE) {
         state->done = true;
         state->exitcode = EXITCODE_CRASH_STACK_OVERFLOW;
@@ -301,7 +301,7 @@ void do_op_push(StateSpace *space, State *state, const short arg) {
     state->prog_index++;
 }
 
-void do_op_pop(StateSpace *space, State *state, const short arg) {
+void do_op_pop(StateSpace *space, State *state, const char arg) {
     if (state->stack_length == 0) {
         state->done = true;
         state->exitcode = EXITCODE_CRASH_STACK_UNDERFLOW;
@@ -311,7 +311,7 @@ void do_op_pop(StateSpace *space, State *state, const short arg) {
     state->prog_index++;
 }
 
-void do_op_store(StateSpace *space, State *state, const short arg) {
+void do_op_store(StateSpace *space, State *state, const char arg) {
     // TODO: consider taking this guard off for perf
     if (state->stack_length == 0) {
         state->done = true;
@@ -322,7 +322,7 @@ void do_op_store(StateSpace *space, State *state, const short arg) {
     state->prog_index++;
 }
 
-void do_op_load(StateSpace *space, State *state, const short arg) {
+void do_op_load(StateSpace *space, State *state, const char arg) {
     if (state->stack_length >= STACK_SIZE) {
         state->done = true;
         state->exitcode = EXITCODE_CRASH_STACK_OVERFLOW;
@@ -332,33 +332,33 @@ void do_op_load(StateSpace *space, State *state, const short arg) {
     state->prog_index++;
 }
 
-void do_op_is_seen(StateSpace *space, State *state, const short arg) {
+void do_op_is_seen(StateSpace *space, State *state, const char arg) {
     if (state->stack_length == 0) {
         state->done = true;
         state->exitcode = EXITCODE_CRASH_STACK_UNDERFLOW;
         return;
     }
     const unsigned short i = state->stack_length - 1;
-    const short digit = state->stack[i];
+    const char digit = state->stack[i];
     state->stack[i] = state->seen[digit] ? 1 : 0;
     state->prog_index++;
 }
 
-void do_op_set_seen(StateSpace *space, State *state, const short arg) {
+void do_op_set_seen(StateSpace *space, State *state, const char arg) {
     if (state->stack_length == 0) {
         state->done = true;
         state->exitcode = EXITCODE_CRASH_STACK_UNDERFLOW;
         return;
     }
     const unsigned short i = state->stack_length - 1;
-    const short digit = state->stack[i];
+    const char digit = state->stack[i];
     state->stack[i] = state->seen[digit] ? 1 : 0;
     state->seen[digit] = true;
     state->prog_index++;
 }
 
-void do_op_dup(StateSpace *space, State *state, const short arg) {
-    unsigned short i = state->stack_length;
+void do_op_dup(StateSpace *space, State *state, const char arg) {
+    const unsigned short i = state->stack_length;
     if (i == 0) {
         state->done = true;
         state->exitcode = EXITCODE_CRASH_STACK_UNDERFLOW;
@@ -374,7 +374,7 @@ void do_op_dup(StateSpace *space, State *state, const short arg) {
     state->prog_index++;
 }
 
-void do_op_swap(StateSpace *space, State *state, const short arg) {
+void do_op_swap(StateSpace *space, State *state, const char arg) {
     if (state->stack_length <= 1) {
         state->done = true;
         state->exitcode = EXITCODE_CRASH_STACK_UNDERFLOW;
@@ -382,13 +382,13 @@ void do_op_swap(StateSpace *space, State *state, const short arg) {
     }
     const unsigned short i = state->stack_length - 1;
     const unsigned short j = i - 1;
-    const short tmp = state->stack[i];
+    const char tmp = state->stack[i];
     state->stack[i] = state->stack[j];
     state->stack[j] = tmp;
     state->prog_index++;
 }
 
-void do_op_add(StateSpace *space, State *state, const short arg) {
+void do_op_add(StateSpace *space, State *state, const char arg) {
     if (state->stack_length <= 1) {
         state->done = true;
         state->exitcode = EXITCODE_CRASH_STACK_UNDERFLOW;
@@ -396,13 +396,13 @@ void do_op_add(StateSpace *space, State *state, const short arg) {
     }
     const unsigned short i = --state->stack_length;
     const unsigned short j = i - 1;
-    const short b = state->stack[i];
-    const short a = state->stack[j];
+    const char b = state->stack[i];
+    const char a = state->stack[j];
     state->stack[j] = a + b;
     state->prog_index++;
 }
 
-void do_op_sub(StateSpace *space, State *state, const short arg) {
+void do_op_sub(StateSpace *space, State *state, const char arg) {
     if (state->stack_length <= 1) {
         state->done = true;
         state->exitcode = EXITCODE_CRASH_STACK_UNDERFLOW;
@@ -410,13 +410,13 @@ void do_op_sub(StateSpace *space, State *state, const short arg) {
     }
     const unsigned short i = --state->stack_length;
     const unsigned short j = i - 1;
-    const short b = state->stack[i];
-    const short a = state->stack[j];
+    const char b = state->stack[i];
+    const char a = state->stack[j];
     state->stack[j] = a - b;
     state->prog_index++;
 }
 
-void do_op_mul(StateSpace *space, State *state, const short arg) {
+void do_op_mul(StateSpace *space, State *state, const char arg) {
     if (state->stack_length <= 1) {
         state->done = true;
         state->exitcode = EXITCODE_CRASH_STACK_UNDERFLOW;
@@ -424,13 +424,13 @@ void do_op_mul(StateSpace *space, State *state, const short arg) {
     }
     const unsigned short i = --state->stack_length;
     const unsigned short j = i - 1;
-    const short b = state->stack[i];
-    const short a = state->stack[j];
+    const char b = state->stack[i];
+    const char a = state->stack[j];
     state->stack[j] = a * b;
     state->prog_index++;
 }
 
-void do_op_div(StateSpace *space, State *state, const short arg) {
+void do_op_div(StateSpace *space, State *state, const char arg) {
     if (state->stack_length <= 1) {
         state->done = true;
         state->exitcode = EXITCODE_CRASH_STACK_UNDERFLOW;
@@ -438,13 +438,13 @@ void do_op_div(StateSpace *space, State *state, const short arg) {
     }
     const unsigned short i = --state->stack_length;
     const unsigned short j = i - 1;
-    const short b = state->stack[i];
-    const short a = state->stack[j];
+    const char b = state->stack[i];
+    const char a = state->stack[j];
     state->stack[j] = a / b;
     state->prog_index++;
 }
 
-void do_op_mod(StateSpace *space, State *state, const short arg) {
+void do_op_mod(StateSpace *space, State *state, const char arg) {
     if (state->stack_length <= 1) {
         state->done = true;
         state->exitcode = EXITCODE_CRASH_STACK_UNDERFLOW;
@@ -452,13 +452,13 @@ void do_op_mod(StateSpace *space, State *state, const short arg) {
     }
     const unsigned short i = --state->stack_length;
     const unsigned short j = i - 1;
-    const short b = state->stack[i];
-    const short a = state->stack[j];
+    const char b = state->stack[i];
+    const char a = state->stack[j];
     state->stack[j] = a % b;
     state->prog_index++;
 }
 
-void do_op_lt(StateSpace *space, State *state, const short arg) {
+void do_op_lt(StateSpace *space, State *state, const char arg) {
     if (state->stack_length <= 1) {
         state->done = true;
         state->exitcode = EXITCODE_CRASH_STACK_UNDERFLOW;
@@ -466,13 +466,13 @@ void do_op_lt(StateSpace *space, State *state, const short arg) {
     }
     const unsigned short i = --state->stack_length;
     const unsigned short j = i - 1;
-    const short b = state->stack[i];
-    const short a = state->stack[j];
+    const char b = state->stack[i];
+    const char a = state->stack[j];
     state->stack[j] = a < b ? 1 : 0;
     state->prog_index++;
 }
 
-void do_op_gt(StateSpace *space, State *state, const short arg) {
+void do_op_gt(StateSpace *space, State *state, const char arg) {
     if (state->stack_length <= 1) {
         state->done = true;
         state->exitcode = EXITCODE_CRASH_STACK_UNDERFLOW;
@@ -480,13 +480,13 @@ void do_op_gt(StateSpace *space, State *state, const short arg) {
     }
     const unsigned short i = --state->stack_length;
     const unsigned short j = i - 1;
-    const short b = state->stack[i];
-    const short a = state->stack[j];
+    const char b = state->stack[i];
+    const char a = state->stack[j];
     state->stack[j] = a > b ? 1 : 0;
     state->prog_index++;
 }
 
-void do_op_lte(StateSpace *space, State *state, const short arg) {
+void do_op_lte(StateSpace *space, State *state, const char arg) {
     if (state->stack_length <= 1) {
         state->done = true;
         state->exitcode = EXITCODE_CRASH_STACK_UNDERFLOW;
@@ -494,13 +494,13 @@ void do_op_lte(StateSpace *space, State *state, const short arg) {
     }
     const unsigned short i = --state->stack_length;
     const unsigned short j = i - 1;
-    const short b = state->stack[i];
-    const short a = state->stack[j];
+    const char b = state->stack[i];
+    const char a = state->stack[j];
     state->stack[j] = a <= b ? 1 : 0;
     state->prog_index++;
 }
 
-void do_op_gte(StateSpace *space, State *state, const short arg) {
+void do_op_gte(StateSpace *space, State *state, const char arg) {
     if (state->stack_length <= 1) {
         state->done = true;
         state->exitcode = EXITCODE_CRASH_STACK_UNDERFLOW;
@@ -508,13 +508,13 @@ void do_op_gte(StateSpace *space, State *state, const short arg) {
     }
     const unsigned short i = --state->stack_length;
     const unsigned short j = i - 1;
-    const short b = state->stack[i];
-    const short a = state->stack[j];
+    const char b = state->stack[i];
+    const char a = state->stack[j];
     state->stack[j] = a >= b ? 1 : 0;
     state->prog_index++;
 }
 
-void do_op_inc(StateSpace *space, State *state, const short arg) {
+void do_op_inc(StateSpace *space, State *state, const char arg) {
     if (state->stack_length == 0) {
         state->done = true;
         state->exitcode = EXITCODE_CRASH_STACK_UNDERFLOW;
@@ -524,7 +524,7 @@ void do_op_inc(StateSpace *space, State *state, const short arg) {
     state->prog_index++;
 }
 
-void do_op_dec(StateSpace *space, State *state, const short arg) {
+void do_op_dec(StateSpace *space, State *state, const char arg) {
     if (state->stack_length == 0) {
         state->done = true;
         state->exitcode = EXITCODE_CRASH_STACK_UNDERFLOW;
@@ -534,7 +534,7 @@ void do_op_dec(StateSpace *space, State *state, const short arg) {
     state->prog_index++;
 }
 
-void do_op_fork(StateSpace *space, State *state, const short arg) {
+void do_op_fork(StateSpace *space, State *state, const char arg) {
     if (space->index >= (space->length - arg)) {
         state->done = true;
         state->exitcode = EXITCODE_CRASH_SEARCH_OVERFLOW;
@@ -559,12 +559,12 @@ void do_op_fork(StateSpace *space, State *state, const short arg) {
     }
 }
 
-void do_op_exit(StateSpace *space, State *state, const short arg) {
+void do_op_exit(StateSpace *space, State *state, const char arg) {
     state->done = true;
     state->exitcode = arg;
 }
 
-void do_op_invalid(StateSpace *space, State *state, const short arg) {
+void do_op_invalid(StateSpace *space, State *state, const char arg) {
     state->done = true;
     state->exitcode = EXITCODE_CRASH_INVALID_OP;
 }
@@ -578,9 +578,9 @@ void StateSpace_state_tick(StateSpace *space, State *state) {
     }
 
     const unsigned short j = i << 1;
-    const unsigned short *prog = &(state->prob->prog[0]);
-    const unsigned short op = prog[j];
-    const unsigned short arg = prog[j + 1];
+    const unsigned char *prog = &(state->prob->prog[0]);
+    const unsigned char op = prog[j];
+    const unsigned char arg = prog[j + 1];
 
 #ifdef MEASURE_OP_TIME
     clock_t op_start = clock();
@@ -708,14 +708,14 @@ void StateSpace_state_tick(StateSpace *space, State *state) {
 #endif
 }
 
-void Problem_push_op(Problem *prob, unsigned short op, unsigned short arg) {
+void Problem_push_op(Problem *prob, unsigned char op, unsigned char arg) {
     // TODO: guard prob->proglen < MAX_PROGLEN
     const unsigned short i = prob->proglen++ << 1;
     prob->prog[i] = op;
     prob->prog[i + 1] = arg;
 }
 
-void Problem_fix(Problem *prob, const char c, const short digit, const bool check_seen) {
+void Problem_fix(Problem *prob, const char c, const char digit, const bool check_seen) {
 #ifdef PRINT_PLAN
     printf("  - fix %c = %i (%s)\n",
             c, digit,
@@ -752,7 +752,7 @@ void Problem_choose_dfs(Problem *prob, const char c) {
         prob->w1[0] == c ||
         prob->w2[0] == c ||
         prob->w3[0] == c;
-    short initial = is_first ? 1 : 0;
+    unsigned char initial = is_first ? 1 : 0;
 
     Problem_push_op(prob, OP_PUSH, initial);         // 0  // [..., 0]           // i = 0
     Problem_push_op(prob,   OP_FORK, 1);             // 1  // [..., i, is_child] // fork
@@ -797,7 +797,7 @@ void Problem_choose_bfs(Problem *prob, const char c) {
         prob->w1[0] == c ||
         prob->w2[0] == c ||
         prob->w3[0] == c;
-    short forks = is_first ? prob->base - 1 : prob->base;
+    unsigned char forks = is_first ? prob->base - 1 : prob->base;
 
     Problem_push_op(prob, OP_FORK, forks);         // [..., N]
     Problem_push_op(prob, OP_DUP, 0);              // [..., N, N]
