@@ -1,10 +1,10 @@
 .PHONY: clean log
 
 intsearch: intsearch.c
-	$(CC) $(CFLAGS) -o $@ $<
+	$(CC) $(CFLAGS) -O3 -DMEASURE_TIME -o $@ $<
 
 intsearch_trace: intsearch.c
-	$(CC) -DPRINT_TRACE -DPRINT_PLAN -DMEASURE_TIME $(CFLAGS) -o $@ $<
+	$(CC) -DMEASURE_TIME -DPRINT_TRACE -DPRINT_PLAN -DMEASURE_TIME $(CFLAGS) -o $@ $<
 
 clean:
 	rm intsearch intsearch_trace
