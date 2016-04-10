@@ -92,20 +92,24 @@ func (prob *problem) planBottomUp() {
 			log.Printf("set carry = (%v + %v + carry) // %v", string(cx[0]), string(cx[1]), prob.base)
 		}
 
-		numKnown := 0
-		numUnknown := 0
 		for x, i := range ix {
 			if i >= 0 {
-				c := prob.words[x][i]
-				cx[x] = c
+				cx[x] = prob.words[x][i]
+			} else {
+				cx[x] = 0
+			}
+		}
+
+		numKnown := 0
+		numUnknown := 0
+		for _, c := range cx {
+			if c != 0 {
 				if prob.known[c] {
 					numKnown++
 				}
 				if !prob.known[c] {
 					numUnknown++
 				}
-			} else {
-				cx[x] = 0
 			}
 		}
 
