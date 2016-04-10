@@ -134,13 +134,24 @@ func (prob *problem) solveColumn(cx [3]rune) {
 		if c != 0 {
 			if !prob.known[c] {
 				if numUnknown == 1 {
+					var (
+						c1, c2 rune
+						neg    bool
+					)
+
 					switch x {
 					case 0:
-						log.Printf("solve %v = %v - %v - carry (mod %v)", string(c), string(cx[2]), string(cx[1]), prob.base)
+						c1, c2, neg = cx[2], cx[1], true
 					case 1:
-						log.Printf("solve %v = %v - %v - carry (mod %v)", string(c), string(cx[2]), string(cx[0]), prob.base)
+						c1, c2, neg = cx[2], cx[0], true
 					case 2:
-						log.Printf("solve %v = %v + %v + carry (mod %v)", string(c), string(cx[0]), string(cx[1]), prob.base)
+						c1, c2, neg = cx[0], cx[1], false
+					}
+
+					if neg {
+						log.Printf("solve %v = %v - %v - carry (mod %v)", string(c), string(c1), string(c2), prob.base)
+					} else {
+						log.Printf("solve %v = %v + %v + carry (mod %v)", string(c), string(c1), string(c2), prob.base)
 					}
 				} else {
 					log.Printf("choose %v (branch by %v)", string(c), prob.base-len(prob.known))
