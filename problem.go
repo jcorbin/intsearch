@@ -74,8 +74,9 @@ func (prob *problem) planBottomUp() {
 	known := make(map[rune]bool, len(prob.letterSet))
 
 	var (
-		cx [3]rune
-		ix = [3]int{
+		cx    [3]rune
+		first = true
+		ix    = [3]int{
 			len(prob.words[0]) - 1,
 			len(prob.words[1]) - 1,
 			len(prob.words[2]) - 1,
@@ -83,6 +84,13 @@ func (prob *problem) planBottomUp() {
 	)
 
 	for ix[0] >= 0 || ix[1] >= 0 || ix[2] >= 0 {
+		if first {
+			log.Printf("set carry = 0")
+			first = false
+		} else {
+			log.Printf("set carry = (%v + %v + carry) // %v", string(cx[0]), string(cx[1]), prob.base)
+		}
+
 		numKnown := 0
 		for x, i := range ix {
 			if i >= 0 {
@@ -104,11 +112,11 @@ func (prob *problem) planBottomUp() {
 					if numKnown < 2 {
 						log.Printf("choose %v (branch by %v)", string(c), prob.base-len(known))
 					} else if x == 0 {
-						log.Printf("solve %v = %v - %v (mod %v)", string(c), string(cx[2]), string(cx[1]), prob.base)
+						log.Printf("solve %v = %v - %v - carry (mod %v)", string(c), string(cx[2]), string(cx[1]), prob.base)
 					} else if x == 1 {
-						log.Printf("solve %v = %v - %v (mod %v)", string(c), string(cx[2]), string(cx[0]), prob.base)
+						log.Printf("solve %v = %v - %v - carry (mod %v)", string(c), string(cx[2]), string(cx[0]), prob.base)
 					} else if x == 2 {
-						log.Printf("solve %v = %v + %v (mod %v)", string(c), string(cx[0]), string(cx[1]), prob.base)
+						log.Printf("solve %v = %v + %v + carry (mod %v)", string(c), string(cx[0]), string(cx[1]), prob.base)
 					} else {
 						panic("nope solve")
 					}
