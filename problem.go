@@ -100,47 +100,51 @@ func (prob *problem) planBottomUp() {
 			}
 		}
 
-		numKnown := 0
-		numUnknown := 0
-		for _, c := range cx {
-			if c != 0 {
-				if prob.known[c] {
-					numKnown++
-				}
-				if !prob.known[c] {
-					numUnknown++
-				}
-			}
-		}
-
-		log.Printf("column: %v + %v = %v (numKnown: %v, numUnknown: %v)", string(cx[0]), string(cx[1]), string(cx[2]), numKnown, numUnknown)
-
-		for x, c := range cx {
-			if c != 0 {
-				if !prob.known[c] {
-					if numUnknown == 1 {
-						switch x {
-						case 0:
-							log.Printf("solve %v = %v - %v - carry (mod %v)", string(c), string(cx[2]), string(cx[1]), prob.base)
-						case 1:
-							log.Printf("solve %v = %v - %v - carry (mod %v)", string(c), string(cx[2]), string(cx[0]), prob.base)
-						case 2:
-							log.Printf("solve %v = %v + %v + carry (mod %v)", string(c), string(cx[0]), string(cx[1]), prob.base)
-						}
-					} else {
-						log.Printf("choose %v (branch by %v)", string(c), prob.base-len(prob.known))
-					}
-					prob.known[c] = true
-					numUnknown--
-					numKnown++
-				} else if x == 2 && cx[0] == 0 && cx[1] == 0 {
-					log.Printf("check %v == carry", string(c))
-				}
-			}
-		}
+		prob.solveColumn(cx)
 
 		ix[0]--
 		ix[1]--
 		ix[2]--
+	}
+}
+
+func (prob *problem) solveColumn(cx [3]rune) {
+	numKnown := 0
+	numUnknown := 0
+	for _, c := range cx {
+		if c != 0 {
+			if prob.known[c] {
+				numKnown++
+			}
+			if !prob.known[c] {
+				numUnknown++
+			}
+		}
+	}
+
+	log.Printf("column: %v + %v = %v (numKnown: %v, numUnknown: %v)", string(cx[0]), string(cx[1]), string(cx[2]), numKnown, numUnknown)
+
+	for x, c := range cx {
+		if c != 0 {
+			if !prob.known[c] {
+				if numUnknown == 1 {
+					switch x {
+					case 0:
+						log.Printf("solve %v = %v - %v - carry (mod %v)", string(c), string(cx[2]), string(cx[1]), prob.base)
+					case 1:
+						log.Printf("solve %v = %v - %v - carry (mod %v)", string(c), string(cx[2]), string(cx[0]), prob.base)
+					case 2:
+						log.Printf("solve %v = %v + %v + carry (mod %v)", string(c), string(cx[0]), string(cx[1]), prob.base)
+					}
+				} else {
+					log.Printf("choose %v (branch by %v)", string(c), prob.base-len(prob.known))
+				}
+				prob.known[c] = true
+				numUnknown--
+				numKnown++
+			} else if x == 2 && cx[0] == 0 && cx[1] == 0 {
+				log.Printf("check %v == carry", string(c))
+			}
+		}
 	}
 }
