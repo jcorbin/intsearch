@@ -148,10 +148,30 @@ func (prob *problem) solveColumn(cx [3]rune) {
 						c1, c2, neg = cx[0], cx[1], false
 					}
 
-					if neg {
-						log.Printf("// solve %v = %v - %v - carry (mod %v)", string(c), string(c1), string(c2), prob.base)
+					if c1 != 0 && c2 != 0 {
+						if neg {
+							log.Printf("// solve %v = %v - %v - carry (mod %v)", string(c), string(c1), string(c2), prob.base)
+						} else {
+							log.Printf("// solve %v = %v + %v + carry (mod %v)", string(c), string(c1), string(c2), prob.base)
+						}
+					} else if c1 != 0 {
+						if neg {
+							log.Printf("// solve %v = %v - carry (mod %v)", string(c), string(c1), prob.base)
+						} else {
+							log.Printf("// solve %v = %v + carry (mod %v)", string(c), string(c1), prob.base)
+						}
+					} else if c2 != 0 {
+						if neg {
+							log.Printf("// solve %v = %v - carry (mod %v)", string(c), string(c2), prob.base)
+						} else {
+							log.Printf("// solve %v = %v + carry (mod %v)", string(c), string(c2), prob.base)
+						}
 					} else {
-						log.Printf("// solve %v = %v + %v + carry (mod %v)", string(c), string(c1), string(c2), prob.base)
+						if neg {
+							log.Printf("// solve %v = - carry (mod %v)", string(c), prob.base)
+						} else {
+							log.Printf("// solve %v = + carry (mod %v)", string(c), prob.base)
+						}
 					}
 				} else {
 					log.Printf("// choose %v (branch by %v)", string(c), prob.base-len(prob.known))
