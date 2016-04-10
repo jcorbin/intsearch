@@ -73,13 +73,16 @@ func (prob *problem) planBottomUp() {
 	//   compute the third (if unknown)
 	known := make(map[rune]bool, len(prob.letterSet))
 
-	ix := [3]int{
-		len(prob.words[0]) - 1,
-		len(prob.words[1]) - 1,
-		len(prob.words[2]) - 1,
-	}
+	var (
+		cx [3]rune
+		ix = [3]int{
+			len(prob.words[0]) - 1,
+			len(prob.words[1]) - 1,
+			len(prob.words[2]) - 1,
+		}
+	)
+
 	for ix[0] >= 0 || ix[1] >= 0 || ix[2] >= 0 {
-		var cx [3]rune
 		numKnown := 0
 		for x, i := range ix {
 			if i >= 0 {
@@ -88,6 +91,8 @@ func (prob *problem) planBottomUp() {
 				if known[c] {
 					numKnown++
 				}
+			} else {
+				cx[x] = 0
 			}
 		}
 
