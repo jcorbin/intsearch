@@ -89,7 +89,15 @@ func (prob *problem) planBottomUp() {
 			log.Printf("// set carry = 0")
 			first = false
 		} else {
-			log.Printf("// set carry = (%v + %v + carry) // %v", string(cx[0]), string(cx[1]), prob.base)
+			if cx[0] != 0 && cx[1] != 0 {
+				log.Printf("// set carry = (%v + %v + carry) // %v", string(cx[0]), string(cx[1]), prob.base)
+			} else if cx[0] != 0 {
+				log.Printf("// set carry = (%v + carry) // %v", string(cx[0]), prob.base)
+			} else if cx[1] != 0 {
+				log.Printf("// set carry = (%v + carry) // %v", string(cx[1]), prob.base)
+			} else {
+				log.Printf("// set carry = carry // %v", prob.base)
+			}
 		}
 
 		for x, i := range ix {
