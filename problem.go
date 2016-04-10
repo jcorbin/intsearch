@@ -99,7 +99,7 @@ func (prob *problem) planBottomUp() {
 		log.Printf("column: %v + %v = %v (numKnown: %v)", string(cx[0]), string(cx[1]), string(cx[2]), numKnown)
 
 		for x, c := range cx {
-			if ix[x] >= 0 {
+			if c != 0 {
 				if !known[c] {
 					if numKnown < 2 {
 						log.Printf("choose %v (branch by %v)", string(c), prob.base-len(known))
