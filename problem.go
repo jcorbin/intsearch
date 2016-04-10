@@ -122,7 +122,13 @@ func (prob *problem) solveColumn(cx [3]rune) {
 		}
 	}
 
-	log.Printf("column: %v + %v = %v (numKnown: %v, numUnknown: %v)", string(cx[0]), string(cx[1]), string(cx[2]), numKnown, numUnknown)
+	if cx[0] != 0 && cx[1] != 0 {
+		log.Printf("// column: carry + %v + %v = %v", string(cx[0]), string(cx[1]), string(cx[2]))
+	} else if cx[0] != 0 {
+		log.Printf("// column: carry + %v = %v", string(cx[0]), string(cx[2]))
+	} else if cx[1] != 0 {
+		log.Printf("// column: carry + %v = %v", string(cx[1]), string(cx[2]))
+	}
 
 	for x, c := range cx {
 		if c != 0 {
