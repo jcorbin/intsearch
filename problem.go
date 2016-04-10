@@ -128,6 +128,8 @@ func (prob *problem) planBottomUp() {
 					known[c] = true
 					numUnknown--
 					numKnown++
+				} else if x == 2 && cx[0] == 0 && cx[1] == 0 {
+					log.Printf("check %v == carry", string(c))
 				}
 			}
 		}
