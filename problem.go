@@ -92,6 +92,7 @@ func (prob *problem) planBottomUp() {
 		}
 
 		numKnown := 0
+		numUnknown := 0
 		for x, i := range ix {
 			if i >= 0 {
 				c := prob.words[x][i]
@@ -99,12 +100,15 @@ func (prob *problem) planBottomUp() {
 				if known[c] {
 					numKnown++
 				}
+				if !known[c] {
+					numUnknown++
+				}
 			} else {
 				cx[x] = 0
 			}
 		}
 
-		log.Printf("column: %v + %v = %v (numKnown: %v)", string(cx[0]), string(cx[1]), string(cx[2]), numKnown)
+		log.Printf("column: %v + %v = %v (numKnown: %v, numUnknown: %v)", string(cx[0]), string(cx[1]), string(cx[2]), numKnown, numUnknown)
 
 		for x, c := range cx {
 			if c != 0 {
@@ -121,6 +125,7 @@ func (prob *problem) planBottomUp() {
 						panic("nope solve")
 					}
 					known[c] = true
+					numUnknown--
 					numKnown++
 				}
 			}
