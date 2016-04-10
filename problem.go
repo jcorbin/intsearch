@@ -86,10 +86,10 @@ func (prob *problem) planBottomUp() {
 
 	for ix[0] >= 0 || ix[1] >= 0 || ix[2] >= 0 {
 		if first {
-			log.Printf("set carry = 0")
+			log.Printf("// set carry = 0")
 			first = false
 		} else {
-			log.Printf("set carry = (%v + %v + carry) // %v", string(cx[0]), string(cx[1]), prob.base)
+			log.Printf("// set carry = (%v + %v + carry) // %v", string(cx[0]), string(cx[1]), prob.base)
 		}
 
 		for x, i := range ix {
@@ -149,18 +149,18 @@ func (prob *problem) solveColumn(cx [3]rune) {
 					}
 
 					if neg {
-						log.Printf("solve %v = %v - %v - carry (mod %v)", string(c), string(c1), string(c2), prob.base)
+						log.Printf("// solve %v = %v - %v - carry (mod %v)", string(c), string(c1), string(c2), prob.base)
 					} else {
-						log.Printf("solve %v = %v + %v + carry (mod %v)", string(c), string(c1), string(c2), prob.base)
+						log.Printf("// solve %v = %v + %v + carry (mod %v)", string(c), string(c1), string(c2), prob.base)
 					}
 				} else {
-					log.Printf("choose %v (branch by %v)", string(c), prob.base-len(prob.known))
+					log.Printf("// choose %v (branch by %v)", string(c), prob.base-len(prob.known))
 				}
 				prob.known[c] = true
 				numUnknown--
 				numKnown++
 			} else if x == 2 && cx[0] == 0 && cx[1] == 0 {
-				log.Printf("check %v == carry", string(c))
+				log.Printf("// check %v == carry", string(c))
 			}
 		}
 	}
