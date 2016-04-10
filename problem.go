@@ -13,6 +13,7 @@ type problem struct {
 	words     [3][]rune
 	letterSet map[rune]bool
 	base      int
+	known     map[rune]bool
 }
 
 func (prob *problem) plan(word1, word2, word3 string) error {
@@ -55,6 +56,7 @@ func (prob *problem) setup(word1, word2, word3 string) error {
 	if len(prob.letterSet) > 10 {
 		return fmt.Errorf("only base 10 problems supported currently")
 	}
+	prob.known = make(map[rune]bool, len(prob.letterSet))
 	return nil
 }
 
@@ -71,7 +73,6 @@ func (prob *problem) planBottomUp() {
 	// for each column from the right
 	//   choose letters until 2/3 are known
 	//   compute the third (if unknown)
-	known := make(map[rune]bool, len(prob.letterSet))
 
 	var (
 		cx    [3]rune
@@ -97,10 +98,10 @@ func (prob *problem) planBottomUp() {
 			if i >= 0 {
 				c := prob.words[x][i]
 				cx[x] = c
-				if known[c] {
+				if prob.known[c] {
 					numKnown++
 				}
-				if !known[c] {
+				if !prob.known[c] {
 					numUnknown++
 				}
 			} else {
@@ -112,7 +113,7 @@ func (prob *problem) planBottomUp() {
 
 		for x, c := range cx {
 			if c != 0 {
-				if !known[c] {
+				if !prob.known[c] {
 					if numUnknown == 1 {
 						switch x {
 						case 0:
@@ -123,9 +124,9 @@ func (prob *problem) planBottomUp() {
 							log.Printf("solve %v = %v + %v + carry (mod %v)", string(c), string(cx[0]), string(cx[1]), prob.base)
 						}
 					} else {
-						log.Printf("choose %v (branch by %v)", string(c), prob.base-len(known))
+						log.Printf("choose %v (branch by %v)", string(c), prob.base-len(prob.known))
 					}
-					known[c] = true
+					prob.known[c] = true
 					numUnknown--
 					numKnown++
 				} else if x == 2 && cx[0] == 0 && cx[1] == 0 {
