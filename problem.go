@@ -113,16 +113,17 @@ func (prob *problem) planBottomUp() {
 		for x, c := range cx {
 			if c != 0 {
 				if !known[c] {
-					if numKnown < 2 {
-						log.Printf("choose %v (branch by %v)", string(c), prob.base-len(known))
-					} else if x == 0 {
-						log.Printf("solve %v = %v - %v - carry (mod %v)", string(c), string(cx[2]), string(cx[1]), prob.base)
-					} else if x == 1 {
-						log.Printf("solve %v = %v - %v - carry (mod %v)", string(c), string(cx[2]), string(cx[0]), prob.base)
-					} else if x == 2 {
-						log.Printf("solve %v = %v + %v + carry (mod %v)", string(c), string(cx[0]), string(cx[1]), prob.base)
+					if numUnknown == 1 {
+						switch x {
+						case 0:
+							log.Printf("solve %v = %v - %v - carry (mod %v)", string(c), string(cx[2]), string(cx[1]), prob.base)
+						case 1:
+							log.Printf("solve %v = %v - %v - carry (mod %v)", string(c), string(cx[2]), string(cx[0]), prob.base)
+						case 2:
+							log.Printf("solve %v = %v + %v + carry (mod %v)", string(c), string(cx[0]), string(cx[1]), prob.base)
+						}
 					} else {
-						panic("nope solve")
+						log.Printf("choose %v (branch by %v)", string(c), prob.base-len(known))
 					}
 					known[c] = true
 					numUnknown--
