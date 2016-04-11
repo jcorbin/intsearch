@@ -17,13 +17,13 @@ type problem struct {
 }
 
 type solutionGen interface {
-	init(*problem, string)
-	fix(*problem, rune, int)
+	init(prob *problem, desc string)
+	fix(prob *problem, c rune, v int)
 	interColumn(prob *problem, cx [3]rune)
-	initColumn(*problem, [3]rune, int, int)
-	solve(*problem, bool, rune, rune, rune)
+	initColumn(prob *problem, cx [3]rune, numKnown, numUnknown int)
+	solve(prob *problem, neg bool, c rune, c1, c2 rune)
 	choose(prob *problem, c rune)
-	checkFinal(*problem, rune, rune, rune)
+	checkFinal(prob *problem, c rune, c1, c2 rune)
 	finish(prob *problem)
 }
 
