@@ -18,6 +18,7 @@ type problem struct {
 
 type solutionGen interface {
 	init(*problem, string)
+	fix(*problem, rune, int)
 	interColumn(prob *problem, cx [3]rune)
 	initColumn(*problem, [3]rune, int, int)
 	solve(*problem, bool, rune, rune, rune)

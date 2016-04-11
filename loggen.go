@@ -34,6 +34,10 @@ func (lg *logGen) init(prob *problem, desc string) {
 	lg.stepf("set carry = 0\n")
 }
 
+func (lg *logGen) fix(prob *problem, c rune, v int) {
+	lg.stepf("fix %v = %v\n", string(c), v)
+}
+
 func (lg *logGen) interColumn(prob *problem, cx [3]rune) {
 	if cx[0] != 0 && cx[1] != 0 {
 		lg.stepf("set carry = (%v + %v + carry) // %v\n", string(cx[0]), string(cx[1]), prob.base)
