@@ -9,21 +9,21 @@ import (
 var errInvalidResultWidth = errors.New("invalid result width, must be equal to or only one greater than the widest argument")
 
 type problem struct {
-	words     [3][]rune
-	letterSet map[rune]bool
+	words     [3][]byte
+	letterSet map[byte]bool
 	base      int
-	known     map[rune]bool
+	known     map[byte]bool
 	gen       solutionGen
 }
 
 type solutionGen interface {
 	init(prob *problem, desc string)
-	fix(prob *problem, c rune, v int)
-	interColumn(prob *problem, cx [3]rune)
-	initColumn(prob *problem, cx [3]rune, numKnown, numUnknown int)
-	solve(prob *problem, neg bool, c rune, c1, c2 rune)
-	choose(prob *problem, c rune)
-	checkFinal(prob *problem, c rune, c1, c2 rune)
+	fix(prob *problem, c byte, v int)
+	interColumn(prob *problem, cx [3]byte)
+	initColumn(prob *problem, cx [3]byte, numKnown, numUnknown int)
+	solve(prob *problem, neg bool, c byte, c1, c2 byte)
+	choose(prob *problem, c byte)
+	checkFinal(prob *problem, c byte, c1, c2 byte)
 	finish(prob *problem)
 }
 
@@ -55,10 +55,11 @@ func (prob *problem) validate(word1, word2, word3 string) error {
 }
 
 func (prob *problem) setup(word1, word2, word3 string) error {
-	prob.letterSet = make(map[rune]bool, len(word1)+len(word2)+len(word3))
+	prob.letterSet = make(map[byte]bool, len(word1)+len(word2)+len(word3))
 	for x, word := range []string{word1, word2, word3} {
-		prob.words[x] = make([]rune, len(word))
-		for i, c := range word {
+		prob.words[x] = make([]byte, len(word))
+		for i, r := range word {
+			c := byte(r)
 			prob.words[x][i] = c
 			prob.letterSet[c] = true
 		}
@@ -67,7 +68,7 @@ func (prob *problem) setup(word1, word2, word3 string) error {
 	if len(prob.letterSet) > 10 {
 		return fmt.Errorf("only base 10 problems supported currently")
 	}
-	prob.known = make(map[rune]bool, len(prob.letterSet))
+	prob.known = make(map[byte]bool, len(prob.letterSet))
 	return nil
 }
 
@@ -86,7 +87,7 @@ func (prob *problem) planBottomUp() {
 	//   compute the third (if unknown)
 
 	var (
-		cx    [3]rune
+		cx    [3]byte
 		first = true
 		ix    = [3]int{
 			len(prob.words[0]) - 1,
@@ -120,7 +121,7 @@ func (prob *problem) planBottomUp() {
 	prob.gen.finish(prob)
 }
 
-func (prob *problem) solveColumn(cx [3]rune) {
+func (prob *problem) solveColumn(cx [3]byte) {
 	numKnown := 0
 	numUnknown := 0
 	for _, c := range cx {

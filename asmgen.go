@@ -11,11 +11,11 @@ func (ag *asmGen) init(prob *problem, desc string) {
 	fmt.Printf("loadc 0\n")
 }
 
-func (ag *asmGen) fix(prob *problem, c rune, v int) {
+func (ag *asmGen) fix(prob *problem, c byte, v int) {
 	fmt.Printf("store RESULT + %v, %v\n", string(c), v)
 }
 
-func (ag *asmGen) interColumn(prob *problem, cx [3]rune) {
+func (ag *asmGen) interColumn(prob *problem, cx [3]byte) {
 	fmt.Printf("loada c\n")
 	if cx[0] != 0 {
 		fmt.Printf("loadb RESULT + %v\n", string(cx[0]))
@@ -29,10 +29,10 @@ func (ag *asmGen) interColumn(prob *problem, cx [3]rune) {
 	fmt.Printf("loadc a\n")
 }
 
-func (ag *asmGen) initColumn(prob *problem, cx [3]rune, numKnown, numUnknown int) {
+func (ag *asmGen) initColumn(prob *problem, cx [3]byte, numKnown, numUnknown int) {
 }
 
-func (ag *asmGen) solve(prob *problem, neg bool, c, c1, c2 rune) {
+func (ag *asmGen) solve(prob *problem, neg bool, c, c1, c2 byte) {
 	if c1 == 0 && c2 == 0 {
 		fmt.Printf("loada c\n")
 	} else if c1 != 0 && c2 != 0 {
@@ -55,7 +55,7 @@ func (ag *asmGen) solve(prob *problem, neg bool, c, c1, c2 rune) {
 	fmt.Printf("store USED + $a, 1\n")
 }
 
-func (ag *asmGen) choose(prob *problem, c rune) {
+func (ag *asmGen) choose(prob *problem, c byte) {
 	fmt.Printf("choose %v\n", string(c))
 	fmt.Printf("loadb 0\n")
 	fmt.Printf(":loop\n")
@@ -85,7 +85,7 @@ func (ag *asmGen) choose(prob *problem, c rune) {
 	fmt.Printf("store USED + $a, 1\n")
 }
 
-func (ag *asmGen) checkFinal(prob *problem, c, c1, c2 rune) {
+func (ag *asmGen) checkFinal(prob *problem, c, c1, c2 byte) {
 	fmt.Printf("loada %v\n", string(c))
 	fmt.Printf("eq a, c\n")
 	fmt.Printf("jz +1\n")

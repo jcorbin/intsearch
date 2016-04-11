@@ -34,11 +34,11 @@ func (lg *logGen) init(prob *problem, desc string) {
 	lg.stepf("set carry = 0\n")
 }
 
-func (lg *logGen) fix(prob *problem, c rune, v int) {
+func (lg *logGen) fix(prob *problem, c byte, v int) {
 	lg.stepf("fix %v = %v\n", string(c), v)
 }
 
-func (lg *logGen) interColumn(prob *problem, cx [3]rune) {
+func (lg *logGen) interColumn(prob *problem, cx [3]byte) {
 	if cx[0] != 0 && cx[1] != 0 {
 		lg.stepf("set carry = (%v + %v + carry) // %v\n", string(cx[0]), string(cx[1]), prob.base)
 	} else if cx[0] != 0 {
@@ -50,7 +50,7 @@ func (lg *logGen) interColumn(prob *problem, cx [3]rune) {
 	}
 }
 
-func (lg *logGen) initColumn(prob *problem, cx [3]rune, numKnown, numUnknown int) {
+func (lg *logGen) initColumn(prob *problem, cx [3]byte, numKnown, numUnknown int) {
 	if cx[0] != 0 && cx[1] != 0 {
 		fmt.Printf("// column: carry + %v + %v = %v\n", string(cx[0]), string(cx[1]), string(cx[2]))
 	} else if cx[0] != 0 {
@@ -60,7 +60,7 @@ func (lg *logGen) initColumn(prob *problem, cx [3]rune, numKnown, numUnknown int
 	}
 }
 
-func (lg *logGen) solve(prob *problem, neg bool, c, c1, c2 rune) {
+func (lg *logGen) solve(prob *problem, neg bool, c, c1, c2 byte) {
 	if c1 != 0 && c2 != 0 {
 		if neg {
 			lg.stepf("solve %v = %v - %v - carry (mod %v)\n", string(c), string(c1), string(c2), prob.base)
@@ -88,13 +88,13 @@ func (lg *logGen) solve(prob *problem, neg bool, c, c1, c2 rune) {
 	}
 }
 
-func (lg *logGen) choose(prob *problem, c rune) {
+func (lg *logGen) choose(prob *problem, c byte) {
 	branches := prob.base - len(prob.known)
 	lg.branches = append(lg.branches, branches)
 	lg.stepf("choose %v (branch by %v)\n", string(c), branches)
 }
 
-func (lg *logGen) checkFinal(prob *problem, c, c1, c2 rune) {
+func (lg *logGen) checkFinal(prob *problem, c, c1, c2 byte) {
 	lg.stepf("check %v == carry\n", string(c))
 }
 
