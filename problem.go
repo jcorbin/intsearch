@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"log"
 	"sort"
 )
 
@@ -14,9 +13,20 @@ type problem struct {
 	letterSet map[rune]bool
 	base      int
 	known     map[rune]bool
+	gen       solutionGen
 }
 
-func (prob *problem) plan(word1, word2, word3 string) error {
+type solutionGen interface {
+	init(*problem, string)
+	interColumn(prob *problem, cx [3]rune)
+	initColumn(*problem, [3]rune, int, int)
+	solve(*problem, bool, rune, rune, rune)
+	choose(prob *problem, c rune)
+	checkFinal(*problem, rune, rune, rune)
+	finish(prob *problem)
+}
+
+func (prob *problem) plan(word1, word2, word3 string, gen solutionGen) error {
 	if err := prob.validate(word1, word2, word3); err != nil {
 		return err
 	}
@@ -24,10 +34,8 @@ func (prob *problem) plan(word1, word2, word3 string) error {
 		return err
 	}
 
-	// log.Printf("letters: %v", prob.sortedLetters())
-
+	prob.gen = gen
 	prob.planBottomUp()
-
 	return nil
 }
 
@@ -84,20 +92,13 @@ func (prob *problem) planBottomUp() {
 		}
 	)
 
+	prob.gen.init(prob, "bottom up")
+
 	for ix[0] >= 0 || ix[1] >= 0 || ix[2] >= 0 {
 		if first {
-			log.Printf("// set carry = 0")
 			first = false
 		} else {
-			if cx[0] != 0 && cx[1] != 0 {
-				log.Printf("// set carry = (%v + %v + carry) // %v", string(cx[0]), string(cx[1]), prob.base)
-			} else if cx[0] != 0 {
-				log.Printf("// set carry = (%v + carry) // %v", string(cx[0]), prob.base)
-			} else if cx[1] != 0 {
-				log.Printf("// set carry = (%v + carry) // %v", string(cx[1]), prob.base)
-			} else {
-				log.Printf("// set carry = carry // %v", prob.base)
-			}
+			prob.gen.interColumn(prob, cx)
 		}
 
 		for x, i := range ix {
@@ -114,6 +115,8 @@ func (prob *problem) planBottomUp() {
 		ix[1]--
 		ix[2]--
 	}
+
+	prob.gen.finish(prob)
 }
 
 func (prob *problem) solveColumn(cx [3]rune) {
@@ -130,65 +133,28 @@ func (prob *problem) solveColumn(cx [3]rune) {
 		}
 	}
 
-	if cx[0] != 0 && cx[1] != 0 {
-		log.Printf("// column: carry + %v + %v = %v", string(cx[0]), string(cx[1]), string(cx[2]))
-	} else if cx[0] != 0 {
-		log.Printf("// column: carry + %v = %v", string(cx[0]), string(cx[2]))
-	} else if cx[1] != 0 {
-		log.Printf("// column: carry + %v = %v", string(cx[1]), string(cx[2]))
-	}
+	prob.gen.initColumn(prob, cx, numKnown, numUnknown)
 
 	for x, c := range cx {
 		if c != 0 {
 			if !prob.known[c] {
 				if numUnknown == 1 {
-					var (
-						c1, c2 rune
-						neg    bool
-					)
-
 					switch x {
 					case 0:
-						c1, c2, neg = cx[2], cx[1], true
+						prob.gen.solve(prob, true, c, cx[2], cx[1])
 					case 1:
-						c1, c2, neg = cx[2], cx[0], true
+						prob.gen.solve(prob, true, c, cx[2], cx[0])
 					case 2:
-						c1, c2, neg = cx[0], cx[1], false
-					}
-
-					if c1 != 0 && c2 != 0 {
-						if neg {
-							log.Printf("// solve %v = %v - %v - carry (mod %v)", string(c), string(c1), string(c2), prob.base)
-						} else {
-							log.Printf("// solve %v = %v + %v + carry (mod %v)", string(c), string(c1), string(c2), prob.base)
-						}
-					} else if c1 != 0 {
-						if neg {
-							log.Printf("// solve %v = %v - carry (mod %v)", string(c), string(c1), prob.base)
-						} else {
-							log.Printf("// solve %v = %v + carry (mod %v)", string(c), string(c1), prob.base)
-						}
-					} else if c2 != 0 {
-						if neg {
-							log.Printf("// solve %v = %v - carry (mod %v)", string(c), string(c2), prob.base)
-						} else {
-							log.Printf("// solve %v = %v + carry (mod %v)", string(c), string(c2), prob.base)
-						}
-					} else {
-						if neg {
-							log.Printf("// solve %v = - carry (mod %v)", string(c), prob.base)
-						} else {
-							log.Printf("// solve %v = + carry (mod %v)", string(c), prob.base)
-						}
+						prob.gen.solve(prob, false, c, cx[0], cx[1])
 					}
 				} else {
-					log.Printf("// choose %v (branch by %v)", string(c), prob.base-len(prob.known))
+					prob.gen.choose(prob, c)
 				}
 				prob.known[c] = true
 				numUnknown--
 				numKnown++
 			} else if x == 2 && cx[0] == 0 && cx[1] == 0 {
-				log.Printf("// check %v == carry", string(c))
+				prob.gen.checkFinal(prob, c, cx[0], cx[1])
 			}
 		}
 	}

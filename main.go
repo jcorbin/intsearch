@@ -20,9 +20,12 @@ func main() {
 		log.Fatalf("missing word3 argument")
 	}
 
-	var prob problem
+	var (
+		prob problem
+		gen  logGen
+	)
 
-	if err := prob.plan(word1, word2, word3); err != nil {
+	if err := prob.plan(word1, word2, word3, gen); err != nil {
 		log.Fatalf("plan failed: %v", err)
 	}
 }
