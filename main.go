@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 )
 
@@ -22,10 +23,33 @@ func main() {
 
 	var (
 		prob problem
-		gen  logGen
+		gg   goGen
+		gen  = multiGen{[]solutionGen{
+			&logGen{},
+			&gg,
+			gg.obsAfter(),
+		}}
 	)
 
 	if err := prob.plan(word1, word2, word3, &gen); err != nil {
 		log.Fatalf("plan failed: %v", err)
 	}
+
+	srch := search{
+		frontier: make([]*solution, 0, len(prob.letterSet)),
+		traces:   make(map[*solution][]*solution, len(prob.letterSet)),
+		init: func(emit func(*solution)) {
+			emit(newSolution(&prob, gg.steps, emit))
+		},
+		result: func(sol *solution, trace []*solution) {
+			fmt.Println()
+			fmt.Println("Solution:")
+			for i, soli := range trace {
+				fmt.Printf("%v %v %s\n", i, soli, soli.letterMapping())
+			}
+			fmt.Printf("=== %v %v\n", 0, sol)
+			fmt.Printf("=== %v %s\n", 0, sol.letterMapping())
+		},
+	}
+	srch.run(100000)
 }
