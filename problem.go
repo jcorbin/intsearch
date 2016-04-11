@@ -35,6 +35,8 @@ func (prob *problem) plan(word1, word2, word3 string, gen solutionGen) error {
 	}
 
 	prob.gen = gen
+	prob.gen.init(prob, "bottom up")
+
 	prob.planBottomUp()
 	return nil
 }
@@ -91,8 +93,6 @@ func (prob *problem) planBottomUp() {
 			len(prob.words[2]) - 1,
 		}
 	)
-
-	prob.gen.init(prob, "bottom up")
 
 	for ix[0] >= 0 || ix[1] >= 0 || ix[2] >= 0 {
 		if first {
