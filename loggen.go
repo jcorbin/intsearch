@@ -6,7 +6,8 @@ import (
 )
 
 type logGen struct {
-	step int
+	step     int
+	branches []int
 }
 
 func (lg *logGen) stepf(format string, args ...interface{}) {
@@ -84,7 +85,9 @@ func (lg *logGen) solve(prob *problem, neg bool, c, c1, c2 rune) {
 }
 
 func (lg *logGen) choose(prob *problem, c rune) {
-	lg.stepf("choose %v (branch by %v)\n", string(c), prob.base-len(prob.known))
+	branches := prob.base - len(prob.known)
+	lg.branches = append(lg.branches, branches)
+	lg.stepf("choose %v (branch by %v)\n", string(c), branches)
 }
 
 func (lg *logGen) checkFinal(prob *problem, c, c1, c2 rune) {
@@ -93,4 +96,12 @@ func (lg *logGen) checkFinal(prob *problem, c, c1, c2 rune) {
 
 func (lg *logGen) finish(prob *problem) {
 	lg.stepf("done\n")
+
+	branches := 1
+	for _, b := range lg.branches {
+		branches *= b
+	}
+
+	fmt.Printf("")
+	fmt.Printf("# Total Branches: %v\n", branches)
 }
