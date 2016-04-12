@@ -71,6 +71,16 @@ func (c addStep) run(sol *solution) {
 	sol.carry += sol.values[c]
 }
 
+type subStep byte
+
+func (c subStep) String() string {
+	return fmt.Sprintf("sub(%s)", string(c))
+}
+
+func (c subStep) run(sol *solution) {
+	sol.carry -= sol.values[c]
+}
+
 type divStep int
 
 func (v divStep) String() string {
@@ -190,13 +200,13 @@ func (gg *goGen) computeSummand(prob *problem, a, b, c byte) {
 	// Solve for a:
 	//   a = c - b - carry (mod base)
 	gg.steps = append(gg.steps, saveStep{})
+	gg.steps = append(gg.steps, negateStep{})
 	if c != 0 {
 		gg.steps = append(gg.steps, addStep(c))
 	}
 	if b != 0 {
-		gg.steps = append(gg.steps, addStep(b))
+		gg.steps = append(gg.steps, subStep(b))
 	}
-	gg.steps = append(gg.steps, negateStep{})
 	gg.steps = append(gg.steps, modStep(prob.base))
 	gg.steps = append(gg.steps, storeStep(a))
 	gg.steps = append(gg.steps, restoreStep{})
