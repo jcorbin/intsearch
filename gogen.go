@@ -168,6 +168,7 @@ func (gg *goGen) initColumn(prob *problem, cx [3]byte, numKnown, numUnknown int)
 }
 
 func (gg *goGen) solve(prob *problem, neg bool, c byte, c1, c2 byte) {
+	gg.steps = append(gg.steps, saveStep{})
 	if c1 != 0 {
 		gg.steps = append(gg.steps, addStep(c1))
 	}
@@ -177,13 +178,18 @@ func (gg *goGen) solve(prob *problem, neg bool, c byte, c1, c2 byte) {
 	if neg {
 		gg.steps = append(gg.steps, negateStep{})
 	}
-	gg.steps = append(gg.steps, saveStep{})
 	gg.steps = append(gg.steps, modStep(prob.base))
 	gg.steps = append(gg.steps, storeStep(c))
+	gg.steps = append(gg.steps, restoreStep{})
 }
 
 func (gg *goGen) computeCarry(prob *problem, c1, c2 byte) {
-	gg.steps = append(gg.steps, restoreStep{})
+	if c1 != 0 {
+		gg.steps = append(gg.steps, addStep(c1))
+	}
+	if c2 != 0 {
+		gg.steps = append(gg.steps, addStep(c2))
+	}
 	gg.steps = append(gg.steps, divStep(prob.base))
 }
 
