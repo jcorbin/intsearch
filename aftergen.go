@@ -12,15 +12,15 @@ func (ag afterGen) fix(prob *problem, c byte, v int) {
 	ag.obs(prob)
 }
 
-func (ag afterGen) interColumn(prob *problem, cx [3]byte) {
-	ag.obs(prob)
-}
-
 func (ag afterGen) initColumn(prob *problem, cx [3]byte, numKnown, numUnknown int) {
 	ag.obs(prob)
 }
 
 func (ag afterGen) solve(prob *problem, neg bool, c byte, c1, c2 byte) {
+	ag.obs(prob)
+}
+
+func (ag afterGen) computeCarry(prob *problem, c1, c2 byte) {
 	ag.obs(prob)
 }
 

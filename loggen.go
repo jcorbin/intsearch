@@ -38,18 +38,6 @@ func (lg *logGen) fix(prob *problem, c byte, v int) {
 	lg.stepf("fix %v = %v\n", string(c), v)
 }
 
-func (lg *logGen) interColumn(prob *problem, cx [3]byte) {
-	if cx[0] != 0 && cx[1] != 0 {
-		lg.stepf("set carry = (%v + %v + carry) // %v\n", string(cx[0]), string(cx[1]), prob.base)
-	} else if cx[0] != 0 {
-		lg.stepf("set carry = (%v + carry) // %v\n", string(cx[0]), prob.base)
-	} else if cx[1] != 0 {
-		lg.stepf("set carry = (%v + carry) // %v\n", string(cx[1]), prob.base)
-	} else {
-		lg.stepf("set carry = carry // %v\n", prob.base)
-	}
-}
-
 func (lg *logGen) initColumn(prob *problem, cx [3]byte, numKnown, numUnknown int) {
 	if cx[0] != 0 && cx[1] != 0 {
 		fmt.Printf("// column: carry + %v + %v = %v\n", string(cx[0]), string(cx[1]), string(cx[2]))
@@ -85,6 +73,18 @@ func (lg *logGen) solve(prob *problem, neg bool, c, c1, c2 byte) {
 		} else {
 			lg.stepf("solve %v = + carry (mod %v)\n", string(c), prob.base)
 		}
+	}
+}
+
+func (lg *logGen) computeCarry(prob *problem, c1, c2 byte) {
+	if c1 != 0 && c2 != 0 {
+		lg.stepf("set carry = (carry + %v + %v) // %v\n", string(c1), string(c2), prob.base)
+	} else if c1 != 0 {
+		lg.stepf("set carry = (carry + %v) // %v\n", string(c1), prob.base)
+	} else if c2 != 0 {
+		lg.stepf("set carry = (carry + %v) // %v\n", string(c2), prob.base)
+	} else {
+		lg.stepf("set carry = carry // %v = 0\n", prob.base)
 	}
 }
 

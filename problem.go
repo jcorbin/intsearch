@@ -19,9 +19,9 @@ type problem struct {
 type solutionGen interface {
 	init(prob *problem, desc string)
 	fix(prob *problem, c byte, v int)
-	interColumn(prob *problem, cx [3]byte)
 	initColumn(prob *problem, cx [3]byte, numKnown, numUnknown int)
 	solve(prob *problem, neg bool, c byte, c1, c2 byte)
+	computeCarry(prob *problem, c1, c2 byte)
 	choose(prob *problem, c byte)
 	checkFinal(prob *problem, c byte, c1, c2 byte)
 	finish(prob *problem)
@@ -87,9 +87,8 @@ func (prob *problem) planBottomUp() {
 	//   compute the third (if unknown)
 
 	var (
-		cx    [3]byte
-		first = true
-		ix    = [3]int{
+		cx [3]byte
+		ix = [3]int{
 			len(prob.words[0]) - 1,
 			len(prob.words[1]) - 1,
 			len(prob.words[2]) - 1,
@@ -97,12 +96,6 @@ func (prob *problem) planBottomUp() {
 	)
 
 	for ix[0] >= 0 || ix[1] >= 0 || ix[2] >= 0 {
-		if first {
-			first = false
-		} else {
-			prob.gen.interColumn(prob, cx)
-		}
-
 		for x, i := range ix {
 			if i >= 0 {
 				cx[x] = prob.words[x][i]
@@ -160,4 +153,5 @@ func (prob *problem) solveColumn(cx [3]byte) {
 			}
 		}
 	}
+	prob.gen.computeCarry(prob, cx[0], cx[1])
 }
