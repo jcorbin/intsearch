@@ -5,8 +5,9 @@ import (
 	"fmt"
 )
 
-// TODO: currently broken, probably around incorrect inter-column carry
-// computation after a negated solve
+// TODO: currently we find the correct solution, but also find ~24 incorrect
+// "solution"s; either there are bugs in the current computation logic, or we
+// just need more checks
 
 var (
 	errAlreadyUsed = errors.New("value already used")
