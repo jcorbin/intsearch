@@ -67,6 +67,9 @@ func (sol *solution) step() {
 func (sol *solution) exit(err error) {
 	sol.done = true
 	sol.err = err
+	if err != nil {
+		sol.stepi--
+	}
 }
 
 func (sol *solution) copy() *solution {

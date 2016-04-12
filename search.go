@@ -27,7 +27,6 @@ func (srch *search) step(sol *solution) {
 	}
 	sol.step()
 	if sol.err != nil {
-		sol.stepi--
 		// fmt.Printf("!!! %v %v\n", 0, sol)
 		if srch.traces != nil {
 			delete(srch.traces, sol)
