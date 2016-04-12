@@ -25,8 +25,10 @@ func (gg *goGen) obsAfter() *afterGen {
 		for ; j < len(gg.steps); j++ {
 			fmt.Printf("%v: %v\n", j, gg.steps[j])
 		}
-		fmt.Println()
-		i = j
+		if j > i {
+			fmt.Println()
+			i = j
+		}
 	}}
 }
 
