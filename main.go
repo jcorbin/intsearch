@@ -42,8 +42,14 @@ func main() {
 			emit(newSolution(&prob, gg.steps, emit))
 		},
 		result: func(sol *solution, trace []*solution) {
-			fmt.Println()
-			fmt.Println("Solution:")
+			if sol.err == nil {
+				fmt.Println()
+				fmt.Println("Solution:")
+			} else {
+				// fmt.Println()
+				// fmt.Printf("Fail: %v\n", err)
+				return
+			}
 			for i, soli := range trace {
 				fmt.Printf("%v %v %s\n", i, soli, soli.letterMapping())
 			}

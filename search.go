@@ -35,21 +35,13 @@ func (srch *search) step(sol *solution) {
 		return
 	}
 
-	if sol.err != nil {
-		// fmt.Printf("!!! %v %v\n", 0, sol)
-		if srch.traces != nil {
-			delete(srch.traces, sol)
-		}
-		srch.frontier = srch.frontier[1:]
-	} else {
-		var trace []*solution
-		if srch.traces != nil {
-			trace = srch.traces[sol]
-			delete(srch.traces, sol)
-		}
-		srch.result(sol, trace)
-		srch.frontier = srch.frontier[1:]
+	srch.frontier = srch.frontier[1:]
+	var trace []*solution
+	if srch.traces != nil {
+		trace = srch.traces[sol]
+		delete(srch.traces, sol)
 	}
+	srch.result(sol, trace)
 }
 
 func (srch *search) run(maxSteps int) bool {
