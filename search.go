@@ -26,13 +26,22 @@ func (srch *search) step(sol *solution) {
 		srch.traces[sol] = append(srch.traces[sol], sol.copy())
 	}
 	sol.step()
+
+	if !sol.done {
+		// fmt.Printf("... %v %v\n", 0, sol)
+		// if _, ok := sol.steps[sol.stepi-1].(storeStep); ok {
+		// 	fmt.Printf("... %v %s\n", 0, sol.letterMapping())
+		// }
+		return
+	}
+
 	if sol.err != nil {
 		// fmt.Printf("!!! %v %v\n", 0, sol)
 		if srch.traces != nil {
 			delete(srch.traces, sol)
 		}
 		srch.frontier = srch.frontier[1:]
-	} else if sol.done {
+	} else {
 		var trace []*solution
 		if srch.traces != nil {
 			trace = srch.traces[sol]
@@ -40,11 +49,6 @@ func (srch *search) step(sol *solution) {
 		}
 		srch.result(sol, trace)
 		srch.frontier = srch.frontier[1:]
-		// } else {
-		// 	fmt.Printf("... %v %v\n", 0, sol)
-		// 	if _, ok := sol.steps[sol.stepi-1].(storeStep); ok {
-		// 		fmt.Printf("... %v %s\n", 0, sol.letterMapping())
-		// 	}
 	}
 }
 
