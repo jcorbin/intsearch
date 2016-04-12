@@ -16,7 +16,11 @@ func (ag afterGen) initColumn(prob *problem, cx [3]byte, numKnown, numUnknown in
 	ag.obs(prob)
 }
 
-func (ag afterGen) solve(prob *problem, neg bool, c byte, c1, c2 byte) {
+func (ag afterGen) computeSum(prob *problem, a, b, c byte) {
+	ag.obs(prob)
+}
+
+func (ag afterGen) computeSummand(prob *problem, a, b, c byte) {
 	ag.obs(prob)
 }
 

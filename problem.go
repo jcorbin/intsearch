@@ -20,7 +20,8 @@ type solutionGen interface {
 	init(prob *problem, desc string)
 	fix(prob *problem, c byte, v int)
 	initColumn(prob *problem, cx [3]byte, numKnown, numUnknown int)
-	solve(prob *problem, neg bool, c byte, c1, c2 byte)
+	computeSum(prob *problem, a, b, c byte)
+	computeSummand(prob *problem, a, b, c byte)
 	computeCarry(prob *problem, c1, c2 byte)
 	choose(prob *problem, c byte)
 	checkFinal(prob *problem, c byte, c1, c2 byte)
@@ -136,11 +137,11 @@ func (prob *problem) solveColumn(cx [3]byte) {
 				if numUnknown == 1 {
 					switch x {
 					case 0:
-						prob.gen.solve(prob, true, c, cx[2], cx[1])
+						prob.gen.computeSummand(prob, c, cx[1], cx[2])
 					case 1:
-						prob.gen.solve(prob, true, c, cx[2], cx[0])
+						prob.gen.computeSummand(prob, c, cx[0], cx[2])
 					case 2:
-						prob.gen.solve(prob, false, c, cx[0], cx[1])
+						prob.gen.computeSum(prob, cx[0], cx[1], c)
 					}
 				} else {
 					prob.gen.choose(prob, c)

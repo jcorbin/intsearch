@@ -48,31 +48,27 @@ func (lg *logGen) initColumn(prob *problem, cx [3]byte, numKnown, numUnknown int
 	}
 }
 
-func (lg *logGen) solve(prob *problem, neg bool, c, c1, c2 byte) {
-	if c1 != 0 && c2 != 0 {
-		if neg {
-			lg.stepf("solve %v = %v - %v - carry (mod %v)\n", string(c), string(c1), string(c2), prob.base)
-		} else {
-			lg.stepf("solve %v = %v + %v + carry (mod %v)\n", string(c), string(c1), string(c2), prob.base)
-		}
-	} else if c1 != 0 {
-		if neg {
-			lg.stepf("solve %v = %v - carry (mod %v)\n", string(c), string(c1), prob.base)
-		} else {
-			lg.stepf("solve %v = %v + carry (mod %v)\n", string(c), string(c1), prob.base)
-		}
-	} else if c2 != 0 {
-		if neg {
-			lg.stepf("solve %v = %v - carry (mod %v)\n", string(c), string(c2), prob.base)
-		} else {
-			lg.stepf("solve %v = %v + carry (mod %v)\n", string(c), string(c2), prob.base)
-		}
+func (lg *logGen) computeSum(prob *problem, a, b, c byte) {
+	if a != 0 && b != 0 {
+		lg.stepf("compute %v = %v + %v + carry (mod %v)\n", string(c), string(a), string(b), prob.base)
+	} else if a != 0 {
+		lg.stepf("compute %v = %v + carry (mod %v)\n", string(c), string(a), prob.base)
+	} else if b != 0 {
+		lg.stepf("compute %v = %v + carry (mod %v)\n", string(c), string(b), prob.base)
 	} else {
-		if neg {
-			lg.stepf("solve %v = - carry (mod %v)\n", string(c), prob.base)
-		} else {
-			lg.stepf("solve %v = + carry (mod %v)\n", string(c), prob.base)
-		}
+		lg.stepf("compute %v = carry (mod %v)\n", string(c), prob.base)
+	}
+}
+
+func (lg *logGen) computeSummand(prob *problem, a, b, c byte) {
+	if b != 0 && c != 0 {
+		lg.stepf("compute %v = %v - %v - carry (mod %v)\n", string(a), string(b), string(c), prob.base)
+	} else if b != 0 {
+		lg.stepf("compute %v = %v - carry (mod %v)\n", string(a), string(b), prob.base)
+	} else if c != 0 {
+		lg.stepf("compute %v = %v - carry (mod %v)\n", string(a), string(c), prob.base)
+	} else {
+		lg.stepf("compute %v = - carry (mod %v)\n", string(a), prob.base)
 	}
 }
 

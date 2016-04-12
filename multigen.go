@@ -22,9 +22,15 @@ func (mg multiGen) initColumn(prob *problem, cx [3]byte, numKnown, numUnknown in
 	}
 }
 
-func (mg multiGen) solve(prob *problem, neg bool, c byte, c1, c2 byte) {
+func (mg multiGen) computeSum(prob *problem, a, b, c byte) {
 	for _, gen := range mg.gens {
-		gen.solve(prob, neg, c, c1, c2)
+		gen.computeSum(prob, a, b, c)
+	}
+}
+
+func (mg multiGen) computeSummand(prob *problem, a, b, c byte) {
+	for _, gen := range mg.gens {
+		gen.computeSummand(prob, a, b, c)
 	}
 }
 

@@ -167,19 +167,38 @@ func (gg *goGen) fix(prob *problem, c byte, v int) {
 func (gg *goGen) initColumn(prob *problem, cx [3]byte, numKnown, numUnknown int) {
 }
 
-func (gg *goGen) solve(prob *problem, neg bool, c byte, c1, c2 byte) {
+func (gg *goGen) computeSum(prob *problem, a, b, c byte) {
+	// Given:
+	//   carry + a + b = c (mod base)
+	// Solve for c:
+	//   c = carry + a + b (mod base)
 	gg.steps = append(gg.steps, saveStep{})
-	if c1 != 0 {
-		gg.steps = append(gg.steps, addStep(c1))
+	if a != 0 {
+		gg.steps = append(gg.steps, addStep(a))
 	}
-	if c2 != 0 {
-		gg.steps = append(gg.steps, addStep(c2))
-	}
-	if neg {
-		gg.steps = append(gg.steps, negateStep{})
+	if b != 0 {
+		gg.steps = append(gg.steps, addStep(b))
 	}
 	gg.steps = append(gg.steps, modStep(prob.base))
 	gg.steps = append(gg.steps, storeStep(c))
+	gg.steps = append(gg.steps, restoreStep{})
+}
+
+func (gg *goGen) computeSummand(prob *problem, a, b, c byte) {
+	// Given:
+	//   carry + a + b = c (mod base)
+	// Solve for a:
+	//   a = c - b - carry (mod base)
+	gg.steps = append(gg.steps, saveStep{})
+	if c != 0 {
+		gg.steps = append(gg.steps, addStep(c))
+	}
+	if b != 0 {
+		gg.steps = append(gg.steps, addStep(b))
+	}
+	gg.steps = append(gg.steps, negateStep{})
+	gg.steps = append(gg.steps, modStep(prob.base))
+	gg.steps = append(gg.steps, storeStep(a))
 	gg.steps = append(gg.steps, restoreStep{})
 }
 
