@@ -231,7 +231,7 @@ func (gg *goGen) choose(prob *problem, c byte) {
 }
 
 func (gg *goGen) checkFinal(prob *problem, c byte, c1, c2 byte) {
-	gg.steps = append(gg.steps, storeStep(c))
+	gg.steps = append(gg.steps, checkStep(c))
 }
 
 func (gg *goGen) finish(prob *problem) {
