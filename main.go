@@ -62,4 +62,5 @@ func main() {
 		},
 	}
 	srch.run(100000)
+	fmt.Printf("%+v\n", srch.metrics)
 }
