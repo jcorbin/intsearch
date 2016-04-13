@@ -5,7 +5,6 @@ import "fmt"
 type search struct {
 	frontier []*solution
 	traces   map[*solution][]*solution
-	init     func(func(*solution))
 	debug    struct {
 		emit   func(sol, parent *solution)
 		before func(sol *solution)
@@ -83,7 +82,6 @@ func (srch *search) step(sol *solution) {
 }
 
 func (srch *search) run(maxSteps int) bool {
-	srch.init(srch.emit)
 	counter := 0
 	for len(srch.frontier) > 0 {
 		counter++

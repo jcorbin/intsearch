@@ -40,9 +40,6 @@ func main() {
 	srch := search{
 		frontier: make([]*solution, 0, len(prob.letterSet)),
 		traces:   make(map[*solution][]*solution, len(prob.letterSet)),
-		init: func(emit func(*solution)) {
-			emit(newSolution(&prob, gg.steps, emit))
-		},
 	}
 
 	srch.result = func(sol *solution, trace []*solution) {
@@ -71,6 +68,7 @@ func main() {
 	// 	}
 	// }
 
+	srch.emit(newSolution(&prob, gg.steps, srch.emit))
 	srch.run(100000)
 	fmt.Printf("%+v\n", srch.metrics)
 }
