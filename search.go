@@ -18,7 +18,7 @@ type search struct {
 	}
 }
 
-func (srch *search) dump(sol *solution, trace []*solution) {
+func (srch *search) dump(sol *solution) {
 	if sol.err == nil {
 		fmt.Println()
 		fmt.Println("Solution:")
@@ -26,8 +26,11 @@ func (srch *search) dump(sol *solution, trace []*solution) {
 		fmt.Println()
 		fmt.Printf("Fail: %v\n", sol.err)
 	}
-	for i, soli := range trace {
-		fmt.Printf("%v %v %s\n", i, soli, soli.letterMapping())
+	if srch.traces != nil {
+		trace := srch.traces[sol]
+		for i, soli := range trace {
+			fmt.Printf("%v %v %s\n", i, soli, soli.letterMapping())
+		}
 	}
 	fmt.Printf("=== %v %v\n", 0, sol)
 	fmt.Printf("=== %v %s\n", 0, sol.letterMapping())

@@ -66,8 +66,7 @@ func main() {
 		if sol.err != nil && sol.err != errVerifyFailed {
 			return
 		}
-		trace := srch.traces[sol]
-		srch.dump(sol, trace)
+		srch.dump(sol)
 	})
 	fmt.Printf("%+v\n", srch.metrics)
 }
