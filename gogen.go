@@ -250,7 +250,11 @@ func (gg *goGen) computeCarry(prob *problem, c1, c2 byte) {
 
 func (gg *goGen) choose(prob *problem, c byte) {
 	gg.steps = append(gg.steps, saveStep{})
-	gg.steps = append(gg.steps, setStep(0))
+	if c == prob.words[0][0] || c == prob.words[1][0] || c == prob.words[2][0] {
+		gg.steps = append(gg.steps, setStep(1))
+	} else {
+		gg.steps = append(gg.steps, setStep(0))
+	}
 	gg.steps = append(gg.steps, forkUntilStep(prob.base-1))
 	gg.steps = append(gg.steps, storeStep(c))
 	gg.steps = append(gg.steps, restoreStep{})
