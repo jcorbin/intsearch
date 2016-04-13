@@ -149,6 +149,18 @@ func (o relJZStep) run(sol *solution) {
 	}
 }
 
+type relJNZStep int
+
+func (o relJNZStep) String() string {
+	return fmt.Sprintf("jnz(%+d)", int(o))
+}
+
+func (o relJNZStep) run(sol *solution) {
+	if sol.carry != 0 {
+		sol.stepi += int(o)
+	}
+}
+
 type modStep int
 
 func (v modStep) String() string {
@@ -197,6 +209,10 @@ func (gg *goGen) computeSum(prob *problem, a, b, c byte) {
 	}
 	gg.steps = append(gg.steps, modStep(prob.base))
 	gg.steps = append(gg.steps, storeStep(c))
+	if c == prob.words[0][0] || c == prob.words[1][0] || c == prob.words[2][0] {
+		gg.steps = append(gg.steps, relJNZStep(1))
+		gg.steps = append(gg.steps, exitStep{errCheckFailed})
+	}
 	gg.steps = append(gg.steps, restoreStep{})
 }
 
@@ -215,6 +231,10 @@ func (gg *goGen) computeSummand(prob *problem, a, b, c byte) {
 	}
 	gg.steps = append(gg.steps, modStep(prob.base))
 	gg.steps = append(gg.steps, storeStep(a))
+	if a == prob.words[0][0] || a == prob.words[1][0] || a == prob.words[2][0] {
+		gg.steps = append(gg.steps, relJNZStep(1))
+		gg.steps = append(gg.steps, exitStep{errCheckFailed})
+	}
 	gg.steps = append(gg.steps, restoreStep{})
 }
 
