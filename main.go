@@ -23,8 +23,10 @@ func main() {
 
 	var (
 		prob problem
-		gg   goGen
-		gen  = multiGen{[]solutionGen{
+		gg   = goGen{
+			verified: false,
+		}
+		gen = multiGen{[]solutionGen{
 			&logGen{},
 			&gg,
 			gg.obsAfter(),
@@ -46,9 +48,11 @@ func main() {
 				fmt.Println()
 				fmt.Println("Solution:")
 			} else {
-				// fmt.Println()
-				// fmt.Printf("Fail: %v\n", err)
-				return
+				if sol.err != errVerifyFailed {
+					return
+				}
+				fmt.Println()
+				fmt.Printf("Fail: %v\n", sol.err)
 			}
 			for i, soli := range trace {
 				fmt.Printf("%v %v %s\n", i, soli, soli.letterMapping())
