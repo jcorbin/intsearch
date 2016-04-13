@@ -170,6 +170,7 @@ func (v forkUntilStep) run(sol *solution) {
 }
 
 func (gg *goGen) init(prob *problem, desc string) {
+	gg.steps = append(gg.steps, setStep(0))
 }
 
 func (gg *goGen) fix(prob *problem, c byte, v int) {
