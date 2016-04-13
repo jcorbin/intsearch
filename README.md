@@ -24,3 +24,5 @@ http://blog.plover.com/prog/monad-search-2.html.
   object-oriented `ProgSearch` approach
 - the `c_stack_machine_2015-11` branch contains a C solution using a custom
   virtual stack machine
+- the `go_2016_04` branch contains a Go solution that also uses a programmatic
+  search approach
