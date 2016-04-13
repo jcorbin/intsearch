@@ -37,7 +37,9 @@ func main() {
 		log.Fatalf("plan failed: %v", err)
 	}
 
+	wat := newDebugWatcher(&prob)
 	srch := newSearch(&prob)
+	srch.watcher = wat
 
 	// srch.debug.expand = func(sol, parent *solution) {
 	// 	fmt.Printf("+++ %v %v", len(srch.frontier), sol)
@@ -68,7 +70,7 @@ func main() {
 			if sol.err != nil && sol.err != errVerifyFailed {
 				return
 			}
-			srch.dump(sol)
+			wat.dump(sol)
 		})
-	fmt.Printf("%+v\n", srch.metrics)
+	fmt.Printf("%+v\n", wat.metrics)
 }
