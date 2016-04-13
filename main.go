@@ -43,23 +43,13 @@ func main() {
 		init: func(emit func(*solution)) {
 			emit(newSolution(&prob, gg.steps, emit))
 		},
-		result: func(sol *solution, trace []*solution) {
-			if sol.err == nil {
-				fmt.Println()
-				fmt.Println("Solution:")
-			} else {
-				if sol.err != errVerifyFailed {
-					return
-				}
-				fmt.Println()
-				fmt.Printf("Fail: %v\n", sol.err)
-			}
-			for i, soli := range trace {
-				fmt.Printf("%v %v %s\n", i, soli, soli.letterMapping())
-			}
-			fmt.Printf("=== %v %v\n", 0, sol)
-			fmt.Printf("=== %v %s\n", 0, sol.letterMapping())
-		},
+	}
+
+	srch.result = func(sol *solution, trace []*solution) {
+		if sol.err != nil && sol.err != errVerifyFailed {
+			return
+		}
+		srch.dump(sol, trace)
 	}
 
 	// srch.debug = func(before bool, sol *solution) {

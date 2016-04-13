@@ -1,5 +1,7 @@
 package main
 
+import "fmt"
+
 type search struct {
 	frontier []*solution
 	traces   map[*solution][]*solution
@@ -10,6 +12,21 @@ type search struct {
 	metrics struct {
 		Steps, Emits, MaxFrontierLen, MaxTraceLen int
 	}
+}
+
+func (srch *search) dump(sol *solution, trace []*solution) {
+	if sol.err == nil {
+		fmt.Println()
+		fmt.Println("Solution:")
+	} else {
+		fmt.Println()
+		fmt.Printf("Fail: %v\n", sol.err)
+	}
+	for i, soli := range trace {
+		fmt.Printf("%v %v %s\n", i, soli, soli.letterMapping())
+	}
+	fmt.Printf("=== %v %v\n", 0, sol)
+	fmt.Printf("=== %v %s\n", 0, sol.letterMapping())
 }
 
 func (srch *search) emit(sol *solution) {
