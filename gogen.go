@@ -135,15 +135,15 @@ func (c storeStep) run(sol *solution) {
 	sol.used[sol.carry] = true
 }
 
-type checkStep byte
+type relJZStep int
 
-func (c checkStep) String() string {
-	return fmt.Sprintf("check(%s)", string(c))
+func (o relJZStep) String() string {
+	return fmt.Sprintf("jz(%+d)", int(o))
 }
 
-func (c checkStep) run(sol *solution) {
-	if sol.values[c] != sol.carry {
-		sol.exit(errCheckFailed)
+func (o relJZStep) run(sol *solution) {
+	if sol.carry == 0 {
+		sol.stepi += int(o)
 	}
 }
 
@@ -234,7 +234,9 @@ func (gg *goGen) choose(prob *problem, c byte) {
 }
 
 func (gg *goGen) checkFinal(prob *problem, c byte, c1, c2 byte) {
-	gg.steps = append(gg.steps, checkStep(c))
+	gg.steps = append(gg.steps, subStep(c))
+	gg.steps = append(gg.steps, relJZStep(1))
+	gg.steps = append(gg.steps, exitStep{errCheckFailed})
 }
 
 func (gg *goGen) finish(prob *problem) {
