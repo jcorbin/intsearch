@@ -82,11 +82,7 @@ func (prob *problem) sortedLetters() []string {
 	return letters
 }
 
-func (prob *problem) planBottomUp() {
-	// for each column from the right
-	//   choose letters until 2/3 are known
-	//   compute the third (if unknown)
-
+func (prob *problem) eachColumn(each func([3]byte)) {
 	var (
 		cx [3]byte
 		ix = [3]int{
@@ -95,7 +91,6 @@ func (prob *problem) planBottomUp() {
 			len(prob.words[2]) - 1,
 		}
 	)
-
 	for ix[0] >= 0 || ix[1] >= 0 || ix[2] >= 0 {
 		for x, i := range ix {
 			if i >= 0 {
@@ -104,14 +99,18 @@ func (prob *problem) planBottomUp() {
 				cx[x] = 0
 			}
 		}
-
-		prob.solveColumn(cx)
-
+		each(cx)
 		ix[0]--
 		ix[1]--
 		ix[2]--
 	}
+}
 
+func (prob *problem) planBottomUp() {
+	// for each column from the right
+	//   choose letters until 2/3 are known
+	//   compute the third (if unknown)
+	prob.eachColumn(prob.solveColumn)
 	prob.gen.finish(prob)
 }
 
