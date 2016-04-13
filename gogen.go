@@ -10,12 +10,14 @@ import (
 // just need more checks
 
 var (
-	errAlreadyUsed = errors.New("value already used")
-	errCheckFailed = errors.New("check failed")
+	errAlreadyUsed  = errors.New("value already used")
+	errCheckFailed  = errors.New("check failed")
+	errVerifyFailed = errors.New("verify failed")
 )
 
 type goGen struct {
-	steps []solutionStep
+	steps    []solutionStep
+	verified bool
 }
 
 func (gg *goGen) obsAfter() *afterGen {
@@ -240,6 +242,30 @@ func (gg *goGen) checkFinal(prob *problem, c byte, c1, c2 byte) {
 	gg.steps = append(gg.steps, exitStep{errCheckFailed})
 }
 
+func (gg *goGen) verify(prob *problem) {
+	gg.steps = append(gg.steps, setStep(0))
+	prob.eachColumn(func(cx [3]byte) {
+		if cx[0] != 0 {
+			gg.steps = append(gg.steps, addStep(cx[0]))
+		}
+		if cx[1] != 0 {
+			gg.steps = append(gg.steps, addStep(cx[1]))
+		}
+		gg.steps = append(gg.steps, saveStep{})
+		gg.steps = append(gg.steps, modStep(prob.base))
+		gg.steps = append(gg.steps, subStep(cx[2]))
+		gg.steps = append(gg.steps, relJZStep(1))
+		gg.steps = append(gg.steps, exitStep{errVerifyFailed})
+		gg.steps = append(gg.steps, restoreStep{})
+		gg.steps = append(gg.steps, divStep(prob.base))
+	})
+	gg.steps = append(gg.steps, relJZStep(1))
+	gg.steps = append(gg.steps, exitStep{errVerifyFailed})
+}
+
 func (gg *goGen) finish(prob *problem) {
+	if gg.verified {
+		gg.verify(prob)
+	}
 	gg.steps = append(gg.steps, exitStep{nil})
 }
