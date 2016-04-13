@@ -6,8 +6,11 @@ type search struct {
 	frontier []*solution
 	traces   map[*solution][]*solution
 	init     func(func(*solution))
-	debug    func(before bool, sol *solution)
-	result   func(*solution, []*solution)
+	debug    struct {
+		before func(sol *solution)
+		after  func(sol *solution)
+	}
+	result func(*solution, []*solution)
 	// TODO: better metric support
 	metrics struct {
 		Steps, Emits, MaxFrontierLen, MaxTraceLen int
@@ -54,12 +57,12 @@ func (srch *search) step(sol *solution) {
 	if srch.traces != nil {
 		srch.traces[sol] = append(srch.traces[sol], sol.copy())
 	}
-	if srch.debug != nil {
-		srch.debug(true, sol)
+	if srch.debug.before != nil {
+		srch.debug.before(sol)
 	}
 	sol.step()
-	if srch.debug != nil {
-		srch.debug(false, sol)
+	if srch.debug.after != nil {
+		srch.debug.after(sol)
 	}
 
 	if sol.done {

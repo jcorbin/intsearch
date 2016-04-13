@@ -52,16 +52,15 @@ func main() {
 		srch.dump(sol, trace)
 	}
 
-	// srch.debug = func(before bool, sol *solution) {
-	// 	if before {
-	// 		fmt.Printf(">>> %v\n", sol)
-	// 	} else {
-	// 		fmt.Printf("... %v\n", sol)
-	// 		if _, ok := sol.steps[sol.stepi-1].(storeStep); ok {
-	// 			fmt.Printf("... %s\n", sol.letterMapping())
-	// 		} else if _, ok := sol.steps[sol.stepi-1].(forkUntilStep); ok {
-	// 			fmt.Printf("... len(frontier) == %v\n", len(srch.frontier))
-	// 		}
+	// srch.debug.before = func(sol *solution) {
+	// 	fmt.Printf(">>> %v\n", sol)
+	// }
+	// srch.debug.after = func(sol *solution) {
+	// 	fmt.Printf("... %v\n", sol)
+	// 	if _, ok := sol.steps[sol.stepi-1].(storeStep); ok {
+	// 		fmt.Printf("... %s\n", sol.letterMapping())
+	// 	} else if _, ok := sol.steps[sol.stepi-1].(forkUntilStep); ok {
+	// 		fmt.Printf("... len(frontier) == %v\n", len(srch.frontier))
 	// 	}
 	// }
 
