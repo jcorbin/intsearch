@@ -18,6 +18,13 @@ type search struct {
 	}
 }
 
+func newSearch(prob *problem) *search {
+	return &search{
+		frontier: make([]*solution, 0, len(prob.letterSet)),
+		traces:   make(map[*solution][]*solution, len(prob.letterSet)),
+	}
+}
+
 func (srch *search) dump(sol *solution) {
 	if sol.err == nil {
 		fmt.Println()

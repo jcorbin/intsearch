@@ -37,10 +37,7 @@ func main() {
 		log.Fatalf("plan failed: %v", err)
 	}
 
-	srch := search{
-		frontier: make([]*solution, 0, len(prob.letterSet)),
-		traces:   make(map[*solution][]*solution, len(prob.letterSet)),
-	}
+	srch := newSearch(&prob)
 
 	// srch.debug.emit = func(sol, parent *solution) {
 	// 	fmt.Printf("+++ %v %v", len(srch.frontier), sol)
