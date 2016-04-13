@@ -52,6 +52,13 @@ func main() {
 		srch.dump(sol, trace)
 	}
 
+	// srch.debug.emit = func(sol, parent *solution) {
+	// 	fmt.Printf("+++ %v %v", len(srch.frontier), sol)
+	// 	if parent != nil {
+	// 		fmt.Printf(" parent %v @%v", parent.steps[parent.stepi], parent.stepi)
+	// 	}
+	// 	fmt.Printf("\n")
+	// }
 	// srch.debug.before = func(sol *solution) {
 	// 	fmt.Printf(">>> %v\n", sol)
 	// }
