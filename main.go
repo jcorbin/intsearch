@@ -42,13 +42,6 @@ func main() {
 		traces:   make(map[*solution][]*solution, len(prob.letterSet)),
 	}
 
-	srch.result = func(sol *solution, trace []*solution) {
-		if sol.err != nil && sol.err != errVerifyFailed {
-			return
-		}
-		srch.dump(sol, trace)
-	}
-
 	// srch.debug.emit = func(sol, parent *solution) {
 	// 	fmt.Printf("+++ %v %v", len(srch.frontier), sol)
 	// 	if parent != nil {
@@ -69,6 +62,12 @@ func main() {
 	// }
 
 	srch.emit(newSolution(&prob, gg.steps, srch.emit))
-	srch.run(100000)
+	srch.run(100000, func(sol *solution) {
+		if sol.err != nil && sol.err != errVerifyFailed {
+			return
+		}
+		trace := srch.traces[sol]
+		srch.dump(sol, trace)
+	})
 	fmt.Printf("%+v\n", srch.metrics)
 }

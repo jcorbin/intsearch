@@ -2,6 +2,8 @@ package main
 
 import "fmt"
 
+type resultFunc func(*solution)
+
 type search struct {
 	frontier []*solution
 	traces   map[*solution][]*solution
@@ -10,7 +12,6 @@ type search struct {
 		before func(sol *solution)
 		after  func(sol *solution)
 	}
-	result func(*solution, []*solution)
 	// TODO: better metric support
 	metrics struct {
 		Steps, Emits, MaxFrontierLen, MaxTraceLen int
@@ -57,7 +58,7 @@ func (srch *search) emit(sol *solution) {
 	}
 }
 
-func (srch *search) step(sol *solution) {
+func (srch *search) step(sol *solution, result resultFunc) {
 	srch.metrics.Steps++
 	if srch.traces != nil {
 		srch.traces[sol] = append(srch.traces[sol], sol.copy())
@@ -72,23 +73,21 @@ func (srch *search) step(sol *solution) {
 
 	if sol.done {
 		srch.frontier = srch.frontier[1:]
-		var trace []*solution
+		result(sol)
 		if srch.traces != nil {
-			trace = srch.traces[sol]
 			delete(srch.traces, sol)
 		}
-		srch.result(sol, trace)
 	}
 }
 
-func (srch *search) run(maxSteps int) bool {
+func (srch *search) run(maxSteps int, result resultFunc) bool {
 	counter := 0
 	for len(srch.frontier) > 0 {
 		counter++
 		if counter > maxSteps {
 			return false
 		}
-		srch.step(srch.frontier[0])
+		srch.step(srch.frontier[0], result)
 	}
 	return true
 }
