@@ -61,6 +61,20 @@ func main() {
 			fmt.Printf("=== %v %s\n", 0, sol.letterMapping())
 		},
 	}
+
+	// srch.debug = func(before bool, sol *solution) {
+	// 	if before {
+	// 		fmt.Printf(">>> %v\n", sol)
+	// 	} else {
+	// 		fmt.Printf("... %v\n", sol)
+	// 		if _, ok := sol.steps[sol.stepi-1].(storeStep); ok {
+	// 			fmt.Printf("... %s\n", sol.letterMapping())
+	// 		} else if _, ok := sol.steps[sol.stepi-1].(forkUntilStep); ok {
+	// 			fmt.Printf("... len(frontier) == %v\n", len(srch.frontier))
+	// 		}
+	// 	}
+	// }
+
 	srch.run(100000)
 	fmt.Printf("%+v\n", srch.metrics)
 }
