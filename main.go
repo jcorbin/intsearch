@@ -39,7 +39,7 @@ func main() {
 
 	srch := newSearch(&prob)
 
-	// srch.debug.emit = func(sol, parent *solution) {
+	// srch.debug.expand = func(sol, parent *solution) {
 	// 	fmt.Printf("+++ %v %v", len(srch.frontier), sol)
 	// 	if parent != nil {
 	// 		fmt.Printf(" parent %v @%v", parent.steps[parent.stepi], parent.stepi)
@@ -58,12 +58,17 @@ func main() {
 	// 	}
 	// }
 
-	srch.emit(newSolution(&prob, gg.steps, srch.emit))
-	srch.run(100000, func(sol *solution) {
-		if sol.err != nil && sol.err != errVerifyFailed {
-			return
-		}
-		srch.dump(sol)
-	})
+	runSearch(
+		srch,
+		100000,
+		func(emit func(*solution)) {
+			emit(newSolution(&prob, gg.steps, emit))
+		},
+		func(sol *solution) {
+			if sol.err != nil && sol.err != errVerifyFailed {
+				return
+			}
+			srch.dump(sol)
+		})
 	fmt.Printf("%+v\n", srch.metrics)
 }

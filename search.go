@@ -4,11 +4,16 @@ import "fmt"
 
 type resultFunc func(*solution)
 
+type searcher interface {
+	expand(*solution)
+	step(resultFunc) bool
+}
+
 type search struct {
 	frontier []*solution
 	traces   map[*solution][]*solution
 	debug    struct {
-		emit   func(sol, parent *solution)
+		expand func(sol, parent *solution)
 		before func(sol *solution)
 		after  func(sol *solution)
 	}
@@ -43,7 +48,7 @@ func (srch *search) dump(sol *solution) {
 	fmt.Printf("=== %v %s\n", 0, sol.letterMapping())
 }
 
-func (srch *search) emit(sol *solution) {
+func (srch *search) expand(sol *solution) {
 	srch.metrics.Emits++
 	var parent *solution
 	if len(srch.frontier) > 0 {
@@ -63,12 +68,16 @@ func (srch *search) emit(sol *solution) {
 			srch.metrics.MaxTraceLen = len(trace)
 		}
 	}
-	if srch.debug.emit != nil {
-		srch.debug.emit(sol, parent)
+	if srch.debug.expand != nil {
+		srch.debug.expand(sol, parent)
 	}
 }
 
-func (srch *search) step(sol *solution, result resultFunc) {
+func (srch *search) step(result resultFunc) bool {
+	for len(srch.frontier) == 0 {
+		return false
+	}
+	sol := srch.frontier[0]
 	srch.metrics.Steps++
 	if srch.traces != nil {
 		srch.traces[sol] = append(srch.traces[sol], sol.copy())
@@ -88,16 +97,17 @@ func (srch *search) step(sol *solution, result resultFunc) {
 			delete(srch.traces, sol)
 		}
 	}
+	return true
 }
 
-func (srch *search) run(maxSteps int, result resultFunc) bool {
+func runSearch(srch searcher, maxSteps int, init func(func(*solution)), result resultFunc) bool {
 	counter := 0
-	for len(srch.frontier) > 0 {
+	init(srch.expand)
+	for srch.step(result) {
 		counter++
 		if counter > maxSteps {
 			return false
 		}
-		srch.step(srch.frontier[0], result)
 	}
 	return true
 }
