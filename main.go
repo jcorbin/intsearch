@@ -37,10 +37,12 @@ func main() {
 		log.Fatalf("plan failed: %v", err)
 	}
 
+	traces := newTraceWatcher(&prob)
 	wat := newDebugWatcher(&prob)
 	srch := newSearch(&prob)
 	srch.watcher = watchers([]searchWatcher{
 		wat,
+		traces,
 	})
 
 	// srch.debug.expand = func(sol, parent *solution) {
@@ -72,7 +74,8 @@ func main() {
 			if sol.err != nil && sol.err != errVerifyFailed {
 				return
 			}
-			wat.dump(sol)
+			sol.dump()
+			traces.dump(sol)
 		})
 	fmt.Printf("%+v\n", wat.metrics)
 }
