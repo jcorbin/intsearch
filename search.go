@@ -13,15 +13,22 @@ type search struct {
 	watcher  searchWatcher
 }
 
-func newSearch(prob *problem) *search {
-	srch := &search{
-		frontier: make([]*solution, 0, len(prob.letterSet)),
-	}
-	return srch
-}
-
 func (srch *search) frontierSize() int {
 	return len(srch.frontier)
+}
+
+func (srch *search) frontierCap() int {
+	return cap(srch.frontier)
+}
+
+func (srch *search) hintFrontier(n int) {
+	if cap(srch.frontier) < n {
+		frontier := make([]*solution, 0, n)
+		if len(srch.frontier) > 0 {
+			copy(frontier, srch.frontier)
+		}
+		srch.frontier = frontier
+	}
 }
 
 func (srch *search) expand(sol *solution) {

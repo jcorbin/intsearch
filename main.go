@@ -39,15 +39,17 @@ func main() {
 
 	traces := newTraceWatcher(&prob)
 	metrics := newMetricWatcher(&prob)
-	srch := newSearch(&prob)
-	srch.watcher = watchers([]searchWatcher{
-		metrics,
-		traces,
-		// debugWatcher{},
-	})
+	srch := search{
+		watcher: watchers([]searchWatcher{
+			metrics,
+			traces,
+			// debugWatcher{},
+		}),
+	}
+	srch.hintFrontier(len(prob.letterSet))
 
 	runSearch(
-		srch,
+		&srch,
 		100000,
 		func(emit func(*solution)) {
 			emit(newSolution(&prob, gg.steps, emit))
