@@ -38,10 +38,12 @@ func main() {
 	}
 
 	traces := newTraceWatcher(&prob)
+	metrics := newMetricWatcher(&prob)
 	wat := newDebugWatcher(&prob)
 	srch := newSearch(&prob)
 	srch.watcher = watchers([]searchWatcher{
 		wat,
+		metrics,
 		traces,
 	})
 
@@ -77,5 +79,5 @@ func main() {
 			sol.dump()
 			traces.dump(sol)
 		})
-	fmt.Printf("%+v\n", wat.metrics)
+	fmt.Printf("%+v\n", metrics)
 }

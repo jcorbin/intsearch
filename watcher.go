@@ -32,10 +32,6 @@ type debugWatcher struct {
 		before func(sol *solution)
 		after  func(sol *solution)
 	}
-	// TODO: better metric support
-	metrics struct {
-		Steps, Emits, MaxFrontierLen int
-	}
 }
 
 func newDebugWatcher(prob *problem) *debugWatcher {
@@ -43,17 +39,12 @@ func newDebugWatcher(prob *problem) *debugWatcher {
 }
 
 func (wat *debugWatcher) emitted(srch searcher, parent, child *solution) {
-	wat.metrics.Emits++
-	if fs := srch.frontierSize(); fs > wat.metrics.MaxFrontierLen {
-		wat.metrics.MaxFrontierLen = fs
-	}
 	if wat.debug.expand != nil {
 		wat.debug.expand(child, parent)
 	}
 }
 
 func (wat *debugWatcher) beforeStep(srch searcher, sol *solution) {
-	wat.metrics.Steps++
 	if wat.debug.before != nil {
 		wat.debug.before(sol)
 	}
