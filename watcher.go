@@ -8,6 +8,26 @@ type searchWatcher interface {
 	emitted(srch searcher, parent, child *solution)
 }
 
+type watchers []searchWatcher
+
+func (ws watchers) beforeStep(srch searcher, sol *solution) {
+	for _, w := range ws {
+		w.beforeStep(srch, sol)
+	}
+}
+
+func (ws watchers) stepped(srch searcher, sol *solution) {
+	for _, w := range ws {
+		w.stepped(srch, sol)
+	}
+}
+
+func (ws watchers) emitted(srch searcher, parent, child *solution) {
+	for _, w := range ws {
+		w.emitted(srch, parent, child)
+	}
+}
+
 type debugWatcher struct {
 	traces map[*solution][]*solution
 	debug  struct {
