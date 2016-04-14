@@ -5,7 +5,7 @@ type metricWatcher struct {
 	Steps, Emits, MaxFrontierLen int
 }
 
-func newMetricWatcher(prob *problem) *metricWatcher {
+func newMetricWatcher() *metricWatcher {
 	return &metricWatcher{}
 }
 

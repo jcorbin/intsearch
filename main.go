@@ -38,7 +38,7 @@ func main() {
 	}
 
 	traces := newTraceWatcher()
-	metrics := newMetricWatcher(&prob)
+	metrics := newMetricWatcher()
 	srch := search{
 		watcher: watchers([]searchWatcher{
 			metrics,
