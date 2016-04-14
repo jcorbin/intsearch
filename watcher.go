@@ -3,9 +3,9 @@ package main
 import "fmt"
 
 type searchWatcher interface {
-	beforeStep(sol *solution)
-	stepped(sol *solution)
-	emitted(parent, child *solution)
+	beforeStep(srch searcher, sol *solution)
+	stepped(srch searcher, sol *solution)
+	emitted(srch searcher, parent, child *solution)
 }
 
 type debugWatcher struct {
@@ -27,7 +27,7 @@ func newDebugWatcher(prob *problem) *debugWatcher {
 	}
 }
 
-func (wat *debugWatcher) dump(sol *solution) {
+func (wat *debugWatcher) dump(srch searcher, sol *solution) {
 	sol.dump()
 	trace := wat.traces[sol]
 	for i, soli := range trace {
@@ -35,10 +35,9 @@ func (wat *debugWatcher) dump(sol *solution) {
 	}
 }
 
-func (wat *debugWatcher) emitted(parent, child *solution) {
+func (wat *debugWatcher) emitted(srch searcher, parent, child *solution) {
 	wat.metrics.Emits++
-	// TODO: not visible by searcher interface, even if wat had a reference to
-	// the watched searcher
+	// TODO: not visible by searcher interface
 	// if len(srch.frontier) > wat.metrics.MaxFrontierLen {
 	// 	wat.metrics.MaxFrontierLen = len(srch.frontier)
 	// }
@@ -55,7 +54,7 @@ func (wat *debugWatcher) emitted(parent, child *solution) {
 	}
 }
 
-func (wat *debugWatcher) beforeStep(sol *solution) {
+func (wat *debugWatcher) beforeStep(srch searcher, sol *solution) {
 	wat.metrics.Steps++
 	wat.traces[sol] = append(wat.traces[sol], sol.copy())
 	if wat.debug.before != nil {

@@ -26,7 +26,7 @@ func (srch *search) expand(sol *solution) {
 	}
 	srch.frontier = append(srch.frontier, sol)
 	if srch.watcher != nil {
-		srch.watcher.emitted(parent, sol)
+		srch.watcher.emitted(srch, parent, sol)
 	}
 }
 
@@ -36,13 +36,13 @@ func (srch *search) step(result resultFunc) bool {
 	}
 	sol := srch.frontier[0]
 	if srch.watcher != nil {
-		srch.watcher.beforeStep(sol)
+		srch.watcher.beforeStep(srch, sol)
 		sol.step()
 		if sol.done {
 			srch.frontier = srch.frontier[1:]
 			result(sol)
 		}
-		srch.watcher.stepped(sol)
+		srch.watcher.stepped(srch, sol)
 	} else {
 		sol.step()
 		if sol.done {
