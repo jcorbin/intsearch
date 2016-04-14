@@ -28,19 +28,11 @@ func newDebugWatcher(prob *problem) *debugWatcher {
 }
 
 func (wat *debugWatcher) dump(sol *solution) {
-	if sol.err == nil {
-		fmt.Println()
-		fmt.Println("Solution:")
-	} else {
-		fmt.Println()
-		fmt.Printf("Fail: %v\n", sol.err)
-	}
+	sol.dump()
 	trace := wat.traces[sol]
 	for i, soli := range trace {
 		fmt.Printf("%v %v %s\n", i, soli, soli.letterMapping())
 	}
-	fmt.Printf("=== %v %v\n", 0, sol)
-	fmt.Printf("=== %v %s\n", 0, sol.letterMapping())
 }
 
 func (wat *debugWatcher) emitted(parent, child *solution) {
