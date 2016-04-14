@@ -39,32 +39,12 @@ func main() {
 
 	traces := newTraceWatcher(&prob)
 	metrics := newMetricWatcher(&prob)
-	wat := newDebugWatcher(&prob)
 	srch := newSearch(&prob)
 	srch.watcher = watchers([]searchWatcher{
-		wat,
 		metrics,
 		traces,
+		// debugWatcher{},
 	})
-
-	// srch.debug.expand = func(sol, parent *solution) {
-	// 	fmt.Printf("+++ %v %v", len(srch.frontier), sol)
-	// 	if parent != nil {
-	// 		fmt.Printf(" parent %v @%v", parent.steps[parent.stepi], parent.stepi)
-	// 	}
-	// 	fmt.Printf("\n")
-	// }
-	// srch.debug.before = func(sol *solution) {
-	// 	fmt.Printf(">>> %v\n", sol)
-	// }
-	// srch.debug.after = func(sol *solution) {
-	// 	fmt.Printf("... %v\n", sol)
-	// 	if _, ok := sol.steps[sol.stepi-1].(storeStep); ok {
-	// 		fmt.Printf("... %s\n", sol.letterMapping())
-	// 	} else if _, ok := sol.steps[sol.stepi-1].(forkUntilStep); ok {
-	// 		fmt.Printf("... len(frontier) == %v\n", len(srch.frontier))
-	// 	}
-	// }
 
 	runSearch(
 		srch,
