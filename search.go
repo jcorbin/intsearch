@@ -3,6 +3,7 @@ package main
 type resultFunc func(*solution)
 
 type searcher interface {
+	frontierSize() int
 	expand(*solution)
 	step(resultFunc) bool
 }
@@ -17,6 +18,10 @@ func newSearch(prob *problem) *search {
 		frontier: make([]*solution, 0, len(prob.letterSet)),
 	}
 	return srch
+}
+
+func (srch *search) frontierSize() int {
+	return len(srch.frontier)
 }
 
 func (srch *search) expand(sol *solution) {

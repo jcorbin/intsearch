@@ -37,10 +37,9 @@ func (wat *debugWatcher) dump(srch searcher, sol *solution) {
 
 func (wat *debugWatcher) emitted(srch searcher, parent, child *solution) {
 	wat.metrics.Emits++
-	// TODO: not visible by searcher interface
-	// if len(srch.frontier) > wat.metrics.MaxFrontierLen {
-	// 	wat.metrics.MaxFrontierLen = len(srch.frontier)
-	// }
+	if fs := srch.frontierSize(); fs > wat.metrics.MaxFrontierLen {
+		wat.metrics.MaxFrontierLen = fs
+	}
 	var trace []*solution
 	if parent != nil {
 		trace = append(trace, wat.traces[parent]...)
