@@ -39,7 +39,9 @@ func main() {
 
 	wat := newDebugWatcher(&prob)
 	srch := newSearch(&prob)
-	srch.watcher = wat
+	srch.watcher = watchers([]searchWatcher{
+		wat,
+	})
 
 	// srch.debug.expand = func(sol, parent *solution) {
 	// 	fmt.Printf("+++ %v %v", len(srch.frontier), sol)
