@@ -37,7 +37,7 @@ func main() {
 		log.Fatalf("plan failed: %v", err)
 	}
 
-	traces := newTraceWatcher(&prob)
+	traces := newTraceWatcher()
 	metrics := newMetricWatcher(&prob)
 	srch := search{
 		watcher: watchers([]searchWatcher{

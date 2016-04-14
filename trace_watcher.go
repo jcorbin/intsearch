@@ -4,8 +4,8 @@ import "fmt"
 
 type traceWatcher map[*solution][]*solution
 
-func newTraceWatcher(prob *problem) traceWatcher {
-	return traceWatcher(make(map[*solution][]*solution, len(prob.letterSet)))
+func newTraceWatcher() traceWatcher {
+	return traceWatcher(make(map[*solution][]*solution))
 }
 
 func (traces traceWatcher) dump(sol *solution) {
