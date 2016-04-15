@@ -46,6 +46,21 @@ func (sol *solution) String() string {
 	)
 }
 
+func (sol *solution) printCheck(printf func(string, ...interface{})) {
+	ns := sol.numbers()
+	check := ns[0]+ns[1] == ns[2]
+	printf("Check: %v", check)
+	marks := []string{" ", "+", "="}
+	rels := []string{"==", "==", "=="}
+	if !check {
+		rels[2] = "!="
+	}
+	for i, word := range prob.words {
+		pad := strings.Repeat(" ", len(prob.words[2])-len(word))
+		printf("  %s%s %s == %s%v", marks[i], pad, word, pad, ns[i])
+	}
+}
+
 func (sol *solution) numbers() [3]int {
 	var ns [3]int
 	base := sol.prob.base
