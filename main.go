@@ -143,6 +143,10 @@ func main() {
 	if sol := findOne(); sol != nil {
 		fmt.Printf("found: %v\n", sol.letterMapping())
 		fmt.Printf("search metrics: %+v\n", metrics)
+		sol.printCheck(func(format string, args ...interface{}) {
+			fmt.Printf(format, args...)
+			fmt.Println()
+		})
 	} else {
 		traceFailures()
 	}
