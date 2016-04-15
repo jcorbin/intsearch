@@ -135,11 +135,14 @@ func main() {
 
 	if *debug {
 		debugRun()
-	} else if sol := findOne(); sol != nil {
-		metrics := newMetricWatcher()
-		srch.watcher = metrics
+		return
+	}
+
+	metrics := newMetricWatcher()
+	srch.watcher = metrics
+	if sol := findOne(); sol != nil {
 		fmt.Printf("found: %v\n", sol.letterMapping())
-		fmt.Printf("%+v\n", metrics)
+		fmt.Printf("search metrics: %+v\n", metrics)
 	} else {
 		traceFailures()
 	}
