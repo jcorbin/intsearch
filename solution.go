@@ -46,6 +46,19 @@ func (sol *solution) String() string {
 	)
 }
 
+func (sol *solution) numbers() [3]int {
+	var ns [3]int
+	base := sol.prob.base
+	for i, word := range sol.prob.words {
+		n := 0
+		for _, c := range word {
+			n = n*base + sol.values[c]
+		}
+		ns[i] = n
+	}
+	return ns
+}
+
 func (sol *solution) letterMapping() string {
 	parts := make([]string, 0, len(sol.prob.letterSet))
 	for _, l := range sol.prob.sortedLetters() {
