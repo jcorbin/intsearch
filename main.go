@@ -56,19 +56,15 @@ func main() {
 		},
 		func(sol *solution) {
 			if sol.err == nil {
-				fmt.Println()
-				fmt.Println("Solution:")
+				fmt.Printf("=== Solution: %v %v\n", 0, sol)
+				fmt.Printf("=== %v %s\n", 0, sol.letterMapping())
 			} else if sol.err == errVerifyFailed {
-				fmt.Println()
-				fmt.Printf("Fail: %v\n", sol.err)
-			} else {
-				return
-			}
-			fmt.Printf("=== %v %v\n", 0, sol)
-			fmt.Printf("=== %v %s\n", 0, sol.letterMapping())
-			trace := traces[sol]
-			for i, soli := range trace {
-				fmt.Printf("%v %v %s\n", i, soli, soli.letterMapping())
+				fmt.Printf("!!! Fail: %v\n", sol)
+				fmt.Printf("!!! %s\n", sol.letterMapping())
+				trace := traces[sol]
+				for i, soli := range trace {
+					fmt.Printf("%v %v %s\n", i, soli, soli.letterMapping())
+				}
 			}
 		})
 	fmt.Printf("%+v\n", metrics)
