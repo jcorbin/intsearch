@@ -55,11 +55,21 @@ func main() {
 			emit(newSolution(&prob, gg.steps, emit))
 		},
 		func(sol *solution) {
-			if sol.err != nil && sol.err != errVerifyFailed {
+			if sol.err == nil {
+				fmt.Println()
+				fmt.Println("Solution:")
+			} else if sol.err == errVerifyFailed {
+				fmt.Println()
+				fmt.Printf("Fail: %v\n", sol.err)
+			} else {
 				return
 			}
-			sol.dump()
-			traces.dump(sol)
+			fmt.Printf("=== %v %v\n", 0, sol)
+			fmt.Printf("=== %v %s\n", 0, sol.letterMapping())
+			trace := traces[sol]
+			for i, soli := range trace {
+				fmt.Printf("%v %v %s\n", i, soli, soli.letterMapping())
+			}
 		})
 	fmt.Printf("%+v\n", metrics)
 }

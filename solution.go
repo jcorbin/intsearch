@@ -34,18 +34,6 @@ func newSolution(prob *problem, steps []solutionStep, emit func(*solution)) *sol
 	return &sol
 }
 
-func (sol *solution) dump() {
-	if sol.err == nil {
-		fmt.Println()
-		fmt.Println("Solution:")
-	} else {
-		fmt.Println()
-		fmt.Printf("Fail: %v\n", sol.err)
-	}
-	fmt.Printf("=== %v %v\n", 0, sol)
-	fmt.Printf("=== %v %s\n", 0, sol.letterMapping())
-}
-
 func (sol *solution) String() string {
 	var step solutionStep
 	if sol.stepi < len(sol.steps) {

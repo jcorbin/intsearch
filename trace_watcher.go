@@ -1,18 +1,9 @@
 package main
 
-import "fmt"
-
 type traceWatcher map[*solution][]*solution
 
 func newTraceWatcher() traceWatcher {
 	return traceWatcher(make(map[*solution][]*solution))
-}
-
-func (traces traceWatcher) dump(sol *solution) {
-	trace := traces[sol]
-	for i, soli := range trace {
-		fmt.Printf("%v %v %s\n", i, soli, soli.letterMapping())
-	}
 }
 
 func (traces traceWatcher) emitted(srch searcher, parent, child *solution) {
