@@ -20,6 +20,7 @@ type solution struct {
 	save   int
 	done   bool
 	err    error
+	trace  []*solution
 }
 
 func newSolution(prob *problem, steps []solutionStep, emit func(*solution)) *solution {

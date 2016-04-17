@@ -22,11 +22,10 @@ func initSearch(emit emitFunc) {
 }
 
 func traceFailures() {
-	traces := newTraceWatcher()
 	metrics := newMetricWatcher()
 	watcher := watchers([]searchWatcher{
 		metrics,
-		traces,
+		newTraceWatcher(),
 	})
 	srch.run(
 		100000,
@@ -38,8 +37,7 @@ func traceFailures() {
 				fmt.Printf("!!! Fail: %v\n!!! ", sol)
 			}
 			fmt.Printf("%s\n", sol.letterMapping())
-			trace := traces[sol]
-			for i, soli := range trace {
+			for i, soli := range sol.trace {
 				fmt.Printf("trace[%v] %v %s\n", i, soli, soli.letterMapping())
 			}
 			fmt.Println()
@@ -49,11 +47,10 @@ func traceFailures() {
 }
 
 func debugRun() {
-	traces := newTraceWatcher()
 	metrics := newMetricWatcher()
 	watcher := watchers([]searchWatcher{
 		metrics,
-		traces,
+		newTraceWatcher(),
 		debugWatcher{},
 	})
 	srch.run(
@@ -68,8 +65,7 @@ func debugRun() {
 				fmt.Printf("--- Dead end: %v\n--- ", sol)
 			}
 			fmt.Printf("%s\n", sol.letterMapping())
-			trace := traces[sol]
-			for i, soli := range trace {
+			for i, soli := range sol.trace {
 				fmt.Printf("trace[%v] %v %s\n", i, soli, soli.letterMapping())
 			}
 			fmt.Println()

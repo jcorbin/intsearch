@@ -26,7 +26,7 @@ func TestGogenSendMoreMoney(t *testing.T) {
 		func(sol *solution) {
 			if sol.err == errVerifyFailed {
 				t.Logf("!!! invalid solution found: %v %v", sol, sol.letterMapping())
-				for i, soli := range traces[sol] {
+				for i, soli := range sol.trace {
 					t.Logf("trace[%v]: %v %s", i, soli, soli.letterMapping())
 				}
 				t.Fail()

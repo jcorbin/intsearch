@@ -1,29 +1,26 @@
 package main
 
-type traceWatcher map[*solution][]*solution
+type traceWatcher struct{}
 
-func newTraceWatcher() traceWatcher {
-	return traceWatcher(make(map[*solution][]*solution))
+func newTraceWatcher() *traceWatcher {
+	return &traceWatcher{}
 }
 
-func (traces traceWatcher) emitted(srch searcher, child *solution) {
-	var trace []*solution
+func (tw *traceWatcher) emitted(srch searcher, child *solution) {
 	if parent := srch.current(); parent != nil {
-		trace = append(trace, traces[parent]...)
+		child.trace = append([]*solution(nil), parent.trace...)
+	} else {
+		child.trace = nil
 	}
-	traces[child] = trace
 	// TODO: want?
 	// if len(trace) > wat.metrics.MaxTraceLen {
 	// 	wat.metrics.MaxTraceLen = len(trace)
 	// }
 }
 
-func (traces traceWatcher) beforeStep(srch searcher, sol *solution) {
-	traces[sol] = append(traces[sol], sol.copy())
+func (tw *traceWatcher) beforeStep(srch searcher, sol *solution) {
+	sol.trace = append(sol.trace, sol.copy())
 }
 
-func (traces traceWatcher) stepped(srch searcher, sol *solution) {
-	if sol.done {
-		delete(traces, sol)
-	}
+func (tw *traceWatcher) stepped(srch searcher, sol *solution) {
 }
