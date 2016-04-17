@@ -24,7 +24,7 @@ func initSearch(emit emitFunc) {
 func traceFailures() {
 	traces := newTraceWatcher()
 	metrics := newMetricWatcher()
-	srch.watcher = watchers([]searchWatcher{
+	watcher := watchers([]searchWatcher{
 		metrics,
 		traces,
 	})
@@ -43,14 +43,15 @@ func traceFailures() {
 				fmt.Printf("trace[%v] %v %s\n", i, soli, soli.letterMapping())
 			}
 			fmt.Println()
-		})
+		},
+		watcher)
 	fmt.Printf("%+v\n", metrics)
 }
 
 func debugRun() {
 	traces := newTraceWatcher()
 	metrics := newMetricWatcher()
-	srch.watcher = watchers([]searchWatcher{
+	watcher := watchers([]searchWatcher{
 		metrics,
 		traces,
 		debugWatcher{},
@@ -72,11 +73,13 @@ func debugRun() {
 				fmt.Printf("trace[%v] %v %s\n", i, soli, soli.letterMapping())
 			}
 			fmt.Println()
-		})
+		},
+		watcher)
 	fmt.Printf("%+v\n", metrics)
 }
 
 func findOne() *solution {
+	metrics := newMetricWatcher()
 	failed := false
 	var theSol *solution
 	srch.run(
@@ -92,7 +95,9 @@ func findOne() *solution {
 					failed = true
 				}
 			}
-		})
+		},
+		metrics)
+	fmt.Printf("search metrics: %+v\n", metrics)
 	if !failed {
 		return theSol
 	}
@@ -133,11 +138,8 @@ func main() {
 		return
 	}
 
-	metrics := newMetricWatcher()
-	srch.watcher = metrics
 	if sol := findOne(); sol != nil {
 		fmt.Printf("found: %v\n", sol.letterMapping())
-		fmt.Printf("search metrics: %+v\n", metrics)
 		sol.printCheck(func(format string, args ...interface{}) {
 			fmt.Printf(format, args...)
 			fmt.Println()

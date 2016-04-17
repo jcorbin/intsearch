@@ -8,7 +8,7 @@ type searcher interface {
 	frontierSize() int
 	current() *solution
 	expand(*solution)
-	run(maxSteps int, init initFunc, result resultFunc) bool
+	run(maxSteps int, init initFunc, result resultFunc, watcher searchWatcher) bool
 }
 
 type search struct {
@@ -55,7 +55,8 @@ func (srch *search) step(result resultFunc) bool {
 	return true
 }
 
-func (srch *search) run(maxSteps int, init initFunc, result resultFunc) bool {
+func (srch *search) run(maxSteps int, init initFunc, result resultFunc, watcher searchWatcher) bool {
+	srch.watcher = watcher
 	counter := 0
 	init(srch.expand)
 	for srch.step(result) {

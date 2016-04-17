@@ -9,9 +9,7 @@ func TestGogenSendMoreMoney(t *testing.T) {
 			verified: true,
 		}
 		traces = newTraceWatcher()
-		srch   = search{
-			watcher: traces,
-		}
+		srch   search
 	)
 
 	if err := prob.plan("send", "more", "money", &gg); err != nil {
@@ -38,7 +36,8 @@ func TestGogenSendMoreMoney(t *testing.T) {
 			} else {
 				numGood++
 			}
-		})
+		},
+		traces)
 
 	if numGood == 0 {
 		t.Fatalf("didn't find any solution")
