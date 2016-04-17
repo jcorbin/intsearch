@@ -7,7 +7,7 @@ type initFunc func(emitFunc)
 type searcher interface {
 	frontierSize() int
 	expand(*solution)
-	step(resultFunc) bool
+	run(maxSteps int, init initFunc, result resultFunc) bool
 }
 
 type search struct {
@@ -67,7 +67,7 @@ func (srch *search) step(result resultFunc) bool {
 	return true
 }
 
-func runSearch(srch searcher, maxSteps int, init initFunc, result resultFunc) bool {
+func (srch *search) run(maxSteps int, init initFunc, result resultFunc) bool {
 	counter := 0
 	init(srch.expand)
 	for srch.step(result) {

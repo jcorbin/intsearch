@@ -28,8 +28,7 @@ func traceFailures() {
 		metrics,
 		traces,
 	})
-	runSearch(
-		&srch,
+	srch.run(
 		100000,
 		initSearch,
 		func(sol *solution) {
@@ -56,8 +55,7 @@ func debugRun() {
 		traces,
 		debugWatcher{},
 	})
-	runSearch(
-		&srch,
+	srch.run(
 		100000,
 		initSearch,
 		func(sol *solution) {
@@ -81,8 +79,7 @@ func debugRun() {
 func findOne() *solution {
 	failed := false
 	var theSol *solution
-	runSearch(
-		&srch,
+	srch.run(
 		100000,
 		initSearch,
 		func(sol *solution) {

@@ -20,8 +20,7 @@ func TestGogenSendMoreMoney(t *testing.T) {
 
 	numGood := 0
 
-	runSearch(
-		&srch,
+	srch.run(
 		100000,
 		func(emit emitFunc) {
 			emit(newSolution(&prob, gg.steps, emit))
