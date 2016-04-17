@@ -16,8 +16,10 @@ var (
 )
 
 type goGen struct {
-	steps    []solutionStep
-	verified bool
+	steps      []solutionStep
+	verified   bool
+	carrySaved bool
+	carryValid bool
 }
 
 func (gg *goGen) obsAfter() *afterGen {
@@ -185,6 +187,8 @@ func (v forkUntilStep) run(sol *solution) {
 
 func (gg *goGen) init(prob *problem, desc string) {
 	gg.steps = append(gg.steps, setStep(0))
+	gg.carrySaved = false
+	gg.carryValid = true
 }
 
 func (gg *goGen) fix(prob *problem, c byte, v int) {
@@ -195,12 +199,33 @@ func (gg *goGen) fix(prob *problem, c byte, v int) {
 func (gg *goGen) initColumn(prob *problem, cx [3]byte, numKnown, numUnknown int) {
 }
 
+func (gg *goGen) saveCarry(prob *problem) {
+	if !gg.carrySaved {
+		if !gg.carryValid {
+			panic("no valid carry to save")
+		}
+		gg.steps = append(gg.steps, saveStep{})
+		gg.carrySaved = true
+	}
+}
+
+func (gg *goGen) restoreCarry(prob *problem) {
+	if !gg.carryValid {
+		if !gg.carrySaved {
+			panic("no saved carry to restore")
+		}
+		gg.steps = append(gg.steps, restoreStep{})
+		gg.carryValid = true
+	}
+}
+
 func (gg *goGen) computeSum(prob *problem, a, b, c byte) {
 	// Given:
 	//   carry + a + b = c (mod base)
 	// Solve for c:
 	//   c = carry + a + b (mod base)
-	gg.steps = append(gg.steps, saveStep{})
+	gg.saveCarry(prob)
+	gg.carryValid = false
 	if a != 0 {
 		gg.steps = append(gg.steps, addStep(a))
 	}
@@ -213,7 +238,7 @@ func (gg *goGen) computeSum(prob *problem, a, b, c byte) {
 		gg.steps = append(gg.steps, relJNZStep(1))
 		gg.steps = append(gg.steps, exitStep{errCheckFailed})
 	}
-	gg.steps = append(gg.steps, restoreStep{})
+	gg.restoreCarry(prob)
 }
 
 func (gg *goGen) computeSummand(prob *problem, a, b, c byte) {
@@ -221,7 +246,8 @@ func (gg *goGen) computeSummand(prob *problem, a, b, c byte) {
 	//   carry + a + b = c (mod base)
 	// Solve for a:
 	//   a = c - b - carry (mod base)
-	gg.steps = append(gg.steps, saveStep{})
+	gg.saveCarry(prob)
+	gg.carryValid = false
 	gg.steps = append(gg.steps, negateStep{})
 	if c != 0 {
 		gg.steps = append(gg.steps, addStep(c))
@@ -235,7 +261,7 @@ func (gg *goGen) computeSummand(prob *problem, a, b, c byte) {
 		gg.steps = append(gg.steps, relJNZStep(1))
 		gg.steps = append(gg.steps, exitStep{errCheckFailed})
 	}
-	gg.steps = append(gg.steps, restoreStep{})
+	gg.restoreCarry(prob)
 }
 
 func (gg *goGen) computeCarry(prob *problem, c1, c2 byte) {
@@ -246,10 +272,13 @@ func (gg *goGen) computeCarry(prob *problem, c1, c2 byte) {
 		gg.steps = append(gg.steps, addStep(c2))
 	}
 	gg.steps = append(gg.steps, divStep(prob.base))
+	gg.carryValid = true
+	gg.carrySaved = false
 }
 
 func (gg *goGen) choose(prob *problem, c byte) {
-	gg.steps = append(gg.steps, saveStep{})
+	gg.saveCarry(prob)
+	gg.carryValid = false
 	if c == prob.words[0][0] || c == prob.words[1][0] || c == prob.words[2][0] {
 		gg.steps = append(gg.steps, setStep(1))
 	} else {
@@ -257,7 +286,7 @@ func (gg *goGen) choose(prob *problem, c byte) {
 	}
 	gg.steps = append(gg.steps, forkUntilStep(prob.base-1))
 	gg.steps = append(gg.steps, storeStep(c))
-	gg.steps = append(gg.steps, restoreStep{})
+	gg.restoreCarry(prob)
 }
 
 func (gg *goGen) checkFinal(prob *problem, c byte, c1, c2 byte) {
