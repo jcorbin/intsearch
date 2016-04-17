@@ -12,7 +12,7 @@ func newMetricWatcher() *metricWatcher {
 func (metrics *metricWatcher) dump(sol *solution) {
 }
 
-func (metrics *metricWatcher) emitted(srch searcher, parent, child *solution) {
+func (metrics *metricWatcher) emitted(srch searcher, child *solution) {
 	metrics.Emits++
 	if fs := srch.frontierSize(); fs > metrics.MaxFrontierLen {
 		metrics.MaxFrontierLen = fs

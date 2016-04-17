@@ -4,9 +4,9 @@ import "fmt"
 
 type debugWatcher struct{}
 
-func (wat debugWatcher) emitted(srch searcher, parent, child *solution) {
+func (wat debugWatcher) emitted(srch searcher, child *solution) {
 	fmt.Printf("+++ %v %v", srch.frontierSize(), child)
-	if parent != nil {
+	if parent := srch.current(); parent != nil {
 		fmt.Printf(" parent %v @%v", parent.steps[parent.stepi], parent.stepi)
 	}
 	fmt.Printf("\n")

@@ -3,7 +3,7 @@ package main
 type searchWatcher interface {
 	beforeStep(srch searcher, sol *solution)
 	stepped(srch searcher, sol *solution)
-	emitted(srch searcher, parent, child *solution)
+	emitted(srch searcher, child *solution)
 }
 
 type watchers []searchWatcher
@@ -20,8 +20,8 @@ func (ws watchers) stepped(srch searcher, sol *solution) {
 	}
 }
 
-func (ws watchers) emitted(srch searcher, parent, child *solution) {
+func (ws watchers) emitted(srch searcher, child *solution) {
 	for _, w := range ws {
-		w.emitted(srch, parent, child)
+		w.emitted(srch, child)
 	}
 }

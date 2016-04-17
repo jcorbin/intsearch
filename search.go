@@ -42,14 +42,10 @@ func (srch *search) current() *solution {
 }
 
 func (srch *search) expand(sol *solution) {
-	var parent *solution
-	if len(srch.frontier) > 0 {
-		parent = srch.frontier[0]
+	if srch.watcher != nil {
+		srch.watcher.emitted(srch, sol)
 	}
 	srch.frontier = append(srch.frontier, sol)
-	if srch.watcher != nil {
-		srch.watcher.emitted(srch, parent, sol)
-	}
 }
 
 func (srch *search) step(result resultFunc) bool {

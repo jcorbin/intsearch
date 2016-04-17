@@ -6,9 +6,9 @@ func newTraceWatcher() traceWatcher {
 	return traceWatcher(make(map[*solution][]*solution))
 }
 
-func (traces traceWatcher) emitted(srch searcher, parent, child *solution) {
+func (traces traceWatcher) emitted(srch searcher, child *solution) {
 	var trace []*solution
-	if parent != nil {
+	if parent := srch.current(); parent != nil {
 		trace = append(trace, traces[parent]...)
 	}
 	traces[child] = trace
