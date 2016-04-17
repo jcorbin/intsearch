@@ -6,6 +6,7 @@ type initFunc func(emitFunc)
 
 type searcher interface {
 	frontierSize() int
+	current() *solution
 	expand(*solution)
 	run(maxSteps int, init initFunc, result resultFunc) bool
 }
@@ -31,6 +32,13 @@ func (srch *search) hintFrontier(n int) {
 		}
 		srch.frontier = frontier
 	}
+}
+
+func (srch *search) current() *solution {
+	if len(srch.frontier) > 0 {
+		return srch.frontier[0]
+	}
+	return nil
 }
 
 func (srch *search) expand(sol *solution) {
