@@ -86,10 +86,11 @@ func (sol *solution) letterMapping() string {
 	return strings.Join(parts, " ")
 }
 
-func (sol *solution) step() {
+func (sol *solution) step() bool {
 	step := sol.steps[sol.stepi]
 	sol.stepi++
 	step.run(sol)
+	return !sol.done
 }
 
 func (sol *solution) exit(err error) {

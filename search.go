@@ -41,15 +41,13 @@ func (srch *search) step(result resultFunc) bool {
 	sol := srch.frontier[0]
 	if srch.watcher != nil {
 		srch.watcher.beforeStep(srch, sol)
-		sol.step()
-		if sol.done {
+		if !sol.step() {
 			srch.frontier = srch.frontier[1:]
 			result(sol)
 		}
 		srch.watcher.stepped(srch, sol)
 	} else {
-		sol.step()
-		if sol.done {
+		if !sol.step() {
 			srch.frontier = srch.frontier[1:]
 			result(sol)
 		}
