@@ -20,16 +20,6 @@ func (srch *search) frontierSize() int {
 	return len(srch.frontier)
 }
 
-func (srch *search) hintFrontier(n int) {
-	if cap(srch.frontier) < n {
-		frontier := make([]*solution, 0, n)
-		if len(srch.frontier) > 0 {
-			copy(frontier, srch.frontier)
-		}
-		srch.frontier = frontier
-	}
-}
-
 func (srch *search) current() *solution {
 	if len(srch.frontier) > 0 {
 		return srch.frontier[0]

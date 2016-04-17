@@ -128,8 +128,6 @@ func main() {
 		log.Fatalf("plan failed: %v", err)
 	}
 
-	srch.hintFrontier(len(prob.letterSet))
-
 	if *debug {
 		debugRun()
 		return
