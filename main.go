@@ -17,7 +17,7 @@ var (
 	gen  = solutionGen(&gg)
 )
 
-func initSearch(emit func(*solution)) {
+func initSearch(emit emitFunc) {
 	emit(newSolution(&prob, gg.steps, emit))
 }
 

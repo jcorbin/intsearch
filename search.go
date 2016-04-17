@@ -1,6 +1,8 @@
 package main
 
+type emitFunc func(*solution)
 type resultFunc func(*solution)
+type initFunc func(emitFunc)
 
 type searcher interface {
 	frontierSize() int
@@ -65,7 +67,7 @@ func (srch *search) step(result resultFunc) bool {
 	return true
 }
 
-func runSearch(srch searcher, maxSteps int, init func(func(*solution)), result resultFunc) bool {
+func runSearch(srch searcher, maxSteps int, init initFunc, result resultFunc) bool {
 	counter := 0
 	init(srch.expand)
 	for srch.step(result) {

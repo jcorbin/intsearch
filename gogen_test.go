@@ -23,7 +23,7 @@ func TestGogenSendMoreMoney(t *testing.T) {
 	runSearch(
 		&srch,
 		100000,
-		func(emit func(*solution)) {
+		func(emit emitFunc) {
 			emit(newSolution(&prob, gg.steps, emit))
 		},
 		func(sol *solution) {
