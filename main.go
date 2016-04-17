@@ -17,6 +17,21 @@ var (
 	gen  = solutionGen(&gg)
 )
 
+func dump(sol *solution) {
+	if sol.err == nil {
+		fmt.Printf("=== Solution: %v\n=== ", sol)
+	} else if sol.err == errVerifyFailed {
+		fmt.Printf("!!! Fail: %v\n!!! ", sol)
+	} else if *debug {
+		fmt.Printf("--- Dead end: %v\n--- ", sol)
+	}
+	fmt.Printf("%s\n", sol.letterMapping())
+	for i, soli := range sol.trace {
+		fmt.Printf("trace[%v] %v %s\n", i, soli, soli.letterMapping())
+	}
+	fmt.Println()
+}
+
 func initSearch(emit emitFunc) {
 	emit(newSolution(&prob, gg.steps, emit))
 }
@@ -27,22 +42,7 @@ func traceFailures() {
 		metrics,
 		newTraceWatcher(),
 	})
-	srch.run(
-		100000,
-		initSearch,
-		func(sol *solution) {
-			if sol.err == nil {
-				fmt.Printf("=== Solution: %v\n=== ", sol)
-			} else if sol.err == errVerifyFailed {
-				fmt.Printf("!!! Fail: %v\n!!! ", sol)
-			}
-			fmt.Printf("%s\n", sol.letterMapping())
-			for i, soli := range sol.trace {
-				fmt.Printf("trace[%v] %v %s\n", i, soli, soli.letterMapping())
-			}
-			fmt.Println()
-		},
-		watcher)
+	srch.run(100000, initSearch, dump, watcher)
 	fmt.Printf("%+v\n", metrics)
 }
 
@@ -53,24 +53,7 @@ func debugRun() {
 		newTraceWatcher(),
 		debugWatcher{},
 	})
-	srch.run(
-		100000,
-		initSearch,
-		func(sol *solution) {
-			if sol.err == nil {
-				fmt.Printf("=== Solution: %v\n=== ", sol)
-			} else if sol.err == errVerifyFailed {
-				fmt.Printf("!!! Fail: %v\n!!! ", sol)
-			} else {
-				fmt.Printf("--- Dead end: %v\n--- ", sol)
-			}
-			fmt.Printf("%s\n", sol.letterMapping())
-			for i, soli := range sol.trace {
-				fmt.Printf("trace[%v] %v %s\n", i, soli, soli.letterMapping())
-			}
-			fmt.Println()
-		},
-		watcher)
+	srch.run(100000, initSearch, dump, watcher)
 	fmt.Printf("%+v\n", metrics)
 }
 
