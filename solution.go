@@ -34,6 +34,79 @@ type solutionStep interface {
 	run(sol *solution)
 }
 
+type labeledStep interface {
+	labelName() string
+}
+
+type resolvableStep interface {
+	resolveLabels(labels map[string]int) solutionStep
+}
+
+type labelStep string
+
+func (l labelStep) labelName() string {
+	return string(l)
+}
+
+func (l labelStep) String() string {
+	return fmt.Sprintf(":%s", string(l))
+}
+
+func (l labelStep) run(sol *solution) {
+}
+
+// extractLabels collects all labeledStep addresses from the list of steps
+// passed.  After return every labeledStep, ls, has an entry in labels,
+// labels[ls.labelName()] == addr, such that steps[addr] == ls.
+func extractLabels(steps []solutionStep, labels map[string]int) map[string]int {
+	n := 0
+	for _, step := range steps {
+		if _, ok := step.(labeledStep); ok {
+			n++
+		}
+	}
+	if n == 0 {
+		if labels == nil {
+			labels = make(map[string]int)
+		}
+		return labels
+	}
+	if labels == nil {
+		labels = make(map[string]int, n)
+	} else {
+		nl := make(map[string]int, len(labels)+n)
+		for k, v := range labels {
+			nl[k] = v
+		}
+		labels = nl
+	}
+	for addr, step := range steps {
+		if ls, ok := step.(labeledStep); ok {
+			labels[ls.labelName()] = addr
+		}
+	}
+	return labels
+}
+
+// resolveLabels calls all step.resolveLabels methods for all resolvableSteps
+// in steps. Each resolvableStep is replaced by any non-nil step its
+// resolveLabels method returned.  If the passed labels map is nil, then
+// extractLabels is called to build it.  Both the modified steps and labels map
+// are returned.
+func resolveLabels(steps []solutionStep, labels map[string]int) ([]solutionStep, map[string]int) {
+	if labels == nil {
+		labels = extractLabels(steps, nil)
+	}
+	for addr, step := range steps {
+		if rs, ok := step.(resolvableStep); ok {
+			if step := rs.resolveLabels(labels); step != nil {
+				steps[addr] = step
+			}
+		}
+	}
+	return steps, labels
+}
+
 type solution struct {
 	prob       *problem
 	pool       *solutionPool
