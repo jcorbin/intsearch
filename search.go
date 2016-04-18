@@ -44,12 +44,14 @@ func (srch *search) step(result resultFunc) bool {
 		if !sol.step() {
 			srch.frontier = srch.frontier[1:]
 			result(sol)
+			sol.pool.Put(sol)
 		}
 		srch.watcher.stepped(srch, sol)
 	} else {
 		if !sol.step() {
 			srch.frontier = srch.frontier[1:]
 			result(sol)
+			sol.pool.Put(sol)
 		}
 	}
 	return true

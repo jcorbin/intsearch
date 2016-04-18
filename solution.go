@@ -3,7 +3,32 @@ package main
 import (
 	"fmt"
 	"strings"
+	"sync"
 )
+
+type solutionPool struct {
+	sync.Pool
+}
+
+func (sp *solutionPool) Get() *solution {
+	sol, _ := sp.Pool.Get().(*solution)
+	if sol == nil {
+		sol = &solution{}
+	}
+	sol.pool = sp
+	return sol
+}
+
+func (sp *solutionPool) Put(sol *solution) {
+	if sol.trace != nil {
+		for i := range sol.trace {
+			// sp.Put(sol.trace[i]) XXX useful?
+			sol.trace[i] = nil
+		}
+		sol.trace = sol.trace[:0]
+	}
+	sp.Pool.Put(sol)
+}
 
 type solutionStep interface {
 	run(sol *solution)
@@ -11,6 +36,7 @@ type solutionStep interface {
 
 type solution struct {
 	prob   *problem
+	pool   *solutionPool
 	emit   func(*solution)
 	steps  []solutionStep
 	stepi  int
@@ -26,6 +52,7 @@ type solution struct {
 func newSolution(prob *problem, steps []solutionStep, emit func(*solution)) *solution {
 	sol := solution{
 		prob:  prob,
+		pool:  &solutionPool{},
 		emit:  emit,
 		steps: steps,
 	}
@@ -103,13 +130,13 @@ func (sol *solution) exit(err error) {
 }
 
 func (sol *solution) copy() *solution {
-	other := &solution{}
+	other := sol.pool.Get()
 	*other = *sol
 	return other
 }
 
 func (sol *solution) fork(v int) {
-	other := &solution{}
+	other := sol.pool.Get()
 	*other = *sol
 	other.stepi = sol.stepi - 1
 	other.carry = v
