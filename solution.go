@@ -103,31 +103,15 @@ func (sol *solution) exit(err error) {
 }
 
 func (sol *solution) copy() *solution {
-	return &solution{
-		prob:   sol.prob,
-		emit:   sol.emit,
-		steps:  sol.steps,
-		stepi:  sol.stepi,
-		values: sol.values,
-		used:   sol.used,
-		carry:  sol.carry,
-		save:   sol.save,
-		done:   sol.done,
-		err:    sol.err,
-	}
+	other := &solution{}
+	*other = *sol
+	return other
 }
 
 func (sol *solution) fork(v int) {
-	sol.emit(&solution{
-		prob:   sol.prob,
-		emit:   sol.emit,
-		steps:  sol.steps,
-		stepi:  sol.stepi - 1,
-		values: sol.values,
-		used:   sol.used,
-		carry:  v,
-		save:   sol.save,
-		done:   sol.done,
-		err:    sol.err,
-	})
+	other := &solution{}
+	*other = *sol
+	other.stepi = sol.stepi - 1
+	other.carry = v
+	sol.emit(other)
 }
