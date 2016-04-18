@@ -20,7 +20,7 @@ func (wat debugWatcher) stepped(srch searcher, sol *solution) {
 	fmt.Printf("... %v\n", sol)
 	if _, ok := sol.steps[sol.stepi-1].(storeStep); ok {
 		fmt.Printf("... %s\n", sol.letterMapping())
-	} else if _, ok := sol.steps[sol.stepi-1].(forkUntilStep); ok {
+	} else if isForkStep(sol.steps[sol.stepi-1]) {
 		fmt.Printf("... len(frontier) == %v\n", srch.frontierSize())
 	}
 }
