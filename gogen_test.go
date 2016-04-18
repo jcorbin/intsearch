@@ -46,3 +46,52 @@ func TestGogenSendMoreMoney(t *testing.T) {
 		t.Fatalf("found too many solutions: %v", numGood)
 	}
 }
+
+func BenchmarkPlan(b *testing.B) {
+	var prob problem
+	if err := prob.setup("send", "more", "money"); err != nil {
+		b.Fatalf("seutp failed: %v", err)
+	}
+	for n := 0; n < b.N; n++ {
+		var gg goGen
+		planBottomUp(&prob, &gg)
+	}
+}
+
+func BenchmarkRun(b *testing.B) {
+	var (
+		prob problem
+		gg   goGen
+	)
+	if err := prob.setup("send", "more", "money"); err != nil {
+		b.Fatalf("seutp failed: %v", err)
+	}
+	planBottomUp(&prob, &gg)
+
+	for n := 0; n < b.N; n++ {
+		var srch search
+		numGood := 0
+		srch.run(
+			100000,
+			func(emit emitFunc) {
+				emit(newSolution(&prob, gg.steps, emit))
+			},
+			func(sol *solution) {
+				if sol.err == nil {
+					numGood++
+				} else {
+					// normal dead end result, discard
+					return
+				}
+			},
+			nil)
+		if numGood == 0 {
+			b.Fatalf("didn't find any solution")
+		} else if numGood > 1 {
+			b.Fatalf("found too many solutions: %v", numGood)
+		}
+		if b.Failed() {
+			break
+		}
+	}
+}
