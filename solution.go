@@ -35,17 +35,17 @@ type solutionStep interface {
 }
 
 type solution struct {
-	prob   *problem
-	pool   *solutionPool
-	emit   func(*solution)
-	steps  []solutionStep
-	stepi  int
-	values [256]int
-	used   [256]bool
-	ra, rb int
-	done   bool
-	err    error
-	trace  []*solution
+	prob       *problem
+	pool       *solutionPool
+	emit       func(*solution)
+	steps      []solutionStep
+	stepi      int
+	values     [256]int
+	used       [256]bool
+	ra, rb, rc int
+	done       bool
+	err        error
+	trace      []*solution
 }
 
 func newSolution(prob *problem, steps []solutionStep, emit func(*solution)) *solution {
@@ -66,8 +66,8 @@ func (sol *solution) String() string {
 	if sol.stepi < len(sol.steps) {
 		step = sol.steps[sol.stepi]
 	}
-	return fmt.Sprintf("ra:%v rb:%v done:%v err:%v -- @%v %v",
-		sol.ra, sol.rb,
+	return fmt.Sprintf("ra:%v rb:%v rc:%v done:%v err:%v -- @%v %v",
+		sol.ra, sol.rb, sol.rc,
 		sol.done, sol.err,
 		sol.stepi, step,
 	)
