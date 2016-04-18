@@ -2,19 +2,19 @@ package main
 
 import "fmt"
 
-type saveStep struct{}
-type restoreStep struct{}
+type setABStep struct{}
+type setBAStep struct{}
 
-func (step saveStep) String() string    { return fmt.Sprintf("save") }
-func (step restoreStep) String() string { return fmt.Sprintf("restore") }
+func (step setABStep) String() string { return fmt.Sprintf("ra = rb") }
+func (step setBAStep) String() string { return fmt.Sprintf("rb = ra") }
 
-func (step saveStep) run(sol *solution)    { sol.rb = sol.ra }
-func (step restoreStep) run(sol *solution) { sol.ra = sol.rb }
+func (step setABStep) run(sol *solution) { sol.ra = sol.rb }
+func (step setBAStep) run(sol *solution) { sol.rb = sol.ra }
 
-type setStep int
+type setAStep int
 
-func (step setStep) String() string    { return fmt.Sprintf("set(%v)", int(step)) }
-func (step setStep) run(sol *solution) { sol.ra = int(step) }
+func (step setAStep) String() string    { return fmt.Sprintf("ra = %v", int(step)) }
+func (step setAStep) run(sol *solution) { sol.ra = int(step) }
 
 type addStep byte
 type subStep byte
