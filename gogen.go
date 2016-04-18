@@ -37,6 +37,9 @@ func (gg *goGen) obsAfter() *afterGen {
 }
 
 func (gg *goGen) init(plan planner, desc string) {
+	if len(gg.steps) > 0 {
+		gg.steps = gg.steps[:0]
+	}
 	gg.steps = append(gg.steps, setAStep(0))
 	gg.carrySaved = false
 	gg.carryValid = true
