@@ -41,9 +41,11 @@ func TestGogenSendMoreMoney(t *testing.T) {
 	srch.run(100000, initFunc, resultFunc, traces)
 
 	if numGood == 0 {
-		t.Fatalf("didn't find any solution")
+		t.Logf("didn't find any solution")
+		t.Fail()
 	} else if numGood > 1 {
-		t.Fatalf("found too many solutions: %v", numGood)
+		t.Logf("found too many solutions: %v", numGood)
+		t.Fail()
 	}
 }
 
