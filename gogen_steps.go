@@ -16,6 +16,54 @@ type setAStep int
 func (step setAStep) String() string    { return fmt.Sprintf("ra = %v", int(step)) }
 func (step setAStep) run(sol *solution) { sol.ra = int(step) }
 
+type ltStep int
+type lteStep int
+type eqStep int
+type gteStep int
+type gtStep int
+
+func (step ltStep) String() string  { return fmt.Sprintf("lt(%v)", int(step)) }
+func (step lteStep) String() string { return fmt.Sprintf("lte(%v)", int(step)) }
+func (step eqStep) String() string  { return fmt.Sprintf("eq(%v)", int(step)) }
+func (step gteStep) String() string { return fmt.Sprintf("gte(%v)", int(step)) }
+func (step gtStep) String() string  { return fmt.Sprintf("gt(%v)", int(step)) }
+
+func (step ltStep) run(sol *solution) {
+	if sol.ra < int(step) {
+		sol.ra = 1
+	} else {
+		sol.ra = 0
+	}
+}
+func (step lteStep) run(sol *solution) {
+	if sol.ra <= int(step) {
+		sol.ra = 1
+	} else {
+		sol.ra = 0
+	}
+}
+func (step eqStep) run(sol *solution) {
+	if sol.ra <= int(step) {
+		sol.ra = 1
+	} else {
+		sol.ra = 0
+	}
+}
+func (step gteStep) run(sol *solution) {
+	if sol.ra >= int(step) {
+		sol.ra = 1
+	} else {
+		sol.ra = 0
+	}
+}
+func (step gtStep) run(sol *solution) {
+	if sol.ra > int(step) {
+		sol.ra = 1
+	} else {
+		sol.ra = 0
+	}
+}
+
 type addStep byte
 type subStep byte
 type divStep int
