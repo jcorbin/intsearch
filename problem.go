@@ -29,9 +29,6 @@ type solutionGen interface {
 }
 
 func (prob *problem) plan(word1, word2, word3 string, gen solutionGen) error {
-	if err := prob.validate(word1, word2, word3); err != nil {
-		return err
-	}
 	if err := prob.setup(word1, word2, word3); err != nil {
 		return err
 	}
@@ -56,6 +53,9 @@ func (prob *problem) validate(word1, word2, word3 string) error {
 }
 
 func (prob *problem) setup(word1, word2, word3 string) error {
+	if err := prob.validate(word1, word2, word3); err != nil {
+		return err
+	}
 	prob.letterSet = make(map[byte]bool, len(word1)+len(word2)+len(word3))
 	for x, word := range []string{word1, word2, word3} {
 		prob.words[x] = make([]byte, len(word))
