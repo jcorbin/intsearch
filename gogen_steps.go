@@ -3,13 +3,25 @@ package main
 import "fmt"
 
 type setABStep struct{}
+type setACStep struct{}
 type setBAStep struct{}
+type setBCStep struct{}
+type setCAStep struct{}
+type setCBStep struct{}
 
 func (step setABStep) String() string { return fmt.Sprintf("ra = rb") }
+func (step setACStep) String() string { return fmt.Sprintf("ra = rc") }
 func (step setBAStep) String() string { return fmt.Sprintf("rb = ra") }
+func (step setBCStep) String() string { return fmt.Sprintf("rb = rc") }
+func (step setCAStep) String() string { return fmt.Sprintf("rc = ra") }
+func (step setCBStep) String() string { return fmt.Sprintf("rc = rb") }
 
 func (step setABStep) run(sol *solution) { sol.ra = sol.rb }
+func (step setACStep) run(sol *solution) { sol.ra = sol.rc }
 func (step setBAStep) run(sol *solution) { sol.rb = sol.ra }
+func (step setBCStep) run(sol *solution) { sol.rb = sol.rc }
+func (step setCAStep) run(sol *solution) { sol.rc = sol.ra }
+func (step setCBStep) run(sol *solution) { sol.rc = sol.rb }
 
 type setAStep int
 
