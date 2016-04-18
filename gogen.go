@@ -12,10 +12,11 @@ var (
 )
 
 type goGen struct {
-	steps      []solutionStep
-	verified   bool
-	carrySaved bool
-	carryValid bool
+	steps       []solutionStep
+	verified    bool
+	carrySaved  bool
+	carryValid  bool
+	usedSymbols map[string]struct{}
 }
 
 func (gg *goGen) obsAfter() *afterGen {
@@ -39,6 +40,7 @@ func (gg *goGen) init(plan planner, desc string) {
 	gg.steps = append(gg.steps, setAStep(0))
 	gg.carrySaved = false
 	gg.carryValid = true
+	gg.usedSymbols = make(map[string]struct{})
 }
 
 func (gg *goGen) fix(plan planner, c byte, v int) {
@@ -128,6 +130,18 @@ func (gg *goGen) computeCarry(plan planner, c1, c2 byte) {
 	gg.steps = append(gg.steps, divStep(prob.base))
 	gg.carryValid = true
 	gg.carrySaved = false
+}
+
+func (gg *goGen) gensym(name string) string {
+	i := 1
+	for {
+		sym := fmt.Sprintf("%s(%d)", name, i)
+		if _, used := gg.usedSymbols[sym]; !used {
+			gg.usedSymbols[sym] = struct{}{}
+			return sym
+		}
+		i++
+	}
 }
 
 func (gg *goGen) choose(plan planner, c byte) {
