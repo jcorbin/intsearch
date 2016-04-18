@@ -108,9 +108,10 @@ func main() {
 		}}
 	}
 
-	if err := prob.plan(word1, word2, word3, gen); err != nil {
-		log.Fatalf("plan failed: %v", err)
+	if err := prob.setup(word1, word2, word3); err != nil {
+		log.Fatalf("setup failed: %v", err)
 	}
+	planBottomUp(&prob, gen)
 
 	if *debug {
 		debugRun()

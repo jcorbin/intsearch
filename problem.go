@@ -12,32 +12,6 @@ type problem struct {
 	words     [3][]byte
 	letterSet map[byte]bool
 	base      int
-	known     map[byte]bool
-	gen       solutionGen
-}
-
-type solutionGen interface {
-	init(prob *problem, desc string)
-	fix(prob *problem, c byte, v int)
-	initColumn(prob *problem, cx [3]byte, numKnown, numUnknown int)
-	computeSum(prob *problem, a, b, c byte)
-	computeSummand(prob *problem, a, b, c byte)
-	computeCarry(prob *problem, c1, c2 byte)
-	choose(prob *problem, c byte)
-	checkFinal(prob *problem, c byte, c1, c2 byte)
-	finish(prob *problem)
-}
-
-func (prob *problem) plan(word1, word2, word3 string, gen solutionGen) error {
-	if err := prob.setup(word1, word2, word3); err != nil {
-		return err
-	}
-
-	prob.gen = gen
-	prob.gen.init(prob, "bottom up")
-
-	prob.planBottomUp()
-	return nil
 }
 
 func (prob *problem) validate(word1, word2, word3 string) error {
@@ -69,7 +43,6 @@ func (prob *problem) setup(word1, word2, word3 string) error {
 	if len(prob.letterSet) > 10 {
 		return fmt.Errorf("only base 10 problems supported currently")
 	}
-	prob.known = make(map[byte]bool, len(prob.letterSet))
 	return nil
 }
 
@@ -104,54 +77,4 @@ func (prob *problem) eachColumn(each func([3]byte)) {
 		ix[1]--
 		ix[2]--
 	}
-}
-
-func (prob *problem) planBottomUp() {
-	// for each column from the right
-	//   choose letters until 2/3 are known
-	//   compute the third (if unknown)
-	prob.eachColumn(prob.solveColumn)
-	prob.gen.finish(prob)
-}
-
-func (prob *problem) solveColumn(cx [3]byte) {
-	numKnown := 0
-	numUnknown := 0
-	for _, c := range cx {
-		if c != 0 {
-			if prob.known[c] {
-				numKnown++
-			}
-			if !prob.known[c] {
-				numUnknown++
-			}
-		}
-	}
-
-	prob.gen.initColumn(prob, cx, numKnown, numUnknown)
-
-	for x, c := range cx {
-		if c != 0 {
-			if !prob.known[c] {
-				if numUnknown == 1 {
-					switch x {
-					case 0:
-						prob.gen.computeSummand(prob, c, cx[1], cx[2])
-					case 1:
-						prob.gen.computeSummand(prob, c, cx[0], cx[2])
-					case 2:
-						prob.gen.computeSum(prob, cx[0], cx[1], c)
-					}
-				} else {
-					prob.gen.choose(prob, c)
-				}
-				prob.known[c] = true
-				numUnknown--
-				numKnown++
-			} else if x == 2 && cx[0] == 0 && cx[1] == 0 {
-				prob.gen.checkFinal(prob, c, cx[0], cx[1])
-			}
-		}
-	}
-	prob.gen.computeCarry(prob, cx[0], cx[1])
 }

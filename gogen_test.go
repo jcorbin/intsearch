@@ -12,9 +12,10 @@ func TestGogenSendMoreMoney(t *testing.T) {
 		srch   search
 	)
 
-	if err := prob.plan("send", "more", "money", &gg); err != nil {
-		t.Fatalf("plan failed: %v", err)
+	if err := prob.setup("send", "more", "money"); err != nil {
+		t.Fatalf("setup failed: %v", err)
 	}
+	planBottomUp(&prob, &gg)
 
 	numGood := 0
 

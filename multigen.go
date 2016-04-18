@@ -4,56 +4,56 @@ type multiGen struct {
 	gens []solutionGen
 }
 
-func (mg multiGen) init(prob *problem, desc string) {
+func (mg multiGen) init(plan planner, desc string) {
 	for _, gen := range mg.gens {
-		gen.init(prob, desc)
+		gen.init(plan, desc)
 	}
 }
 
-func (mg multiGen) fix(prob *problem, c byte, v int) {
+func (mg multiGen) fix(plan planner, c byte, v int) {
 	for _, gen := range mg.gens {
-		gen.fix(prob, c, v)
+		gen.fix(plan, c, v)
 	}
 }
 
-func (mg multiGen) initColumn(prob *problem, cx [3]byte, numKnown, numUnknown int) {
+func (mg multiGen) initColumn(plan planner, cx [3]byte, numKnown, numUnknown int) {
 	for _, gen := range mg.gens {
-		gen.initColumn(prob, cx, numKnown, numUnknown)
+		gen.initColumn(plan, cx, numKnown, numUnknown)
 	}
 }
 
-func (mg multiGen) computeSum(prob *problem, a, b, c byte) {
+func (mg multiGen) computeSum(plan planner, a, b, c byte) {
 	for _, gen := range mg.gens {
-		gen.computeSum(prob, a, b, c)
+		gen.computeSum(plan, a, b, c)
 	}
 }
 
-func (mg multiGen) computeSummand(prob *problem, a, b, c byte) {
+func (mg multiGen) computeSummand(plan planner, a, b, c byte) {
 	for _, gen := range mg.gens {
-		gen.computeSummand(prob, a, b, c)
+		gen.computeSummand(plan, a, b, c)
 	}
 }
 
-func (mg multiGen) computeCarry(prob *problem, c1, c2 byte) {
+func (mg multiGen) computeCarry(plan planner, c1, c2 byte) {
 	for _, gen := range mg.gens {
-		gen.computeCarry(prob, c1, c2)
+		gen.computeCarry(plan, c1, c2)
 	}
 }
 
-func (mg multiGen) choose(prob *problem, c byte) {
+func (mg multiGen) choose(plan planner, c byte) {
 	for _, gen := range mg.gens {
-		gen.choose(prob, c)
+		gen.choose(plan, c)
 	}
 }
 
-func (mg multiGen) checkFinal(prob *problem, c byte, c1, c2 byte) {
+func (mg multiGen) checkFinal(plan planner, c byte, c1, c2 byte) {
 	for _, gen := range mg.gens {
-		gen.checkFinal(prob, c, c1, c2)
+		gen.checkFinal(plan, c, c1, c2)
 	}
 }
 
-func (mg multiGen) finish(prob *problem) {
+func (mg multiGen) finish(plan planner) {
 	for _, gen := range mg.gens {
-		gen.finish(prob)
+		gen.finish(plan)
 	}
 }

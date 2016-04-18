@@ -1,41 +1,41 @@
 package main
 
 type afterGen struct {
-	obs func(prob *problem)
+	obs func(plan planner)
 }
 
-func (ag afterGen) init(prob *problem, desc string) {
-	ag.obs(prob)
+func (ag afterGen) init(plan planner, desc string) {
+	ag.obs(plan)
 }
 
-func (ag afterGen) fix(prob *problem, c byte, v int) {
-	ag.obs(prob)
+func (ag afterGen) fix(plan planner, c byte, v int) {
+	ag.obs(plan)
 }
 
-func (ag afterGen) initColumn(prob *problem, cx [3]byte, numKnown, numUnknown int) {
-	ag.obs(prob)
+func (ag afterGen) initColumn(plan planner, cx [3]byte, numKnown, numUnknown int) {
+	ag.obs(plan)
 }
 
-func (ag afterGen) computeSum(prob *problem, a, b, c byte) {
-	ag.obs(prob)
+func (ag afterGen) computeSum(plan planner, a, b, c byte) {
+	ag.obs(plan)
 }
 
-func (ag afterGen) computeSummand(prob *problem, a, b, c byte) {
-	ag.obs(prob)
+func (ag afterGen) computeSummand(plan planner, a, b, c byte) {
+	ag.obs(plan)
 }
 
-func (ag afterGen) computeCarry(prob *problem, c1, c2 byte) {
-	ag.obs(prob)
+func (ag afterGen) computeCarry(plan planner, c1, c2 byte) {
+	ag.obs(plan)
 }
 
-func (ag afterGen) choose(prob *problem, c byte) {
-	ag.obs(prob)
+func (ag afterGen) choose(plan planner, c byte) {
+	ag.obs(plan)
 }
 
-func (ag afterGen) checkFinal(prob *problem, c byte, c1, c2 byte) {
-	ag.obs(prob)
+func (ag afterGen) checkFinal(plan planner, c byte, c1, c2 byte) {
+	ag.obs(plan)
 }
 
-func (ag afterGen) finish(prob *problem) {
-	ag.obs(prob)
+func (ag afterGen) finish(plan planner) {
+	ag.obs(plan)
 }

@@ -16,7 +16,8 @@ func (lg *logGen) stepf(format string, args ...interface{}) {
 	fmt.Printf(format, args...)
 }
 
-func (lg *logGen) init(prob *problem, desc string) {
+func (lg *logGen) init(plan planner, desc string) {
+	prob := plan.problem()
 	var w int
 	for _, word := range prob.words {
 		if len(word) > w {
@@ -34,11 +35,11 @@ func (lg *logGen) init(prob *problem, desc string) {
 	lg.stepf("set carry = 0\n")
 }
 
-func (lg *logGen) fix(prob *problem, c byte, v int) {
+func (lg *logGen) fix(plan planner, c byte, v int) {
 	lg.stepf("fix %v = %v\n", string(c), v)
 }
 
-func (lg *logGen) initColumn(prob *problem, cx [3]byte, numKnown, numUnknown int) {
+func (lg *logGen) initColumn(plan planner, cx [3]byte, numKnown, numUnknown int) {
 	if cx[0] != 0 && cx[1] != 0 {
 		fmt.Printf("// column: carry + %v + %v = %v\n", string(cx[0]), string(cx[1]), string(cx[2]))
 	} else if cx[0] != 0 {
@@ -48,7 +49,8 @@ func (lg *logGen) initColumn(prob *problem, cx [3]byte, numKnown, numUnknown int
 	}
 }
 
-func (lg *logGen) computeSum(prob *problem, a, b, c byte) {
+func (lg *logGen) computeSum(plan planner, a, b, c byte) {
+	prob := plan.problem()
 	if a != 0 && b != 0 {
 		lg.stepf("compute %v = %v + %v + carry (mod %v)\n", string(c), string(a), string(b), prob.base)
 	} else if a != 0 {
@@ -60,7 +62,8 @@ func (lg *logGen) computeSum(prob *problem, a, b, c byte) {
 	}
 }
 
-func (lg *logGen) computeSummand(prob *problem, a, b, c byte) {
+func (lg *logGen) computeSummand(plan planner, a, b, c byte) {
+	prob := plan.problem()
 	if b != 0 && c != 0 {
 		lg.stepf("compute %v = %v - %v - carry (mod %v)\n", string(a), string(b), string(c), prob.base)
 	} else if b != 0 {
@@ -72,7 +75,8 @@ func (lg *logGen) computeSummand(prob *problem, a, b, c byte) {
 	}
 }
 
-func (lg *logGen) computeCarry(prob *problem, c1, c2 byte) {
+func (lg *logGen) computeCarry(plan planner, c1, c2 byte) {
+	prob := plan.problem()
 	if c1 != 0 && c2 != 0 {
 		lg.stepf("set carry = (carry + %v + %v) // %v\n", string(c1), string(c2), prob.base)
 	} else if c1 != 0 {
@@ -84,17 +88,18 @@ func (lg *logGen) computeCarry(prob *problem, c1, c2 byte) {
 	}
 }
 
-func (lg *logGen) choose(prob *problem, c byte) {
-	branches := prob.base - len(prob.known)
+func (lg *logGen) choose(plan planner, c byte) {
+	prob := plan.problem()
+	branches := prob.base - len(plan.knownLetters())
 	lg.branches = append(lg.branches, branches)
 	lg.stepf("choose %v (branch by %v)\n", string(c), branches)
 }
 
-func (lg *logGen) checkFinal(prob *problem, c, c1, c2 byte) {
+func (lg *logGen) checkFinal(plan planner, c, c1, c2 byte) {
 	lg.stepf("check %v == carry\n", string(c))
 }
 
-func (lg *logGen) finish(prob *problem) {
+func (lg *logGen) finish(plan planner) {
 	lg.stepf("done\n")
 
 	branches := 1

@@ -24,7 +24,7 @@ type goGen struct {
 
 func (gg *goGen) obsAfter() *afterGen {
 	i := 0
-	return &afterGen{func(prob *problem) {
+	return &afterGen{func(plan planner) {
 		j := i
 		for ; j < len(gg.steps); j++ {
 			fmt.Printf("%v: %v\n", j, gg.steps[j])
@@ -185,21 +185,21 @@ func (v forkUntilStep) run(sol *solution) {
 	}
 }
 
-func (gg *goGen) init(prob *problem, desc string) {
+func (gg *goGen) init(plan planner, desc string) {
 	gg.steps = append(gg.steps, setStep(0))
 	gg.carrySaved = false
 	gg.carryValid = true
 }
 
-func (gg *goGen) fix(prob *problem, c byte, v int) {
+func (gg *goGen) fix(plan planner, c byte, v int) {
 	gg.steps = append(gg.steps, setStep(v))
 	gg.steps = append(gg.steps, storeStep(c))
 }
 
-func (gg *goGen) initColumn(prob *problem, cx [3]byte, numKnown, numUnknown int) {
+func (gg *goGen) initColumn(plan planner, cx [3]byte, numKnown, numUnknown int) {
 }
 
-func (gg *goGen) saveCarry(prob *problem) {
+func (gg *goGen) saveCarry(plan planner) {
 	if !gg.carrySaved {
 		if !gg.carryValid {
 			panic("no valid carry to save")
@@ -209,7 +209,7 @@ func (gg *goGen) saveCarry(prob *problem) {
 	}
 }
 
-func (gg *goGen) restoreCarry(prob *problem) {
+func (gg *goGen) restoreCarry(plan planner) {
 	if !gg.carryValid {
 		if !gg.carrySaved {
 			panic("no saved carry to restore")
@@ -219,14 +219,15 @@ func (gg *goGen) restoreCarry(prob *problem) {
 	}
 }
 
-func (gg *goGen) computeSum(prob *problem, a, b, c byte) {
+func (gg *goGen) computeSum(plan planner, a, b, c byte) {
 	// Given:
 	//   carry + a + b = c (mod base)
 	// Solve for c:
 	//   c = carry + a + b (mod base)
-	gg.restoreCarry(prob)
-	gg.saveCarry(prob)
+	gg.restoreCarry(plan)
+	gg.saveCarry(plan)
 	gg.carryValid = false
+	prob := plan.problem()
 	if a != 0 {
 		gg.steps = append(gg.steps, addStep(a))
 	}
@@ -241,14 +242,15 @@ func (gg *goGen) computeSum(prob *problem, a, b, c byte) {
 	}
 }
 
-func (gg *goGen) computeSummand(prob *problem, a, b, c byte) {
+func (gg *goGen) computeSummand(plan planner, a, b, c byte) {
 	// Given:
 	//   carry + a + b = c (mod base)
 	// Solve for a:
 	//   a = c - b - carry (mod base)
-	gg.restoreCarry(prob)
-	gg.saveCarry(prob)
+	gg.restoreCarry(plan)
+	gg.saveCarry(plan)
 	gg.carryValid = false
+	prob := plan.problem()
 	gg.steps = append(gg.steps, negateStep{})
 	if c != 0 {
 		gg.steps = append(gg.steps, addStep(c))
@@ -264,8 +266,9 @@ func (gg *goGen) computeSummand(prob *problem, a, b, c byte) {
 	}
 }
 
-func (gg *goGen) computeCarry(prob *problem, c1, c2 byte) {
-	gg.restoreCarry(prob)
+func (gg *goGen) computeCarry(plan planner, c1, c2 byte) {
+	gg.restoreCarry(plan)
+	prob := plan.problem()
 	if c1 != 0 {
 		gg.steps = append(gg.steps, addStep(c1))
 	}
@@ -277,8 +280,9 @@ func (gg *goGen) computeCarry(prob *problem, c1, c2 byte) {
 	gg.carrySaved = false
 }
 
-func (gg *goGen) choose(prob *problem, c byte) {
-	gg.saveCarry(prob)
+func (gg *goGen) choose(plan planner, c byte) {
+	gg.saveCarry(plan)
+	prob := plan.problem()
 	gg.carryValid = false
 	if c == prob.words[0][0] || c == prob.words[1][0] || c == prob.words[2][0] {
 		gg.steps = append(gg.steps, setStep(1))
@@ -289,14 +293,15 @@ func (gg *goGen) choose(prob *problem, c byte) {
 	gg.steps = append(gg.steps, storeStep(c))
 }
 
-func (gg *goGen) checkFinal(prob *problem, c byte, c1, c2 byte) {
-	gg.restoreCarry(prob)
+func (gg *goGen) checkFinal(plan planner, c byte, c1, c2 byte) {
+	gg.restoreCarry(plan)
 	gg.steps = append(gg.steps, subStep(c))
 	gg.steps = append(gg.steps, relJZStep(1))
 	gg.steps = append(gg.steps, exitStep{errCheckFailed})
 }
 
-func (gg *goGen) verify(prob *problem) {
+func (gg *goGen) verify(plan planner) {
+	prob := plan.problem()
 	gg.steps = append(gg.steps, setStep(0))
 	prob.eachColumn(func(cx [3]byte) {
 		if cx[0] != 0 {
@@ -317,9 +322,9 @@ func (gg *goGen) verify(prob *problem) {
 	gg.steps = append(gg.steps, exitStep{errVerifyFailed})
 }
 
-func (gg *goGen) finish(prob *problem) {
+func (gg *goGen) finish(plan planner) {
 	if gg.verified {
-		gg.verify(prob)
+		gg.verify(plan)
 	}
 	gg.steps = append(gg.steps, exitStep{nil})
 }
