@@ -80,10 +80,10 @@ func (gg *goGen) computeSum(plan planner, a, b, c byte) {
 	gg.carryValid = false
 	prob := plan.problem()
 	if a != 0 {
-		gg.steps = append(gg.steps, addStep(a))
+		gg.steps = append(gg.steps, addValueStep(a))
 	}
 	if b != 0 {
-		gg.steps = append(gg.steps, addStep(b))
+		gg.steps = append(gg.steps, addValueStep(b))
 	}
 	gg.steps = append(gg.steps, modStep(prob.base))
 	gg.steps = append(gg.steps, storeStep(c))
@@ -104,10 +104,10 @@ func (gg *goGen) computeSummand(plan planner, a, b, c byte) {
 	prob := plan.problem()
 	gg.steps = append(gg.steps, negateStep{})
 	if c != 0 {
-		gg.steps = append(gg.steps, addStep(c))
+		gg.steps = append(gg.steps, addValueStep(c))
 	}
 	if b != 0 {
-		gg.steps = append(gg.steps, subStep(b))
+		gg.steps = append(gg.steps, subValueStep(b))
 	}
 	gg.steps = append(gg.steps, modStep(prob.base))
 	gg.steps = append(gg.steps, storeStep(a))
@@ -121,10 +121,10 @@ func (gg *goGen) computeCarry(plan planner, c1, c2 byte) {
 	gg.restoreCarry(plan)
 	prob := plan.problem()
 	if c1 != 0 {
-		gg.steps = append(gg.steps, addStep(c1))
+		gg.steps = append(gg.steps, addValueStep(c1))
 	}
 	if c2 != 0 {
-		gg.steps = append(gg.steps, addStep(c2))
+		gg.steps = append(gg.steps, addValueStep(c2))
 	}
 	gg.steps = append(gg.steps, divStep(prob.base))
 	gg.carryValid = true
@@ -146,7 +146,7 @@ func (gg *goGen) choose(plan planner, c byte) {
 
 func (gg *goGen) checkFinal(plan planner, c byte, c1, c2 byte) {
 	gg.restoreCarry(plan)
-	gg.steps = append(gg.steps, subStep(c))
+	gg.steps = append(gg.steps, subValueStep(c))
 	gg.steps = append(gg.steps, relJZStep(1))
 	gg.steps = append(gg.steps, exitStep{errCheckFailed})
 }
@@ -156,14 +156,14 @@ func (gg *goGen) verify(plan planner) {
 	gg.steps = append(gg.steps, setAStep(0))
 	prob.eachColumn(func(cx [3]byte) {
 		if cx[0] != 0 {
-			gg.steps = append(gg.steps, addStep(cx[0]))
+			gg.steps = append(gg.steps, addValueStep(cx[0]))
 		}
 		if cx[1] != 0 {
-			gg.steps = append(gg.steps, addStep(cx[1]))
+			gg.steps = append(gg.steps, addValueStep(cx[1]))
 		}
 		gg.steps = append(gg.steps, setBAStep{})
 		gg.steps = append(gg.steps, modStep(prob.base))
-		gg.steps = append(gg.steps, subStep(cx[2]))
+		gg.steps = append(gg.steps, subValueStep(cx[2]))
 		gg.steps = append(gg.steps, relJZStep(1))
 		gg.steps = append(gg.steps, exitStep{errVerifyFailed})
 		gg.steps = append(gg.steps, setABStep{})
