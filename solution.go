@@ -42,8 +42,7 @@ type solution struct {
 	stepi  int
 	values [256]int
 	used   [256]bool
-	carry  int
-	save   int
+	ra, rb int
 	done   bool
 	err    error
 	trace  []*solution
@@ -67,8 +66,8 @@ func (sol *solution) String() string {
 	if sol.stepi < len(sol.steps) {
 		step = sol.steps[sol.stepi]
 	}
-	return fmt.Sprintf("carry:%v save:%v done:%v err:%v -- @%v %v",
-		sol.carry, sol.save,
+	return fmt.Sprintf("ra:%v rb:%v done:%v err:%v -- @%v %v",
+		sol.ra, sol.rb,
 		sol.done, sol.err,
 		sol.stepi, step,
 	)
@@ -139,6 +138,6 @@ func (sol *solution) fork(v int) {
 	other := sol.pool.Get()
 	*other = *sol
 	other.stepi = sol.stepi - 1
-	other.carry = v
+	other.ra = v
 	sol.emit(other)
 }

@@ -44,7 +44,7 @@ func (step saveStep) String() string {
 }
 
 func (step saveStep) run(sol *solution) {
-	sol.save = sol.carry
+	sol.rb = sol.ra
 }
 
 type restoreStep struct {
@@ -55,7 +55,7 @@ func (step restoreStep) String() string {
 }
 
 func (step restoreStep) run(sol *solution) {
-	sol.carry = sol.save
+	sol.ra = sol.rb
 }
 
 type setStep int
@@ -65,7 +65,7 @@ func (v setStep) String() string {
 }
 
 func (v setStep) run(sol *solution) {
-	sol.carry = int(v)
+	sol.ra = int(v)
 }
 
 type addStep byte
@@ -75,7 +75,7 @@ func (c addStep) String() string {
 }
 
 func (c addStep) run(sol *solution) {
-	sol.carry += sol.values[c]
+	sol.ra += sol.values[c]
 }
 
 type subStep byte
@@ -85,7 +85,7 @@ func (c subStep) String() string {
 }
 
 func (c subStep) run(sol *solution) {
-	sol.carry -= sol.values[c]
+	sol.ra -= sol.values[c]
 }
 
 type divStep int
@@ -95,10 +95,10 @@ func (v divStep) String() string {
 }
 
 func (v divStep) run(sol *solution) {
-	if sol.carry < 0 {
-		sol.carry = -sol.carry / int(v)
+	if sol.ra < 0 {
+		sol.ra = -sol.ra / int(v)
 	} else {
-		sol.carry = sol.carry / int(v)
+		sol.ra = sol.ra / int(v)
 	}
 }
 
@@ -110,7 +110,7 @@ func (step negateStep) String() string {
 }
 
 func (step negateStep) run(sol *solution) {
-	sol.carry = -sol.carry
+	sol.ra = -sol.ra
 }
 
 type exitStep struct {
@@ -132,11 +132,11 @@ func (c storeStep) String() string {
 }
 
 func (c storeStep) run(sol *solution) {
-	if sol.used[sol.carry] {
+	if sol.used[sol.ra] {
 		sol.exit(errAlreadyUsed)
 	}
-	sol.values[c] = sol.carry
-	sol.used[sol.carry] = true
+	sol.values[c] = sol.ra
+	sol.used[sol.ra] = true
 }
 
 type relJZStep int
@@ -146,7 +146,7 @@ func (o relJZStep) String() string {
 }
 
 func (o relJZStep) run(sol *solution) {
-	if sol.carry == 0 {
+	if sol.ra == 0 {
 		sol.stepi += int(o)
 	}
 }
@@ -158,7 +158,7 @@ func (o relJNZStep) String() string {
 }
 
 func (o relJNZStep) run(sol *solution) {
-	if sol.carry != 0 {
+	if sol.ra != 0 {
 		sol.stepi += int(o)
 	}
 }
@@ -170,7 +170,7 @@ func (v modStep) String() string {
 }
 
 func (v modStep) run(sol *solution) {
-	sol.carry = (sol.carry + int(v)<<1) % int(v)
+	sol.ra = (sol.ra + int(v)<<1) % int(v)
 }
 
 type forkUntilStep int
@@ -180,8 +180,8 @@ func (v forkUntilStep) String() string {
 }
 
 func (v forkUntilStep) run(sol *solution) {
-	if sol.carry < int(v) {
-		sol.fork(sol.carry + 1)
+	if sol.ra < int(v) {
+		sol.fork(sol.ra + 1)
 	}
 }
 
