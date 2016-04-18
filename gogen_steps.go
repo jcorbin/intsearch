@@ -113,10 +113,22 @@ type exitStep struct{ err error }
 func (step exitStep) String() string    { return fmt.Sprintf("exit(%v)", step.err) }
 func (step exitStep) run(sol *solution) { sol.exit(step.err) }
 
+type isUsedStep struct{}
+
+func (step isUsedStep) String() string { return fmt.Sprintf("used?") }
+func (step isUsedStep) run(sol *solution) {
+	if sol.used[sol.ra] {
+		sol.ra = 1
+	} else {
+		sol.ra = 0
+	}
+}
+
 type storeStep byte
 
 func (c storeStep) String() string { return fmt.Sprintf("store(%s)", string(c)) }
 func (c storeStep) run(sol *solution) {
+	// TODO: drop guard, program can now use isUsedStep to guarantee this never happens
 	if sol.used[sol.ra] {
 		sol.exit(errAlreadyUsed)
 	}
