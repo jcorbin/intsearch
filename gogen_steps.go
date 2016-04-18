@@ -106,6 +106,28 @@ func (c storeStep) run(sol *solution) {
 	sol.used[sol.ra] = true
 }
 
+type jmpStep int
+
+func (n jmpStep) String() string    { return fmt.Sprintf("jmp(%d)", int(n)) }
+func (n jmpStep) run(sol *solution) { sol.stepi = int(n) }
+
+type jzStep int
+type jnzStep int
+
+func (step jzStep) String() string  { return fmt.Sprintf("jz(%d)", int(step)) }
+func (step jnzStep) String() string { return fmt.Sprintf("jnz(%d)", int(step)) }
+
+func (step jzStep) run(sol *solution) {
+	if sol.ra == 0 {
+		sol.stepi = int(step)
+	}
+}
+func (step jnzStep) run(sol *solution) {
+	if sol.ra != 0 {
+		sol.stepi = int(step)
+	}
+}
+
 type relJZStep int
 type relJNZStep int
 
