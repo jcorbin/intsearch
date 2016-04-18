@@ -19,26 +19,26 @@ func TestGogenSendMoreMoney(t *testing.T) {
 
 	numGood := 0
 
-	srch.run(
-		100000,
-		func(emit emitFunc) {
-			emit(newSolution(&prob, gg.steps, emit))
-		},
-		func(sol *solution) {
-			if sol.err == errVerifyFailed {
-				t.Logf("!!! invalid solution found: %v %v", sol, sol.letterMapping())
-				for i, soli := range sol.trace {
-					t.Logf("trace[%v]: %v %s", i, soli, soli.letterMapping())
-				}
-				t.Fail()
-			} else if sol.err != nil {
-				// normal dead end result, discard
-				return
-			} else {
-				numGood++
+	initFunc := func(emit emitFunc) {
+		emit(newSolution(&prob, gg.steps, emit))
+	}
+
+	resultFunc := func(sol *solution) {
+		if sol.err == errVerifyFailed {
+			t.Logf("!!! invalid solution found: %v %v", sol, sol.letterMapping())
+			for i, soli := range sol.trace {
+				t.Logf("trace[%v]: %v %s", i, soli, soli.letterMapping())
 			}
-		},
-		traces)
+			t.Fail()
+		} else if sol.err != nil {
+			// normal dead end result, discard
+			return
+		} else {
+			numGood++
+		}
+	}
+
+	srch.run(100000, initFunc, resultFunc, traces)
 
 	if numGood == 0 {
 		t.Fatalf("didn't find any solution")
