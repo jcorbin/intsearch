@@ -168,6 +168,9 @@ type forkUntilStep int
 func (step forkUntilStep) String() string { return fmt.Sprintf("forkUntil(%v)", int(step)) }
 func (step forkUntilStep) run(sol *solution) {
 	if sol.ra < int(step) {
-		sol.fork(sol.ra + 1)
+		child := sol.copy()
+		child.stepi = sol.stepi - 1
+		child.ra = sol.ra + 1
+		sol.emit(child)
 	}
 }

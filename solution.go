@@ -133,11 +133,3 @@ func (sol *solution) copy() *solution {
 	*other = *sol
 	return other
 }
-
-func (sol *solution) fork(v int) {
-	other := sol.pool.Get()
-	*other = *sol
-	other.stepi = sol.stepi - 1
-	other.ra = v
-	sol.emit(other)
-}
