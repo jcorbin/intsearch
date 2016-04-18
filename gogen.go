@@ -12,11 +12,12 @@ var (
 )
 
 type goGen struct {
-	steps       []solutionStep
-	verified    bool
-	carrySaved  bool
-	carryValid  bool
-	usedSymbols map[string]struct{}
+	steps        []solutionStep
+	verified     bool
+	useForkUntil bool
+	carrySaved   bool
+	carryValid   bool
+	usedSymbols  map[string]struct{}
 }
 
 func (gg *goGen) obsAfter() *afterGen {
@@ -34,13 +35,14 @@ func (gg *goGen) obsAfter() *afterGen {
 }
 
 func (gg *goGen) init(plan planner, desc string) {
+	prob := plan.problem()
 	if len(gg.steps) > 0 {
 		gg.steps = gg.steps[:0]
 	}
 	gg.steps = append(gg.steps, setAStep(0))
 	gg.carrySaved = false
 	gg.carryValid = true
-	gg.usedSymbols = make(map[string]struct{})
+	gg.usedSymbols = make(map[string]struct{}, 3*len(prob.letterSet))
 }
 
 func (gg *goGen) fix(plan planner, c byte, v int) {
@@ -153,7 +155,36 @@ func (gg *goGen) choose(plan planner, c byte) {
 	} else {
 		gg.steps = append(gg.steps, setAStep(0))
 	}
-	gg.steps = append(gg.steps, forkUntilStep(prob.base-1))
+	var last = prob.base - 1
+	if gg.useForkUntil {
+		gg.steps = append(gg.steps, forkUntilStep(last))
+	} else {
+		var (
+			loopSym     = gg.gensym(fmt.Sprintf("choose(%s):loop", string(c)))
+			nextLoopSym = gg.gensym(fmt.Sprintf("choose(%s):nextLoop", string(c)))
+			contSym     = gg.gensym(fmt.Sprintf("choose(%s):cont", string(c)))
+		)
+		gg.steps = append(gg.steps, setCAStep{})                // rc = ra
+		gg.steps = append(gg.steps, labelStep(loopSym))         // :loop
+		gg.steps = append(gg.steps, setACStep{})                // ra = rc
+		gg.steps = append(gg.steps, isUsedStep{})               // used?
+		gg.steps = append(gg.steps, labelJNZStep(nextLoopSym))  // jnz :next_loop
+		gg.steps = append(gg.steps, forkLabelStep(nextLoopSym)) // fork :next_loop
+		gg.steps = append(gg.steps, setACStep{})                // ra = rc
+		gg.steps = append(gg.steps, labelJmpStep(contSym))      // jmp :cont
+		gg.steps = append(gg.steps, labelStep(nextLoopSym))     // :nextLoop
+		gg.steps = append(gg.steps, setACStep{})                // ra = rc
+		gg.steps = append(gg.steps, addStep(1))                 // add 1
+		gg.steps = append(gg.steps, setCAStep{})                // rc = ra
+		gg.steps = append(gg.steps, ltStep(last))               // lt $last
+		gg.steps = append(gg.steps, labelJNZStep(loopSym))      // jnz :loop
+		gg.steps = append(gg.steps, setACStep{})                // ra = rc
+		gg.steps = append(gg.steps, isUsedStep{})               // used?
+		gg.steps = append(gg.steps, labelJZStep(contSym))       // jz :cont
+		gg.steps = append(gg.steps, exitStep{errAlreadyUsed})   // exit errAlreadyUsed
+		gg.steps = append(gg.steps, labelStep(contSym))         // :cont
+		gg.steps = append(gg.steps, setACStep{})                // ra = rc
+	}
 	gg.steps = append(gg.steps, storeStep(c))
 }
 
