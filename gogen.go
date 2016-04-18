@@ -177,4 +177,5 @@ func (gg *goGen) finish(plan planner) {
 		gg.verify(plan)
 	}
 	gg.steps = append(gg.steps, exitStep{nil})
+	gg.steps, _ = resolveLabels(gg.steps, nil)
 }
