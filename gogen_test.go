@@ -47,6 +47,18 @@ func TestGogenSendMoreMoney(t *testing.T) {
 		t.Logf("found too many solutions: %v", numGood)
 		t.Fail()
 	}
+
+	if t.Failed() {
+		planBottomUp(&prob, &multiGen{[]solutionGen{
+			&logGen{},
+			&gg,
+			gg.obsAfter(),
+		}})
+		srch.run(100000, initFunc, resultFunc, watchers([]searchWatcher{
+			traces,
+			debugWatcher{},
+		}))
+	}
 }
 
 func BenchmarkPlan(b *testing.B) {
