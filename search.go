@@ -61,8 +61,7 @@ type searchRun struct {
 
 func (srch *searchRun) run() bool {
 	srch.init(srch.expand)
-	for len(srch.frontier) > 0 {
-		sol := srch.frontier[0]
+	for sol := srch.current(); sol != nil; sol = srch.current() {
 		if !sol.step() {
 			srch.frontier = srch.frontier[1:]
 			srch.result(sol)
@@ -88,8 +87,7 @@ func (srch *searchRunWatch) expand(sol *solution) {
 
 func (srch *searchRunWatch) run() bool {
 	srch.init(srch.expand)
-	for len(srch.frontier) > 0 {
-		sol := srch.frontier[0]
+	for sol := srch.current(); sol != nil; sol = srch.current() {
 		srch.watcher.beforeStep(&srch.search, sol)
 		if !sol.step() {
 			srch.frontier = srch.frontier[1:]
