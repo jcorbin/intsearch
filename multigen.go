@@ -10,6 +10,12 @@ func (mg multiGen) init(plan planner, desc string) {
 	}
 }
 
+func (mg multiGen) setCarry(plan planner, v int) {
+	for _, gen := range mg.gens {
+		gen.setCarry(plan, v)
+	}
+}
+
 func (mg multiGen) fix(plan planner, c byte, v int) {
 	for _, gen := range mg.gens {
 		gen.fix(plan, c, v)

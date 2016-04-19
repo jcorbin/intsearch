@@ -8,6 +8,10 @@ func (ag afterGen) init(plan planner, desc string) {
 	ag.obs(plan)
 }
 
+func (ag afterGen) setCarry(plan planner, v int) {
+	ag.obs(plan)
+}
+
 func (ag afterGen) fix(plan planner, c byte, v int) {
 	ag.obs(plan)
 }

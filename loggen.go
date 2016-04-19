@@ -32,7 +32,10 @@ func (lg *logGen) init(plan planner, desc string) {
 	fmt.Printf("# letters: %v\n", prob.sortedLetters())
 	fmt.Printf("# method: %s\n", desc)
 	fmt.Printf("\n")
-	lg.stepf("set carry = 0\n")
+}
+
+func (lg *logGen) setCarry(plan planner, v int) {
+	lg.stepf("set carry = %d\n", v)
 }
 
 func (lg *logGen) fix(plan planner, c byte, v int) {

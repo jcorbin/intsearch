@@ -39,10 +39,13 @@ func (gg *goGen) init(plan planner, desc string) {
 	if len(gg.steps) > 0 {
 		gg.steps = gg.steps[:0]
 	}
-	gg.steps = append(gg.steps, setAStep(0))
+	gg.usedSymbols = make(map[string]struct{}, 3*len(prob.letterSet))
+}
+
+func (gg *goGen) setCarry(plan planner, v int) {
+	gg.steps = append(gg.steps, setAStep(v))
 	gg.carrySaved = false
 	gg.carryValid = true
-	gg.usedSymbols = make(map[string]struct{}, 3*len(prob.letterSet))
 }
 
 func (gg *goGen) fix(plan planner, c byte, v int) {

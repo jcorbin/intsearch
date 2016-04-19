@@ -2,6 +2,7 @@ package main
 
 type solutionGen interface {
 	init(plan planner, desc string)
+	setCarry(plan planner, v int)
 	fix(plan planner, c byte, v int)
 	initColumn(plan planner, cx [3]byte, numKnown, numUnknown int)
 	computeSum(plan planner, a, b, c byte)
@@ -33,6 +34,7 @@ func planBottomUp(prob *problem, gen solutionGen) {
 		known: make(map[byte]bool, len(prob.letterSet)),
 	}
 	p.gen.init(&p, "bottom up")
+	p.gen.setCarry(&p, 0)
 	p.prob.eachColumn(p.solveColumn)
 	p.gen.finish(&p)
 }
