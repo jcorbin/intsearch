@@ -13,7 +13,6 @@ type searcher interface {
 
 type search struct {
 	frontier []*solution
-	watcher  searchWatcher
 }
 
 func (srch *search) frontierSize() int {
@@ -28,37 +27,78 @@ func (srch *search) current() *solution {
 }
 
 func (srch *search) expand(sol *solution) {
-	if srch.watcher != nil {
-		srch.watcher.emitted(srch, sol)
-	}
 	srch.frontier = append(srch.frontier, sol)
 }
 
 func (srch *search) run(maxSteps int, init initFunc, result resultFunc, watcher searchWatcher) bool {
-	srch.watcher = watcher
-	counter := 0
-	init(srch.expand)
+	run := searchRun{
+		search:   *srch,
+		init:     init,
+		result:   result,
+		maxSteps: maxSteps,
+		counter:  0,
+	}
 
+	if watcher == nil {
+		return run.run()
+	}
+
+	watrun := searchRunWatch{
+		searchRun: run,
+		watcher:   watcher,
+	}
+
+	return watrun.run()
+}
+
+type searchRun struct {
+	search
+	init     initFunc
+	result   resultFunc
+	maxSteps int
+	counter  int
+}
+
+func (srch *searchRun) run() bool {
+	srch.init(srch.expand)
 	for len(srch.frontier) > 0 {
 		sol := srch.frontier[0]
-		if srch.watcher != nil {
-			srch.watcher.beforeStep(srch, sol)
-			if !sol.step() {
-				srch.frontier = srch.frontier[1:]
-				result(sol)
-				sol.pool.Put(sol)
-			}
-			srch.watcher.stepped(srch, sol)
-		} else {
-			if !sol.step() {
-				srch.frontier = srch.frontier[1:]
-				result(sol)
-				sol.pool.Put(sol)
-			}
+		if !sol.step() {
+			srch.frontier = srch.frontier[1:]
+			srch.result(sol)
+			sol.pool.Put(sol)
 		}
+		srch.counter++
+		if srch.counter > srch.maxSteps {
+			return false
+		}
+	}
+	return true
+}
 
-		counter++
-		if counter > maxSteps {
+type searchRunWatch struct {
+	searchRun
+	watcher searchWatcher
+}
+
+func (srch *searchRunWatch) expand(sol *solution) {
+	srch.watcher.emitted(&srch.search, sol)
+	srch.searchRun.expand(sol)
+}
+
+func (srch *searchRunWatch) run() bool {
+	srch.init(srch.expand)
+	for len(srch.frontier) > 0 {
+		sol := srch.frontier[0]
+		srch.watcher.beforeStep(&srch.search, sol)
+		if !sol.step() {
+			srch.frontier = srch.frontier[1:]
+			srch.result(sol)
+			sol.pool.Put(sol)
+		}
+		srch.watcher.stepped(&srch.search, sol)
+		srch.counter++
+		if srch.counter > srch.maxSteps {
 			return false
 		}
 	}
