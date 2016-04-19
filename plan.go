@@ -24,18 +24,22 @@ type bottomUpPlan struct {
 }
 
 func planBottomUp(prob *problem, gen solutionGen) {
-	// for each column from the right
-	//   choose letters until 2/3 are known
-	//   compute the third (if unknown)
 	bu := bottomUpPlan{
 		prob:  prob,
 		gen:   gen,
 		known: make(map[byte]bool, len(prob.letterSet)),
 	}
 	bu.gen.init(&bu, "bottom up")
-	bu.gen.setCarry(&bu, 0)
+	bu.plan()
+}
+
+func (bu *bottomUpPlan) plan() {
+	// for each column from the right
+	//   choose letters until 2/3 are known
+	//   compute the third (if unknown)
+	bu.gen.setCarry(bu, 0)
 	bu.prob.eachColumn(bu.solveColumn)
-	bu.gen.finish(&bu)
+	bu.gen.finish(bu)
 }
 
 func (bu *bottomUpPlan) problem() *problem {
