@@ -9,6 +9,12 @@ func newMetricWatcher() *metricWatcher {
 	return &metricWatcher{}
 }
 
+func (metrics *metricWatcher) reset() {
+	metrics.Steps = 0
+	metrics.Emits = 0
+	metrics.MaxFrontierLen = 0
+}
+
 func (metrics *metricWatcher) dump(sol *solution) {
 }
 
