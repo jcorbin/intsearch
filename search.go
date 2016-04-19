@@ -34,34 +34,29 @@ func (srch *search) expand(sol *solution) {
 	srch.frontier = append(srch.frontier, sol)
 }
 
-func (srch *search) step(result resultFunc) bool {
-	for len(srch.frontier) == 0 {
-		return false
-	}
-	sol := srch.frontier[0]
-	if srch.watcher != nil {
-		srch.watcher.beforeStep(srch, sol)
-		if !sol.step() {
-			srch.frontier = srch.frontier[1:]
-			result(sol)
-			sol.pool.Put(sol)
-		}
-		srch.watcher.stepped(srch, sol)
-	} else {
-		if !sol.step() {
-			srch.frontier = srch.frontier[1:]
-			result(sol)
-			sol.pool.Put(sol)
-		}
-	}
-	return true
-}
-
 func (srch *search) run(maxSteps int, init initFunc, result resultFunc, watcher searchWatcher) bool {
 	srch.watcher = watcher
 	counter := 0
 	init(srch.expand)
-	for srch.step(result) {
+
+	for len(srch.frontier) > 0 {
+		sol := srch.frontier[0]
+		if srch.watcher != nil {
+			srch.watcher.beforeStep(srch, sol)
+			if !sol.step() {
+				srch.frontier = srch.frontier[1:]
+				result(sol)
+				sol.pool.Put(sol)
+			}
+			srch.watcher.stepped(srch, sol)
+		} else {
+			if !sol.step() {
+				srch.frontier = srch.frontier[1:]
+				result(sol)
+				sol.pool.Put(sol)
+			}
+		}
+
 		counter++
 		if counter > maxSteps {
 			return false
