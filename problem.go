@@ -55,26 +55,21 @@ func (prob *problem) sortedLetters() []string {
 	return letters
 }
 
-func (prob *problem) eachColumn(each func([3]byte)) {
+func (prob *problem) numColumns() int {
+	return len(prob.words[2])
+}
+
+func (prob *problem) getColumn(k int) [3]byte {
 	var (
 		cx [3]byte
-		ix = [3]int{
-			len(prob.words[0]) - 1,
-			len(prob.words[1]) - 1,
-			len(prob.words[2]) - 1,
-		}
+		w  = len(prob.words[2])
 	)
-	for ix[0] >= 0 || ix[1] >= 0 || ix[2] >= 0 {
-		for x, i := range ix {
-			if i >= 0 {
-				cx[x] = prob.words[x][i]
-			} else {
-				cx[x] = 0
-			}
-		}
-		each(cx)
-		ix[0]--
-		ix[1]--
-		ix[2]--
+	if i := len(prob.words[0]) - w + k; i >= 0 {
+		cx[0] = prob.words[0][i]
 	}
+	if j := len(prob.words[1]) - w + k; j >= 0 {
+		cx[1] = prob.words[1][j]
+	}
+	cx[2] = prob.words[2][k]
+	return cx
 }

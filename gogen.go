@@ -198,7 +198,8 @@ func (gg *goGen) checkFinal(plan planner, c byte, c1, c2 byte) {
 func (gg *goGen) verify(plan planner) {
 	prob := plan.problem()
 	gg.steps = append(gg.steps, setAStep(0))
-	prob.eachColumn(func(cx [3]byte) {
+	for i := prob.numColumns() - 1; i >= 0; i-- {
+		cx := prob.getColumn(i)
 		if cx[0] != 0 {
 			gg.steps = append(gg.steps, addValueStep(cx[0]))
 		}
@@ -212,7 +213,7 @@ func (gg *goGen) verify(plan planner) {
 		gg.steps = append(gg.steps, exitStep{errVerifyFailed})
 		gg.steps = append(gg.steps, setABStep{})
 		gg.steps = append(gg.steps, divStep(prob.base))
-	})
+	}
 	gg.steps = append(gg.steps, relJZStep(1))
 	gg.steps = append(gg.steps, exitStep{errVerifyFailed})
 }
