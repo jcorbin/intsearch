@@ -78,7 +78,7 @@ func BenchmarkRun(b *testing.B) {
 		gg   goGen
 	)
 	if err := prob.setup("send", "more", "money"); err != nil {
-		b.Fatalf("seutp failed: %v", err)
+		b.Fatalf("setup failed: %v", err)
 	}
 	planBottomUp(&prob, &gg)
 
