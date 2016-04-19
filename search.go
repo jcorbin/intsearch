@@ -62,15 +62,15 @@ type searchRun struct {
 func (srch *searchRun) run() bool {
 	srch.init(srch.expand)
 	for sol := srch.current(); sol != nil; sol = srch.current() {
-		if !sol.step() {
-			srch.frontier = srch.frontier[1:]
-			srch.result(sol)
-			sol.pool.Put(sol)
+		for sol.step() {
+			srch.counter++
+			if srch.counter > srch.maxSteps {
+				return false
+			}
 		}
-		srch.counter++
-		if srch.counter > srch.maxSteps {
-			return false
-		}
+		srch.frontier = srch.frontier[1:]
+		srch.result(sol)
+		sol.pool.Put(sol)
 	}
 	return true
 }
