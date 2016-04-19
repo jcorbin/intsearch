@@ -5,10 +5,6 @@ import (
 	"fmt"
 )
 
-// TODO: currently we find the correct solution, but also find ~24 incorrect
-// "solution"s; either there are bugs in the current computation logic, or we
-// just need more checks
-
 var (
 	errAlreadyUsed  = errors.New("value already used")
 	errCheckFailed  = errors.New("check failed")
