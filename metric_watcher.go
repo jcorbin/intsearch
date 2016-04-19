@@ -20,8 +20,8 @@ func (metrics *metricWatcher) emitted(srch searcher, child *solution) {
 }
 
 func (metrics *metricWatcher) beforeStep(srch searcher, sol *solution) {
-	metrics.Steps++
 }
 
 func (metrics *metricWatcher) stepped(srch searcher, sol *solution) {
+	metrics.Steps++
 }
