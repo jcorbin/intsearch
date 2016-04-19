@@ -27,60 +27,60 @@ func planBottomUp(prob *problem, gen solutionGen) {
 	// for each column from the right
 	//   choose letters until 2/3 are known
 	//   compute the third (if unknown)
-	p := bottomUpPlan{
+	bu := bottomUpPlan{
 		prob:  prob,
 		gen:   gen,
 		known: make(map[byte]bool, len(prob.letterSet)),
 	}
-	p.gen.init(&p, "bottom up")
-	p.gen.setCarry(&p, 0)
-	p.prob.eachColumn(p.solveColumn)
-	p.gen.finish(&p)
+	bu.gen.init(&bu, "bottom up")
+	bu.gen.setCarry(&bu, 0)
+	bu.prob.eachColumn(bu.solveColumn)
+	bu.gen.finish(&bu)
 }
 
-func (p *bottomUpPlan) problem() *problem {
-	return p.prob
+func (bu *bottomUpPlan) problem() *problem {
+	return bu.prob
 }
 
-func (p *bottomUpPlan) knownLetters() map[byte]bool {
-	return p.known
+func (bu *bottomUpPlan) knownLetters() map[byte]bool {
+	return bu.known
 }
 
-func (p *bottomUpPlan) solveColumn(cx [3]byte) {
+func (bu *bottomUpPlan) solveColumn(cx [3]byte) {
 	numKnown := 0
 	numUnknown := 0
 	for _, c := range cx {
 		if c != 0 {
-			if p.known[c] {
+			if bu.known[c] {
 				numKnown++
 			}
-			if !p.known[c] {
+			if !bu.known[c] {
 				numUnknown++
 			}
 		}
 	}
 	for x, c := range cx {
 		if c != 0 {
-			if !p.known[c] {
+			if !bu.known[c] {
 				if numUnknown == 1 {
 					switch x {
 					case 0:
-						p.gen.computeSummand(p, c, cx[1], cx[2])
+						bu.gen.computeSummand(bu, c, cx[1], cx[2])
 					case 1:
-						p.gen.computeSummand(p, c, cx[0], cx[2])
+						bu.gen.computeSummand(bu, c, cx[0], cx[2])
 					case 2:
-						p.gen.computeSum(p, cx[0], cx[1], c)
+						bu.gen.computeSum(bu, cx[0], cx[1], c)
 					}
 				} else {
-					p.gen.choose(p, c)
+					bu.gen.choose(bu, c)
 				}
-				p.known[c] = true
+				bu.known[c] = true
 				numUnknown--
 				numKnown++
 			} else if x == 2 && cx[0] == 0 && cx[1] == 0 {
-				p.gen.checkFinal(p, c, cx[0], cx[1])
+				bu.gen.checkFinal(bu, c, cx[0], cx[1])
 			}
 		}
 	}
-	p.gen.computeCarry(p, cx[0], cx[1])
+	bu.gen.computeCarry(bu, cx[0], cx[1])
 }
