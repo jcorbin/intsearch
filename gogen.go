@@ -222,5 +222,7 @@ func (gg *goGen) finish(plan planner) {
 		gg.verify(plan)
 	}
 	gg.steps = append(gg.steps, exitStep{nil})
-	gg.steps, _ = resolveLabels(gg.steps, nil)
+	labels := extractLabels(gg.steps, nil)
+	gg.steps, labels = eraseLabels(gg.steps, labels)
+	gg.steps, labels = resolveLabels(gg.steps, labels)
 }

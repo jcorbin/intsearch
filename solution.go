@@ -36,6 +36,7 @@ type solutionStep interface {
 
 type labeledStep interface {
 	labelName() string
+	eraseLabel() []solutionStep
 }
 
 type resolvableStep interface {
@@ -46,6 +47,10 @@ type labelStep string
 
 func (l labelStep) labelName() string {
 	return string(l)
+}
+
+func (l labelStep) eraseLabel() []solutionStep {
+	return nil
 }
 
 func (l labelStep) String() string {
@@ -103,6 +108,53 @@ func resolveLabels(steps []solutionStep, labels map[string]int) ([]solutionStep,
 				steps[addr] = step
 			}
 		}
+	}
+	return steps, labels
+}
+
+// eraseLabels erases all labeledSteps in steps, updating passed labels values
+// as appropriate.  If the passed labels map is nil, then extractLabels is used
+// to get labels.
+//
+// For each labeledStep, the step is replaced by the (maybe empty) list of
+// steps returned by step.eraseLabel().
+func eraseLabels(steps []solutionStep, labels map[string]int) ([]solutionStep, map[string]int) {
+	if labels == nil {
+		labels = extractLabels(steps, nil)
+	}
+
+	var (
+		n, prior int
+		parts    = make([][]solutionStep, 0, 2*len(labels)+1)
+		remap    = make([]int, len(steps))
+	)
+	for addr, step := range steps {
+		if ls, ok := step.(labeledStep); ok {
+			labels[ls.labelName()] = addr
+			remap[addr] = n
+			if head := steps[prior:addr]; len(head) > 0 {
+				parts = append(parts, head)
+			}
+			if replace := ls.eraseLabel(); len(replace) > 0 {
+				parts = append(parts, replace)
+				n += len(replace)
+			}
+			prior = addr + 1
+		} else {
+			n++
+		}
+	}
+	if tail := steps[prior:]; len(tail) > 0 {
+		parts = append(parts, tail)
+		n += len(tail)
+	}
+
+	steps = make([]solutionStep, 0, n)
+	for _, part := range parts {
+		steps = append(steps, part...)
+	}
+	for label, addr := range labels {
+		labels[label] = remap[addr]
 	}
 	return steps, labels
 }
