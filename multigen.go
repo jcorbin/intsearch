@@ -22,12 +22,6 @@ func (mg multiGen) fix(plan planner, c byte, v int) {
 	}
 }
 
-func (mg multiGen) initColumn(plan planner, cx [3]byte, numKnown, numUnknown int) {
-	for _, gen := range mg.gens {
-		gen.initColumn(plan, cx, numKnown, numUnknown)
-	}
-}
-
 func (mg multiGen) computeSum(plan planner, a, b, c byte) {
 	for _, gen := range mg.gens {
 		gen.computeSum(plan, a, b, c)

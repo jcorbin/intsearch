@@ -4,7 +4,6 @@ type solutionGen interface {
 	init(plan planner, desc string)
 	setCarry(plan planner, v int)
 	fix(plan planner, c byte, v int)
-	initColumn(plan planner, cx [3]byte, numKnown, numUnknown int)
 	computeSum(plan planner, a, b, c byte)
 	computeSummand(plan planner, a, b, c byte)
 	computeCarry(plan planner, c1, c2 byte)
@@ -60,7 +59,6 @@ func (p *bottomUpPlan) solveColumn(cx [3]byte) {
 			}
 		}
 	}
-	p.gen.initColumn(p, cx, numKnown, numUnknown)
 	for x, c := range cx {
 		if c != 0 {
 			if !p.known[c] {

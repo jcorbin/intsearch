@@ -53,9 +53,6 @@ func (gg *goGen) fix(plan planner, c byte, v int) {
 	gg.steps = append(gg.steps, storeStep(c))
 }
 
-func (gg *goGen) initColumn(plan planner, cx [3]byte, numKnown, numUnknown int) {
-}
-
 func (gg *goGen) saveCarry(plan planner) {
 	if !gg.carrySaved {
 		if !gg.carryValid {

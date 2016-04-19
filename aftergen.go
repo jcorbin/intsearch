@@ -16,10 +16,6 @@ func (ag afterGen) fix(plan planner, c byte, v int) {
 	ag.obs(plan)
 }
 
-func (ag afterGen) initColumn(plan planner, cx [3]byte, numKnown, numUnknown int) {
-	ag.obs(plan)
-}
-
 func (ag afterGen) computeSum(plan planner, a, b, c byte) {
 	ag.obs(plan)
 }

@@ -42,16 +42,6 @@ func (lg *logGen) fix(plan planner, c byte, v int) {
 	lg.stepf("fix %v = %v\n", string(c), v)
 }
 
-func (lg *logGen) initColumn(plan planner, cx [3]byte, numKnown, numUnknown int) {
-	if cx[0] != 0 && cx[1] != 0 {
-		fmt.Printf("// column: carry + %v + %v = %v\n", string(cx[0]), string(cx[1]), string(cx[2]))
-	} else if cx[0] != 0 {
-		fmt.Printf("// column: carry + %v = %v\n", string(cx[0]), string(cx[2]))
-	} else if cx[1] != 0 {
-		fmt.Printf("// column: carry + %v = %v\n", string(cx[1]), string(cx[2]))
-	}
-}
-
 func (lg *logGen) computeSum(plan planner, a, b, c byte) {
 	prob := plan.problem()
 	if a != 0 && b != 0 {
