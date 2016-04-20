@@ -46,6 +46,18 @@ func planTopDown(prob *problem, gen solutionGen) {
 }
 
 func (td *topDownPlan) plan() {
+	N := td.bottomUpPlan.prob.numColumns()
+	for i := 0; i < N; i++ {
+		cx := td.bottomUpPlan.prob.getColumn(i)
+
+		if cx[0] == 0 && cx[1] == 0 && cx[2] != 0 && !td.known[cx[2]] {
+			td.gen.fix(td, cx[2], 1)
+			td.solved[i] = true
+			td.known[cx[2]] = true
+			continue
+		}
+	}
+
 	td.bottomUpPlan.plan()
 }
 
