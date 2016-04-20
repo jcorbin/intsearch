@@ -1,7 +1,7 @@
 package main
 
 func plan(prob *problem, gen solutionGen) {
-	planBottomUp(prob, gen)
+	planTopDown(prob, gen)
 }
 
 type solutionGen interface {
@@ -26,6 +26,27 @@ type bottomUpPlan struct {
 	gen    solutionGen
 	solved []bool
 	known  map[byte]bool
+}
+
+type topDownPlan struct {
+	bottomUpPlan
+}
+
+func planTopDown(prob *problem, gen solutionGen) {
+	td := topDownPlan{
+		bottomUpPlan{
+			prob:   prob,
+			gen:    gen,
+			solved: make([]bool, prob.numColumns()),
+			known:  make(map[byte]bool, len(prob.letterSet)),
+		},
+	}
+	td.gen.init(&td, "top down ... bottom up")
+	td.plan()
+}
+
+func (td *topDownPlan) plan() {
+	td.bottomUpPlan.plan()
 }
 
 func planBottomUp(prob *problem, gen solutionGen) {
