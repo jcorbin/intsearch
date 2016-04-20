@@ -15,7 +15,7 @@ func TestGogenSendMoreMoney(t *testing.T) {
 	if err := prob.setup("send", "more", "money"); err != nil {
 		t.Fatalf("setup failed: %v", err)
 	}
-	planBottomUp(&prob, &gg)
+	plan(&prob, &gg)
 
 	numGood := 0
 
@@ -49,7 +49,7 @@ func TestGogenSendMoreMoney(t *testing.T) {
 	}
 
 	if t.Failed() {
-		planBottomUp(&prob, &multiGen{[]solutionGen{
+		plan(&prob, &multiGen{[]solutionGen{
 			&logGen{},
 			&gg,
 			gg.obsAfter(),
@@ -68,7 +68,7 @@ func BenchmarkPlan(b *testing.B) {
 	}
 	for n := 0; n < b.N; n++ {
 		var gg goGen
-		planBottomUp(&prob, &gg)
+		plan(&prob, &gg)
 	}
 }
 
@@ -80,7 +80,7 @@ func BenchmarkRun(b *testing.B) {
 	if err := prob.setup("send", "more", "money"); err != nil {
 		b.Fatalf("setup failed: %v", err)
 	}
-	planBottomUp(&prob, &gg)
+	plan(&prob, &gg)
 
 	for n := 0; n < b.N; n++ {
 		var srch search

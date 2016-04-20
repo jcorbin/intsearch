@@ -1,5 +1,9 @@
 package main
 
+func plan(prob *problem, gen solutionGen) {
+	planBottomUp(prob, gen)
+}
+
 type solutionGen interface {
 	init(plan planner, desc string)
 	setCarry(plan planner, v int)
