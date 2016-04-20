@@ -8,6 +8,7 @@ import (
 var (
 	errAlreadyUsed    = errors.New("value already used")
 	errCheckFailed    = errors.New("check failed")
+	errNegativeValue  = errors.New("negative valued character")
 	errDuplicateValue = errors.New("duplicate valued character")
 	errVerifyFailed   = errors.New("verify failed")
 )
@@ -223,7 +224,7 @@ func (gg *goGen) verify(plan planner) {
 
 	N := len(prob.letterSet)
 	C := prob.numColumns()
-	steps := make([]solutionStep, 0, N*N/2*4+1+C*9+2)
+	steps := make([]solutionStep, 0, N*N/2*4+N*4+1+C*9+2)
 
 	letters := make([]byte, 0, N)
 	for c := range prob.letterSet {
@@ -241,6 +242,15 @@ func (gg *goGen) verify(plan planner) {
 				}...)
 			}
 		}
+	}
+
+	for _, c := range letters {
+		steps = append(steps, []solutionStep{
+			loadStep(c),
+			ltStep(0),
+			relJZStep(1),
+			exitStep{errNegativeValue},
+		}...)
 	}
 
 	steps = append(steps, setAStep(0))
