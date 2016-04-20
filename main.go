@@ -124,6 +124,7 @@ func main() {
 	}
 
 	gg.verified = *verify
+	gg.debugLabels = *debug || *dumpProg
 
 	if *dumpProg {
 		gen = &multiGen{[]solutionGen{
