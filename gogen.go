@@ -6,9 +6,10 @@ import (
 )
 
 var (
-	errAlreadyUsed  = errors.New("value already used")
-	errCheckFailed  = errors.New("check failed")
-	errVerifyFailed = errors.New("verify failed")
+	errAlreadyUsed    = errors.New("value already used")
+	errCheckFailed    = errors.New("check failed")
+	errDuplicateValue = errors.New("duplicate valued character")
+	errVerifyFailed   = errors.New("verify failed")
 )
 
 type goGen struct {
@@ -220,8 +221,27 @@ func (gg *goGen) checkFinal(plan planner, c byte, c1, c2 byte) {
 func (gg *goGen) verify(plan planner) {
 	prob := plan.problem()
 
+	N := len(prob.letterSet)
 	C := prob.numColumns()
-	steps := make([]solutionStep, 0, 1+C*9+2)
+	steps := make([]solutionStep, 0, N*N/2*4+1+C*9+2)
+
+	letters := make([]byte, 0, N)
+	for c := range prob.letterSet {
+		letters = append(letters, c)
+	}
+
+	for i, c := range letters {
+		for j, d := range letters {
+			if j > i {
+				steps = append(steps, []solutionStep{
+					loadStep(c),
+					subValueStep(d),
+					relJNZStep(1),
+					exitStep{errDuplicateValue},
+				}...)
+			}
+		}
+	}
 
 	steps = append(steps, setAStep(0))
 	for i := C - 1; i >= 0; i-- {
