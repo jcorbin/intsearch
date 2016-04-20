@@ -45,6 +45,7 @@ func (bu *bottomUpPlan) plan() {
 	for i := bu.prob.numColumns() - 1; i >= 0; i-- {
 		cx := bu.prob.getColumn(i)
 		bu.solveColumn(cx)
+		bu.gen.computeCarry(bu, cx[0], cx[1])
 	}
 	bu.gen.finish(bu)
 }
@@ -93,5 +94,4 @@ func (bu *bottomUpPlan) solveColumn(cx [3]byte) {
 			}
 		}
 	}
-	bu.gen.computeCarry(bu, cx[0], cx[1])
 }
