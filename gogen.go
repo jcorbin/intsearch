@@ -21,6 +21,7 @@ type goGen struct {
 	carrySaved   bool
 	carryValid   bool
 	usedSymbols  map[string]struct{}
+	labels       map[string]int
 }
 
 func (gg *goGen) obsAfter() *afterGen {
@@ -44,6 +45,7 @@ func (gg *goGen) init(plan planner, desc string) {
 	}
 	gg.finalized = false
 	gg.usedSymbols = make(map[string]struct{}, 3*len(prob.letterSet))
+	gg.labels = nil
 }
 
 func (gg *goGen) setCarry(plan planner, v int) {
@@ -295,6 +297,7 @@ func (gg *goGen) getSteps() []solutionStep {
 		labels := extractLabels(gg.steps, nil)
 		gg.steps, labels = eraseLabels(gg.steps, labels)
 		gg.steps, labels = resolveLabels(gg.steps, labels)
+		gg.labels = labels
 	}
 	return gg.steps
 }
