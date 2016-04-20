@@ -15,6 +15,7 @@ var (
 
 type goGen struct {
 	steps        []solutionStep
+	finalized    bool
 	verified     bool
 	useForkUntil bool
 	carrySaved   bool
@@ -41,6 +42,7 @@ func (gg *goGen) init(plan planner, desc string) {
 	if len(gg.steps) > 0 {
 		gg.steps = gg.steps[:0]
 	}
+	gg.finalized = false
 	gg.usedSymbols = make(map[string]struct{}, 3*len(prob.letterSet))
 }
 
@@ -285,7 +287,14 @@ func (gg *goGen) finish(plan planner) {
 		gg.verify(plan)
 	}
 	gg.steps = append(gg.steps, exitStep{nil})
-	labels := extractLabels(gg.steps, nil)
-	gg.steps, labels = eraseLabels(gg.steps, labels)
-	gg.steps, labels = resolveLabels(gg.steps, labels)
+}
+
+func (gg *goGen) getSteps() []solutionStep {
+	if !gg.finalized {
+		gg.finalized = true
+		labels := extractLabels(gg.steps, nil)
+		gg.steps, labels = eraseLabels(gg.steps, labels)
+		gg.steps, labels = resolveLabels(gg.steps, labels)
+	}
+	return gg.steps
 }

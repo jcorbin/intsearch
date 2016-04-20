@@ -33,7 +33,7 @@ func dump(sol *solution) {
 }
 
 func initSearch(emit emitFunc) {
-	emit(newSolution(&prob, gg.steps, emit))
+	emit(newSolution(&prob, gg.getSteps(), emit))
 }
 
 func traceFailures() {

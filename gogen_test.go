@@ -20,7 +20,7 @@ func TestGogenSendMoreMoney(t *testing.T) {
 	numGood := 0
 
 	initFunc := func(emit emitFunc) {
-		emit(newSolution(&prob, gg.steps, emit))
+		emit(newSolution(&prob, gg.getSteps(), emit))
 	}
 
 	resultFunc := func(sol *solution) {
@@ -88,7 +88,7 @@ func BenchmarkRun(b *testing.B) {
 		srch.run(
 			100000,
 			func(emit emitFunc) {
-				emit(newSolution(&prob, gg.steps, emit))
+				emit(newSolution(&prob, gg.getSteps(), emit))
 			},
 			func(sol *solution) {
 				if sol.err == nil {
