@@ -8,6 +8,7 @@ import (
 
 var (
 	dumpProg = flag.Bool("dumpProg", false, "dump the generated search program")
+	trace    = flag.Bool("trace", false, "trace results")
 	verify   = flag.Bool("verify", false, "generate code for extra verification")
 	debug    = flag.Bool("debug", false, "enable debug search watcher")
 
@@ -85,6 +86,15 @@ func debugRun() {
 
 func findOne() *solution {
 	metrics := newMetricWatcher()
+	watcher := searchWatcher(metrics)
+
+	if *trace {
+		watcher = watchers([]searchWatcher{
+			metrics,
+			newTraceWatcher(),
+		})
+	}
+
 	failed := false
 	var theSol *solution
 	srch.run(
@@ -105,7 +115,7 @@ func findOne() *solution {
 			theSol = sol
 			return true
 		},
-		metrics)
+		watcher)
 	fmt.Printf("search metrics: %+v\n", metrics)
 	if !failed {
 		return theSol
@@ -164,6 +174,11 @@ func main() {
 			fmt.Printf(format, args...)
 			fmt.Println()
 		})
+		if sol.trace != nil {
+			for i, soli := range sol.trace {
+				fmt.Printf("trace[%v] %v %s%s\n", i, soli, soli.letterMapping(), labelFor(soli))
+			}
+		}
 	} else {
 		traceFailures()
 	}
