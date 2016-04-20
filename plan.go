@@ -22,16 +22,18 @@ type planner interface {
 }
 
 type bottomUpPlan struct {
-	prob  *problem
-	gen   solutionGen
-	known map[byte]bool
+	prob   *problem
+	gen    solutionGen
+	solved []bool
+	known  map[byte]bool
 }
 
 func planBottomUp(prob *problem, gen solutionGen) {
 	bu := bottomUpPlan{
-		prob:  prob,
-		gen:   gen,
-		known: make(map[byte]bool, len(prob.letterSet)),
+		prob:   prob,
+		gen:    gen,
+		solved: make([]bool, prob.numColumns()),
+		known:  make(map[byte]bool, len(prob.letterSet)),
 	}
 	bu.gen.init(&bu, "bottom up")
 	bu.plan()
@@ -85,6 +87,12 @@ func (bu *bottomUpPlan) solveColumn(i int, cx [3]byte) {
 		return
 	}
 
+	// TODO: reevaluate this check once we reify column struct
+	if bu.solved[i] {
+		// we have numUnknown > 0, but solved[i]
+		panic("incorrect column solved note")
+	}
+
 	for x, c := range cx {
 		if c != 0 {
 			if !bu.known[c] {
@@ -106,4 +114,6 @@ func (bu *bottomUpPlan) solveColumn(i int, cx [3]byte) {
 			}
 		}
 	}
+
+	bu.solved[i] = true
 }
