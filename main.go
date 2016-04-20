@@ -113,6 +113,15 @@ func main() {
 	}
 	plan(&prob, gen)
 
+	if *dumpProg {
+		fmt.Println()
+		fmt.Printf("//// Resolved Program Dump\n")
+		for i, step := range gg.getSteps() {
+			fmt.Printf("%v: %v\n", i, step)
+		}
+		fmt.Println()
+	}
+
 	if *debug {
 		debugRun()
 		return
