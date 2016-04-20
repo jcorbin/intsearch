@@ -23,19 +23,17 @@ func TestGogenSendMoreMoney(t *testing.T) {
 		emit(newSolution(&prob, gg.getSteps(), emit))
 	}
 
-	resultFunc := func(sol *solution) {
+	resultFunc := func(sol *solution) bool {
 		if sol.err == errVerifyFailed {
 			t.Logf("!!! invalid solution found: %v %v", sol, sol.letterMapping())
 			for i, soli := range sol.trace {
 				t.Logf("trace[%v]: %v %s", i, soli, soli.letterMapping())
 			}
 			t.Fail()
-		} else if sol.err != nil {
-			// normal dead end result, discard
-			return
-		} else {
+		} else if sol.err == nil {
 			numGood++
 		}
+		return false
 	}
 
 	srch.run(100000, initFunc, resultFunc, traces)
@@ -90,13 +88,11 @@ func BenchmarkRun(b *testing.B) {
 			func(emit emitFunc) {
 				emit(newSolution(&prob, gg.getSteps(), emit))
 			},
-			func(sol *solution) {
+			func(sol *solution) bool {
 				if sol.err == nil {
 					numGood++
-				} else {
-					// normal dead end result, discard
-					return
 				}
+				return false
 			},
 			nil)
 		if numGood == 0 {

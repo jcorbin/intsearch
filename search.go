@@ -1,7 +1,7 @@
 package main
 
 type emitFunc func(*solution)
-type resultFunc func(*solution)
+type resultFunc func(*solution) bool
 type initFunc func(emitFunc)
 
 type searcher interface {
@@ -69,8 +69,9 @@ func (srch *searchRun) run() bool {
 			}
 		}
 		srch.frontier = srch.frontier[1:]
-		srch.result(sol)
-		sol.pool.Put(sol)
+		if !srch.result(sol) {
+			sol.pool.Put(sol)
+		}
 	}
 	return true
 }
@@ -91,8 +92,9 @@ func (srch *searchRunWatch) run() bool {
 		srch.watcher.beforeStep(&srch.search, sol)
 		if !sol.step() {
 			srch.frontier = srch.frontier[1:]
-			srch.result(sol)
-			sol.pool.Put(sol)
+			if !srch.result(sol) {
+				sol.pool.Put(sol)
+			}
 		}
 		srch.watcher.stepped(&srch.search, sol)
 		srch.counter++

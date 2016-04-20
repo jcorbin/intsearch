@@ -40,7 +40,7 @@ func labelFor(sol *solution) string {
 	return fmt.Sprintf("  // %s", label)
 }
 
-func dump(sol *solution) {
+func dump(sol *solution) bool {
 	if sol.err == nil {
 		fmt.Printf("=== Solution: %v%s\n=== ", sol, labelFor(sol))
 	} else if sol.err == errVerifyFailed {
@@ -53,6 +53,7 @@ func dump(sol *solution) {
 		fmt.Printf("trace[%v] %v %s%s\n", i, soli, soli.letterMapping(), labelFor(soli))
 	}
 	fmt.Println()
+	return false
 }
 
 func initSearch(emit emitFunc) {
@@ -89,16 +90,20 @@ func findOne() *solution {
 	srch.run(
 		100000,
 		initSearch,
-		func(sol *solution) {
+		func(sol *solution) bool {
 			if sol.err == errVerifyFailed {
 				failed = true
-			} else if sol.err == nil {
-				if theSol == nil {
-					theSol = sol
-				} else {
-					failed = true
-				}
+				return false
 			}
+			if sol.err != nil {
+				return false
+			}
+			if theSol != nil {
+				failed = true
+				return false
+			}
+			theSol = sol
+			return true
 		},
 		metrics)
 	fmt.Printf("search metrics: %+v\n", metrics)
