@@ -11,23 +11,46 @@ var (
 	verify   = flag.Bool("verify", false, "generate code for extra verification")
 	debug    = flag.Bool("debug", false, "enable debug search watcher")
 
-	prob problem
-	srch search
-	gg   = goGen{}
-	gen  = solutionGen(&gg)
+	prob   problem
+	srch   search
+	gg     = goGen{}
+	gen    = solutionGen(&gg)
+	labels []string
 )
+
+func getLabels() []string {
+	if labels == nil {
+		labels = make([]string, len(gg.steps))
+		for label, addr := range gg.labels {
+			labels[addr] = label
+		}
+	}
+	return labels
+}
+
+func labelFor(sol *solution) string {
+	labels := getLabels()
+	if sol.stepi >= len(labels) {
+		return ""
+	}
+	label := labels[sol.stepi]
+	if len(label) == 0 {
+		return ""
+	}
+	return fmt.Sprintf("  // %s", label)
+}
 
 func dump(sol *solution) {
 	if sol.err == nil {
-		fmt.Printf("=== Solution: %v\n=== ", sol)
+		fmt.Printf("=== Solution: %v%s\n=== ", sol, labelFor(sol))
 	} else if sol.err == errVerifyFailed {
-		fmt.Printf("!!! Fail: %v\n!!! ", sol)
+		fmt.Printf("!!! Fail: %v%s\n!!! ", sol, labelFor(sol))
 	} else if *debug {
-		fmt.Printf("--- Dead end: %v\n--- ", sol)
+		fmt.Printf("--- Dead end: %v%s\n--- ", sol, labelFor(sol))
 	}
 	fmt.Printf("%s\n", sol.letterMapping())
 	for i, soli := range sol.trace {
-		fmt.Printf("trace[%v] %v %s\n", i, soli, soli.letterMapping())
+		fmt.Printf("trace[%v] %v %s%s\n", i, soli, soli.letterMapping(), labelFor(soli))
 	}
 	fmt.Println()
 }
@@ -51,7 +74,9 @@ func debugRun() {
 	watcher := watchers([]searchWatcher{
 		metrics,
 		newTraceWatcher(),
-		debugWatcher{},
+		debugWatcher{
+			labelFor: labelFor,
+		},
 	})
 	srch.run(100000, initSearch, dump, watcher)
 	fmt.Printf("%+v\n", metrics)
