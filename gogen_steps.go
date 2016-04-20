@@ -125,8 +125,10 @@ func (step isUsedStep) run(sol *solution) {
 }
 
 type storeStep byte
+type loadStep byte
 
 func (c storeStep) String() string { return fmt.Sprintf("store(%s)", string(c)) }
+func (c loadStep) String() string  { return fmt.Sprintf("load(%s)", string(c)) }
 func (c storeStep) run(sol *solution) {
 	// TODO: drop guard, program can now use isUsedStep to guarantee this never happens
 	if sol.used[sol.ra] {
@@ -134,6 +136,9 @@ func (c storeStep) run(sol *solution) {
 	}
 	sol.values[c] = sol.ra
 	sol.used[sol.ra] = true
+}
+func (c loadStep) run(sol *solution) {
+	sol.ra = sol.values[c]
 }
 
 type jmpStep int
