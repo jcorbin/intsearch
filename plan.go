@@ -41,11 +41,17 @@ func (bu *bottomUpPlan) plan() {
 	// for each column from the right
 	//   choose letters until 2/3 are known
 	//   compute the third (if unknown)
-	bu.gen.setCarry(bu, 0)
-	for i := bu.prob.numColumns() - 1; i >= 0; i-- {
+	n := bu.prob.numColumns() - 1
+	var last [3]byte
+	for i := n; i >= 0; i-- {
 		cx := bu.prob.getColumn(i)
+		if i == n {
+			bu.gen.setCarry(bu, 0)
+		} else {
+			bu.gen.computeCarry(bu, last[0], last[1])
+		}
 		bu.solveColumn(cx)
-		bu.gen.computeCarry(bu, cx[0], cx[1])
+		last = cx
 	}
 	bu.gen.finish(bu)
 }
