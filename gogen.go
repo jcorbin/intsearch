@@ -104,7 +104,7 @@ func (gg *goGen) setCarry(plan planner, v int) {
 
 func (gg *goGen) fix(plan planner, c byte, v int) {
 	gg.steps = append(gg.steps,
-		labelStep(gg.gensym(fmt.Sprintf("fix(%s)", string(c)))),
+		labelStep(gg.gensym("fix(%s)", string(c))),
 		setAStep(v),
 		storeStep(c))
 }
@@ -135,7 +135,7 @@ func (gg *goGen) computeSum(plan planner, a, b, c byte) {
 	// Solve for c:
 	//   c = carry + a + b (mod base)
 	gg.steps = append(gg.steps,
-		labelStep(gg.gensym(fmt.Sprintf("computeSum(%s, %s, %s)", string(a), string(b), string(c)))))
+		labelStep(gg.gensym("computeSum(%s, %s, %s)", string(a), string(b), string(c))))
 	gg.restoreCarry(plan)
 	gg.saveCarry(plan)
 	gg.carryValid = false
@@ -164,7 +164,7 @@ func (gg *goGen) computeSummand(plan planner, a, b, c byte) {
 	// Solve for a:
 	//   a = c - b - carry (mod base)
 	gg.steps = append(gg.steps,
-		labelStep(gg.gensym(fmt.Sprintf("computeSummand(%s, %s, %s)", string(a), string(b), string(c)))))
+		labelStep(gg.gensym("computeSummand(%s, %s, %s)", string(a), string(b), string(c))))
 	gg.restoreCarry(plan)
 	gg.saveCarry(plan)
 	gg.carryValid = false
@@ -190,7 +190,7 @@ func (gg *goGen) computeSummand(plan planner, a, b, c byte) {
 
 func (gg *goGen) computeCarry(plan planner, c1, c2 byte) {
 	gg.steps = append(gg.steps,
-		labelStep(gg.gensym(fmt.Sprintf("computeCarry(%s, %s)", string(c1), string(c2)))))
+		labelStep(gg.gensym("computeCarry(%s, %s)", string(c1), string(c2))))
 	gg.restoreCarry(plan)
 	prob := plan.problem()
 	steps := make([]solutionStep, 0, 3)
@@ -208,7 +208,7 @@ func (gg *goGen) computeCarry(plan planner, c1, c2 byte) {
 
 func (gg *goGen) choose(plan planner, c byte) {
 	gg.steps = append(gg.steps,
-		labelStep(gg.gensym(fmt.Sprintf("choose(%s)", string(c)))))
+		labelStep(gg.gensym("choose(%s)", string(c))))
 	gg.saveCarry(plan)
 	prob := plan.problem()
 	steps := make([]solutionStep, 0, 22)
@@ -223,9 +223,9 @@ func (gg *goGen) choose(plan planner, c byte) {
 		steps = append(steps, forkUntilStep(last))
 	} else {
 		var (
-			loopSym     = gg.gensym(fmt.Sprintf("choose(%s):loop", string(c)))
-			nextLoopSym = gg.gensym(fmt.Sprintf("choose(%s):nextLoop", string(c)))
-			contSym     = gg.gensym(fmt.Sprintf("choose(%s):cont", string(c)))
+			loopSym     = gg.gensym("choose(%s):loop", string(c))
+			nextLoopSym = gg.gensym("choose(%s):nextLoop", string(c))
+			contSym     = gg.gensym("choose(%s):cont", string(c))
 		)
 		steps = append(steps,
 			setCAStep{},                // rc = ra
@@ -360,7 +360,9 @@ func (gg *goGen) finish(plan planner) {
 	}
 }
 
-func (gg *goGen) gensym(name string) string {
+func (gg *goGen) gensym(format string, args ...interface{}) string {
+	name := fmt.Sprintf(format, args...)
+
 	if _, used := gg.usedSymbols[name]; !used {
 		gg.usedSymbols[name] = struct{}{}
 		return name
