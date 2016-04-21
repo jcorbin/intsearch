@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"log"
 )
 
 var (
@@ -23,6 +24,29 @@ type goGen struct {
 	carryValid   bool
 	usedSymbols  map[string]struct{}
 	labels       map[string]int
+	labeler      stepLabeler
+	outf         func(string, ...interface{})
+}
+
+type stepLabeler []string
+
+func newStepLabeler(n int, labels map[string]int) stepLabeler {
+	addrLabels := make([]string, n)
+	for label, addr := range labels {
+		addrLabels[addr] = label
+	}
+	return stepLabeler(addrLabels)
+}
+
+func (sl stepLabeler) label(sol *solution) string {
+	if sol.stepi >= len(sl) {
+		return ""
+	}
+	label := sl[sol.stepi]
+	if len(label) == 0 {
+		return ""
+	}
+	return label
 }
 
 func (gg *goGen) obsAfter() *afterGen {
@@ -39,6 +63,43 @@ func (gg *goGen) obsAfter() *afterGen {
 	}}
 }
 
+func (gg *goGen) logf(format string, args ...interface{}) {
+	var (
+		sol   *solution
+		label string
+	)
+
+	if gg.labeler == nil && gg.labels != nil {
+		gg.labeler = newStepLabeler(len(gg.steps), gg.labels)
+	}
+
+	if gg.labeler != nil {
+		for _, arg := range args {
+			if s, ok := arg.(*solution); ok {
+				sol = s
+				break
+			}
+		}
+	}
+
+	if sol != nil {
+		label = gg.labeler.label(sol)
+	}
+
+	if label != "" {
+		str := fmt.Sprintf(format, args...)
+		if gg.outf == nil {
+			log.Printf("%s  // %s", str, label)
+		} else {
+			gg.outf("%s  // %s", str, label)
+		}
+	} else if gg.outf == nil {
+		log.Printf(format, args...)
+	} else {
+		gg.outf(format, args...)
+	}
+}
+
 func (gg *goGen) init(plan planner, desc string) {
 	prob := plan.problem()
 	if len(gg.steps) > 0 {
@@ -47,6 +108,7 @@ func (gg *goGen) init(plan planner, desc string) {
 	gg.finalized = false
 	gg.usedSymbols = make(map[string]struct{}, 3*len(prob.letterSet))
 	gg.labels = nil
+	gg.labeler = nil
 }
 
 func (gg *goGen) setCarry(plan planner, v int) {

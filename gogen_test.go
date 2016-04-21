@@ -6,6 +6,7 @@ func TestGogenSendMoreMoney(t *testing.T) {
 	var (
 		prob problem
 		gg   = goGen{
+			outf:     t.Logf,
 			verified: true,
 		}
 		traces = newTraceWatcher()
@@ -25,9 +26,9 @@ func TestGogenSendMoreMoney(t *testing.T) {
 
 	resultFunc := func(sol *solution) bool {
 		if sol.err == errVerifyFailed {
-			t.Logf("!!! invalid solution found: %v %v", sol, sol.letterMapping())
+			gg.logf("!!! invalid solution found: %v %v", sol, sol.letterMapping())
 			for i, soli := range sol.trace {
-				t.Logf("trace[%v]: %v %s", i, soli, soli.letterMapping())
+				gg.logf("trace[%v]: %v %s", i, soli, soli.letterMapping())
 			}
 			t.Fail()
 		} else if sol.err == nil {

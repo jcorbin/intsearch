@@ -12,48 +12,23 @@ var (
 	verify   = flag.Bool("verify", false, "generate code for extra verification")
 	debug    = flag.Bool("debug", false, "enable debug search watcher")
 
-	prob   problem
-	srch   search
-	gg     = goGen{}
-	gen    = solutionGen(&gg)
-	labels []string
+	prob problem
+	srch search
+	gg   = goGen{}
+	gen  = solutionGen(&gg)
 )
-
-func getLabels() []string {
-	if labels == nil {
-		labels = make([]string, len(gg.steps))
-		for label, addr := range gg.labels {
-			labels[addr] = label
-		}
-	}
-	return labels
-}
-
-func labelFor(sol *solution) string {
-	labels := getLabels()
-	if sol.stepi >= len(labels) {
-		return ""
-	}
-	label := labels[sol.stepi]
-	if len(label) == 0 {
-		return ""
-	}
-	return fmt.Sprintf("  // %s", label)
-}
 
 func dump(sol *solution) bool {
 	if sol.err == nil {
-		fmt.Printf("=== Solution: %v%s\n=== ", sol, labelFor(sol))
+		gg.logf("=== Solution: %v %s", sol, sol.letterMapping())
 	} else if sol.err == errVerifyFailed {
-		fmt.Printf("!!! Fail: %v%s\n!!! ", sol, labelFor(sol))
+		gg.logf("!!! Fail: %v %s", sol, sol.letterMapping())
 	} else if *debug {
-		fmt.Printf("--- Dead end: %v%s\n--- ", sol, labelFor(sol))
+		gg.logf("--- Dead end: %v %s", sol, sol.letterMapping())
 	}
-	fmt.Printf("%s\n", sol.letterMapping())
 	for i, soli := range sol.trace {
-		fmt.Printf("trace[%v] %v %s%s\n", i, soli, soli.letterMapping(), labelFor(soli))
+		gg.logf("... [%v] %v %s", i, soli, soli.letterMapping())
 	}
-	fmt.Println()
 	return false
 }
 
@@ -77,7 +52,7 @@ func debugRun() {
 		metrics,
 		newTraceWatcher(),
 		debugWatcher{
-			labelFor: labelFor,
+			logf: gg.logf,
 		},
 	})
 	srch.run(100000, initSearch, dump, watcher)
@@ -169,14 +144,11 @@ func main() {
 	}
 
 	if sol := findOne(); sol != nil {
-		fmt.Printf("found: %v\n", sol.letterMapping())
-		sol.printCheck(func(format string, args ...interface{}) {
-			fmt.Printf(format, args...)
-			fmt.Println()
-		})
+		gg.logf("found: %v", sol.letterMapping())
+		sol.printCheck(gg.logf)
 		if sol.trace != nil {
 			for i, soli := range sol.trace {
-				fmt.Printf("trace[%v] %v %s%s\n", i, soli, soli.letterMapping(), labelFor(soli))
+				gg.logf("... [%v] %v %s", i, soli, soli.letterMapping())
 			}
 		}
 	} else {

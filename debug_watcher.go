@@ -1,28 +1,25 @@
 package main
 
-import "fmt"
-
 type debugWatcher struct {
-	labelFor func(*solution) string
+	logf func(string, ...interface{})
 }
 
 func (wat debugWatcher) emitted(srch searcher, child *solution) {
-	fmt.Printf("+++ %v %v%s", srch.frontierSize(), child, wat.labelFor(child))
+	wat.logf("+++ %v %v", srch.frontierSize(), child)
 	if parent := srch.current(); parent != nil {
-		fmt.Printf("\n... parent %v @%v%s", parent.steps[parent.stepi], parent.stepi, wat.labelFor(parent))
+		wat.logf("... parent %v", parent)
 	}
-	fmt.Printf("\n")
 }
 
 func (wat debugWatcher) beforeStep(srch searcher, sol *solution) {
-	fmt.Printf(">>> %v%s\n", sol, wat.labelFor(sol))
+	wat.logf(">>> %v", sol)
 }
 
 func (wat debugWatcher) stepped(srch searcher, sol *solution) {
-	fmt.Printf("... %v%s\n", sol, wat.labelFor(sol))
+	wat.logf("... %v", sol)
 	if _, ok := sol.steps[sol.stepi-1].(storeStep); ok {
-		fmt.Printf("... %s\n", sol.letterMapping())
+		wat.logf("... %s", sol.letterMapping())
 	} else if isForkStep(sol.steps[sol.stepi-1]) {
-		fmt.Printf("... len(frontier) == %v\n", srch.frontierSize())
+		wat.logf("... len(frontier) == %v", srch.frontierSize())
 	}
 }
