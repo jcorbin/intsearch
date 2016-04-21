@@ -50,7 +50,7 @@ func (bu *bottomUpPlan) plan() {
 		} else {
 			bu.gen.computeCarry(bu, last[0], last[1])
 		}
-		bu.solveColumn(cx)
+		bu.solveColumn(i, cx)
 		last = cx
 	}
 	bu.gen.finish(bu)
@@ -64,7 +64,7 @@ func (bu *bottomUpPlan) knownLetters() map[byte]bool {
 	return bu.known
 }
 
-func (bu *bottomUpPlan) solveColumn(cx [3]byte) {
+func (bu *bottomUpPlan) solveColumn(i int, cx [3]byte) {
 	numKnown := 0
 	numUnknown := 0
 	for _, c := range cx {
