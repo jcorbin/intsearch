@@ -301,17 +301,35 @@ func (gg *goGen) choose(plan planner, c byte) {
 
 func (gg *goGen) checkColumn(plan planner, cx [3]byte) {
 	gg.restoreCarry(plan)
+	steps := make([]solutionStep, 0, 9)
 
-	if cx[0] != 0 && cx[1] != 0 {
-		panic("not implemented")
+	n := 0
+	if cx[0] != 0 {
+		n++
+		steps = append(steps, addValueStep(cx[0]))
 	}
-
-	gg.steps = append(gg.steps,
+	if cx[1] != 0 {
+		n++
+		steps = append(steps, addValueStep(cx[1]))
+	}
+	if n > 0 {
+		steps = append(steps,
+			setCAStep{},
+			modStep(prob.base))
+	}
+	steps = append(steps,
 		subValueStep(cx[2]),
 		relJZStep(1),
-		exitStep{errCheckFailed},
-		setAStep(0))
+		exitStep{errCheckFailed})
+	if n > 0 {
+		steps = append(steps,
+			setACStep{},
+			divStep(prob.base))
+	} else {
+		steps = append(steps, setAStep(0))
+	}
 	gg.carrySaved = false
+	gg.steps = append(gg.steps, steps...)
 }
 
 func (gg *goGen) verify(plan planner) {
