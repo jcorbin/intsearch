@@ -77,6 +77,14 @@ func (bu *bottomUpPlan) solveColumn(cx [3]byte) {
 			}
 		}
 	}
+
+	// TODO: hoist this call-site out to bu.plan once we reify a column struct
+	// that can carry known counts, index, etc
+	if numUnknown == 0 {
+		bu.gen.checkColumn(bu, cx)
+		return
+	}
+
 	for x, c := range cx {
 		if c != 0 {
 			if !bu.known[c] {
@@ -95,8 +103,6 @@ func (bu *bottomUpPlan) solveColumn(cx [3]byte) {
 				bu.known[c] = true
 				numUnknown--
 				numKnown++
-			} else if x == 2 && cx[0] == 0 && cx[1] == 0 {
-				bu.gen.checkFinal(bu, cx)
 			}
 		}
 	}
