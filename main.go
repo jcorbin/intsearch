@@ -25,6 +25,8 @@ func dump(sol *solution) bool {
 		gg.logf("!!! Fail: %v %s", sol, sol.letterMapping())
 	} else if *debug {
 		gg.logf("--- Dead end: %v %s", sol, sol.letterMapping())
+	} else {
+		return false
 	}
 	for i, soli := range sol.trace {
 		gg.logf("... [%v] %v %s", i, soli, soli.letterMapping())
