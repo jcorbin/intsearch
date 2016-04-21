@@ -32,7 +32,7 @@ func (ag afterGen) choose(plan planner, c byte) {
 	ag.obs(plan)
 }
 
-func (ag afterGen) checkFinal(plan planner, c byte, c1, c2 byte) {
+func (ag afterGen) checkColumn(plan planner, cx [3]byte) {
 	ag.obs(plan)
 }
 

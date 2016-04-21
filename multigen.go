@@ -46,9 +46,9 @@ func (mg multiGen) choose(plan planner, c byte) {
 	}
 }
 
-func (mg multiGen) checkFinal(plan planner, c byte, c1, c2 byte) {
+func (mg multiGen) checkColumn(plan planner, cx [3]byte) {
 	for _, gen := range mg.gens {
-		gen.checkFinal(plan, c, c1, c2)
+		gen.checkColumn(plan, cx)
 	}
 }
 

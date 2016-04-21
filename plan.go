@@ -12,7 +12,7 @@ type solutionGen interface {
 	computeSummand(plan planner, a, b, c byte)
 	computeCarry(plan planner, c1, c2 byte)
 	choose(plan planner, c byte)
-	checkFinal(plan planner, c byte, c1, c2 byte)
+	checkColumn(plan planner, cx [3]byte)
 	finish(plan planner)
 }
 
@@ -96,7 +96,7 @@ func (bu *bottomUpPlan) solveColumn(cx [3]byte) {
 				numUnknown--
 				numKnown++
 			} else if x == 2 && cx[0] == 0 && cx[1] == 0 {
-				bu.gen.checkFinal(bu, c, cx[0], cx[1])
+				bu.gen.checkFinal(bu, cx)
 			}
 		}
 	}

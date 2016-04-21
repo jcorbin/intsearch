@@ -299,10 +299,15 @@ func (gg *goGen) choose(plan planner, c byte) {
 	gg.steps = append(gg.steps, steps...)
 }
 
-func (gg *goGen) checkFinal(plan planner, c byte, c1, c2 byte) {
+func (gg *goGen) checkColumn(plan planner, cx [3]byte) {
 	gg.restoreCarry(plan)
+
+	if cx[0] != 0 && cx[1] != 0 {
+		panic("not implemented")
+	}
+
 	gg.steps = append(gg.steps,
-		subValueStep(c),
+		subValueStep(cx[2]),
 		relJZStep(1),
 		exitStep{errCheckFailed})
 }

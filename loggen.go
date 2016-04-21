@@ -88,8 +88,8 @@ func (lg *logGen) choose(plan planner, c byte) {
 	lg.stepf("choose %v (branch by %v)\n", string(c), branches)
 }
 
-func (lg *logGen) checkFinal(plan planner, c, c1, c2 byte) {
-	lg.stepf("check %v == carry\n", string(c))
+func (lg *logGen) checkColumn(plan planner, cx [3]byte) {
+	lg.stepf("check column %v + %v = %v\n", string(cx[0]), string(cx[1]), string(cx[2]))
 }
 
 func (lg *logGen) finish(plan planner) {
