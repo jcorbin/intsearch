@@ -255,6 +255,8 @@ func (gg *goGen) choose(plan planner, c byte) {
 }
 
 func (gg *goGen) checkColumn(plan planner, cx [3]byte) {
+	gg.steps = append(gg.steps,
+		labelStep(gg.gensym("checkColumn(%v, %v, %v)", string(cx[0]), string(cx[1]), string(cx[2]))))
 	gg.restoreCarry(plan)
 	steps := make([]solutionStep, 0, 9)
 
