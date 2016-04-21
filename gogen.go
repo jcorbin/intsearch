@@ -292,6 +292,7 @@ func (gg *goGen) checkColumn(plan planner, cx [3]byte) {
 func (gg *goGen) verify(plan planner) {
 	prob := plan.problem()
 
+	gg.steps = append(gg.steps, labelStep(gg.gensym("verify")))
 	N := len(prob.letterSet)
 	C := prob.numColumns()
 	steps := make([]solutionStep, 0, N*N/2*4+N*4+1+C*9+2)
