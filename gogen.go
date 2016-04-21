@@ -309,7 +309,9 @@ func (gg *goGen) checkColumn(plan planner, cx [3]byte) {
 	gg.steps = append(gg.steps,
 		subValueStep(cx[2]),
 		relJZStep(1),
-		exitStep{errCheckFailed})
+		exitStep{errCheckFailed},
+		setAStep(0))
+	gg.carrySaved = false
 }
 
 func (gg *goGen) verify(plan planner) {
