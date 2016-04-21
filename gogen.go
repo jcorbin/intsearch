@@ -16,7 +16,6 @@ var (
 
 type goGen struct {
 	steps        []solutionStep
-	debugLabels  bool
 	verified     bool
 	useForkUntil bool
 	carrySaved   bool
@@ -96,19 +95,16 @@ func (gg *goGen) init(plan planner, desc string) {
 }
 
 func (gg *goGen) setCarry(plan planner, v int) {
-	if gg.debugLabels {
-		gg.steps = append(gg.steps, labelStep(gg.gensym("setCarry")))
-	}
-	gg.steps = append(gg.steps, setAStep(v))
+	gg.steps = append(gg.steps,
+		labelStep(gg.gensym("setCarry")),
+		setAStep(v))
 	gg.carrySaved = false
 	gg.carryValid = true
 }
 
 func (gg *goGen) fix(plan planner, c byte, v int) {
-	if gg.debugLabels {
-		gg.steps = append(gg.steps, labelStep(gg.gensym(fmt.Sprintf("fix(%s)", string(c)))))
-	}
 	gg.steps = append(gg.steps,
+		labelStep(gg.gensym(fmt.Sprintf("fix(%s)", string(c)))),
 		setAStep(v),
 		storeStep(c))
 }
@@ -138,10 +134,8 @@ func (gg *goGen) computeSum(plan planner, a, b, c byte) {
 	//   carry + a + b = c (mod base)
 	// Solve for c:
 	//   c = carry + a + b (mod base)
-	if gg.debugLabels {
-		label := gg.gensym(fmt.Sprintf("computeSum(%s, %s, %s)", string(a), string(b), string(c)))
-		gg.steps = append(gg.steps, labelStep(label))
-	}
+	gg.steps = append(gg.steps,
+		labelStep(gg.gensym(fmt.Sprintf("computeSum(%s, %s, %s)", string(a), string(b), string(c)))))
 	gg.restoreCarry(plan)
 	gg.saveCarry(plan)
 	gg.carryValid = false
@@ -169,10 +163,8 @@ func (gg *goGen) computeSummand(plan planner, a, b, c byte) {
 	//   carry + a + b = c (mod base)
 	// Solve for a:
 	//   a = c - b - carry (mod base)
-	if gg.debugLabels {
-		label := gg.gensym(fmt.Sprintf("computeSummand(%s, %s, %s)", string(a), string(b), string(c)))
-		gg.steps = append(gg.steps, labelStep(label))
-	}
+	gg.steps = append(gg.steps,
+		labelStep(gg.gensym(fmt.Sprintf("computeSummand(%s, %s, %s)", string(a), string(b), string(c)))))
 	gg.restoreCarry(plan)
 	gg.saveCarry(plan)
 	gg.carryValid = false
@@ -197,10 +189,8 @@ func (gg *goGen) computeSummand(plan planner, a, b, c byte) {
 }
 
 func (gg *goGen) computeCarry(plan planner, c1, c2 byte) {
-	if gg.debugLabels {
-		label := gg.gensym(fmt.Sprintf("computeCarry(%s, %s)", string(c1), string(c2)))
-		gg.steps = append(gg.steps, labelStep(label))
-	}
+	gg.steps = append(gg.steps,
+		labelStep(gg.gensym(fmt.Sprintf("computeCarry(%s, %s)", string(c1), string(c2)))))
 	gg.restoreCarry(plan)
 	prob := plan.problem()
 	steps := make([]solutionStep, 0, 3)
@@ -217,10 +207,8 @@ func (gg *goGen) computeCarry(plan planner, c1, c2 byte) {
 }
 
 func (gg *goGen) choose(plan planner, c byte) {
-	if gg.debugLabels {
-		label := gg.gensym(fmt.Sprintf("choose(%s)", string(c)))
-		gg.steps = append(gg.steps, labelStep(label))
-	}
+	gg.steps = append(gg.steps,
+		labelStep(gg.gensym(fmt.Sprintf("choose(%s)", string(c)))))
 	gg.saveCarry(plan)
 	prob := plan.problem()
 	steps := make([]solutionStep, 0, 22)

@@ -114,13 +114,13 @@ func main() {
 	if len(word3) == 0 {
 		log.Fatalf("missing word3 argument")
 	}
+
 	if err := prob.setup(word1, word2, word3); err != nil {
 		log.Fatalf("setup failed: %v", err)
 	}
 
 	gg = &goGen{}
 	gg.verified = *verify
-	gg.debugLabels = *debug || *dumpProg
 
 	if *dumpProg {
 		gen = multiGen([]solutionGen{
