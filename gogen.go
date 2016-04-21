@@ -124,10 +124,9 @@ func (gg *goGen) fix(plan planner, c byte, v int) {
 	if gg.debugLabels {
 		gg.steps = append(gg.steps, labelStep(gg.gensym(fmt.Sprintf("fix(%s)", string(c)))))
 	}
-	gg.steps = append(gg.steps, []solutionStep{
+	gg.steps = append(gg.steps,
 		setAStep(v),
-		storeStep(c),
-	}...)
+		storeStep(c))
 }
 
 func (gg *goGen) saveCarry(plan planner) {
@@ -170,15 +169,13 @@ func (gg *goGen) computeSum(plan planner, a, b, c byte) {
 	if b != 0 {
 		steps = append(steps, addValueStep(b))
 	}
-	steps = append(steps, []solutionStep{
+	steps = append(steps,
 		modStep(prob.base),
-		storeStep(c),
-	}...)
+		storeStep(c))
 	if c == prob.words[0][0] || c == prob.words[1][0] || c == prob.words[2][0] {
-		steps = append(steps, []solutionStep{
+		steps = append(steps,
 			relJNZStep(1),
-			exitStep{errCheckFailed},
-		}...)
+			exitStep{errCheckFailed})
 	}
 	gg.steps = append(gg.steps, steps...)
 }
@@ -204,15 +201,13 @@ func (gg *goGen) computeSummand(plan planner, a, b, c byte) {
 	if b != 0 {
 		steps = append(steps, subValueStep(b))
 	}
-	steps = append(steps, []solutionStep{
+	steps = append(steps,
 		modStep(prob.base),
-		storeStep(a),
-	}...)
+		storeStep(a))
 	if a == prob.words[0][0] || a == prob.words[1][0] || a == prob.words[2][0] {
-		steps = append(steps, []solutionStep{
+		steps = append(steps,
 			relJNZStep(1),
-			exitStep{errCheckFailed},
-		}...)
+			exitStep{errCheckFailed})
 	}
 	gg.steps = append(gg.steps, steps...)
 }
@@ -277,7 +272,7 @@ func (gg *goGen) choose(plan planner, c byte) {
 			nextLoopSym = gg.gensym(fmt.Sprintf("choose(%s):nextLoop", string(c)))
 			contSym     = gg.gensym(fmt.Sprintf("choose(%s):cont", string(c)))
 		)
-		steps = append(steps, []solutionStep{
+		steps = append(steps,
 			setCAStep{},                // rc = ra
 			labelStep(loopSym),         // :loop
 			setACStep{},                // ra = rc
@@ -298,7 +293,7 @@ func (gg *goGen) choose(plan planner, c byte) {
 			exitStep{errAlreadyUsed},   // exit errAlreadyUsed
 			labelStep(contSym),         // :cont
 			setACStep{},                // ra = rc
-		}...)
+		)
 	}
 	steps = append(steps, storeStep(c))
 	gg.steps = append(gg.steps, steps...)
@@ -306,11 +301,10 @@ func (gg *goGen) choose(plan planner, c byte) {
 
 func (gg *goGen) checkFinal(plan planner, c byte, c1, c2 byte) {
 	gg.restoreCarry(plan)
-	gg.steps = append(gg.steps, []solutionStep{
+	gg.steps = append(gg.steps,
 		subValueStep(c),
 		relJZStep(1),
-		exitStep{errCheckFailed},
-	}...)
+		exitStep{errCheckFailed})
 }
 
 func (gg *goGen) verify(plan planner) {
@@ -328,23 +322,21 @@ func (gg *goGen) verify(plan planner) {
 	for i, c := range letters {
 		for j, d := range letters {
 			if j > i {
-				steps = append(steps, []solutionStep{
+				steps = append(steps,
 					loadStep(c),
 					subValueStep(d),
 					relJNZStep(1),
-					exitStep{errDuplicateValue},
-				}...)
+					exitStep{errDuplicateValue})
 			}
 		}
 	}
 
 	for _, c := range letters {
-		steps = append(steps, []solutionStep{
+		steps = append(steps,
 			loadStep(c),
 			ltStep(0),
 			relJZStep(1),
-			exitStep{errNegativeValue},
-		}...)
+			exitStep{errNegativeValue})
 	}
 
 	steps = append(steps, setAStep(0))
@@ -356,20 +348,18 @@ func (gg *goGen) verify(plan planner) {
 		if cx[1] != 0 {
 			steps = append(steps, addValueStep(cx[1]))
 		}
-		steps = append(steps, []solutionStep{
+		steps = append(steps,
 			setBAStep{},
 			modStep(prob.base),
 			subValueStep(cx[2]),
 			relJZStep(1),
 			exitStep{errVerifyFailed},
 			setABStep{},
-			divStep(prob.base),
-		}...)
+			divStep(prob.base))
 	}
-	steps = append(steps, []solutionStep{
+	steps = append(steps,
 		relJZStep(1),
-		exitStep{errVerifyFailed},
-	}...)
+		exitStep{errVerifyFailed})
 
 	gg.steps = append(gg.steps, steps...)
 }
