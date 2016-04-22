@@ -15,6 +15,7 @@ var (
 )
 
 type goGen struct {
+	*planProblem
 	steps        []solutionStep
 	verified     bool
 	useForkUntil bool
@@ -27,8 +28,10 @@ type goGen struct {
 	lastLogDump  int
 }
 
-func newGoGen() *goGen {
-	return &goGen{}
+func newGoGen(prob *planProblem) *goGen {
+	return &goGen{
+		planProblem: prob,
+	}
 }
 
 func (gg *goGen) loggedGen() solutionGen {
@@ -87,11 +90,10 @@ func (gg *goGen) logf(format string, args ...interface{}) {
 }
 
 func (gg *goGen) init(plan planner, desc string) {
-	prob := plan.problem()
 	if len(gg.steps) > 0 {
 		gg.steps = gg.steps[:0]
 	}
-	gg.usedSymbols = make(map[string]struct{}, 3*len(prob.letterSet))
+	gg.usedSymbols = make(map[string]struct{}, 3*len(gg.letterSet))
 	gg.labels = nil
 	gg.addrLabels = nil
 }
@@ -141,7 +143,6 @@ func (gg *goGen) computeSum(plan planner, a, b, c byte) {
 	gg.restoreCarry(plan)
 	gg.saveCarry(plan)
 	gg.carryValid = false
-	prob := plan.problem()
 	steps := make([]solutionStep, 0, 6)
 	if a != 0 {
 		steps = append(steps, addValueStep(a))
@@ -150,9 +151,9 @@ func (gg *goGen) computeSum(plan planner, a, b, c byte) {
 		steps = append(steps, addValueStep(b))
 	}
 	steps = append(steps,
-		modStep(prob.base),
+		modStep(gg.base),
 		storeStep(c))
-	if c == prob.words[0][0] || c == prob.words[1][0] || c == prob.words[2][0] {
+	if c == gg.words[0][0] || c == gg.words[1][0] || c == gg.words[2][0] {
 		steps = append(steps,
 			relJNZStep(1),
 			exitStep{errCheckFailed})
@@ -170,7 +171,6 @@ func (gg *goGen) computeSummand(plan planner, a, b, c byte) {
 	gg.restoreCarry(plan)
 	gg.saveCarry(plan)
 	gg.carryValid = false
-	prob := plan.problem()
 	steps := make([]solutionStep, 0, 7)
 	steps = append(steps, negateStep{})
 	if c != 0 {
@@ -180,9 +180,9 @@ func (gg *goGen) computeSummand(plan planner, a, b, c byte) {
 		steps = append(steps, subValueStep(b))
 	}
 	steps = append(steps,
-		modStep(prob.base),
+		modStep(gg.base),
 		storeStep(a))
-	if a == prob.words[0][0] || a == prob.words[1][0] || a == prob.words[2][0] {
+	if a == gg.words[0][0] || a == gg.words[1][0] || a == gg.words[2][0] {
 		steps = append(steps,
 			relJNZStep(1),
 			exitStep{errCheckFailed})
@@ -194,7 +194,6 @@ func (gg *goGen) computeCarry(plan planner, c1, c2 byte) {
 	gg.steps = append(gg.steps,
 		labelStep(gg.gensym("computeCarry(%s, %s)", string(c1), string(c2))))
 	gg.restoreCarry(plan)
-	prob := plan.problem()
 	steps := make([]solutionStep, 0, 3)
 	if c1 != 0 {
 		steps = append(steps, addValueStep(c1))
@@ -202,7 +201,7 @@ func (gg *goGen) computeCarry(plan planner, c1, c2 byte) {
 	if c2 != 0 {
 		steps = append(steps, addValueStep(c2))
 	}
-	steps = append(steps, divStep(prob.base))
+	steps = append(steps, divStep(gg.base))
 	gg.steps = append(gg.steps, steps...)
 	gg.carryValid = true
 	gg.carrySaved = false
@@ -212,15 +211,14 @@ func (gg *goGen) choose(plan planner, c byte) {
 	gg.steps = append(gg.steps,
 		labelStep(gg.gensym("choose(%s)", string(c))))
 	gg.saveCarry(plan)
-	prob := plan.problem()
 	steps := make([]solutionStep, 0, 22)
 	gg.carryValid = false
-	if c == prob.words[0][0] || c == prob.words[1][0] || c == prob.words[2][0] {
+	if c == gg.words[0][0] || c == gg.words[1][0] || c == gg.words[2][0] {
 		steps = append(steps, setAStep(1))
 	} else {
 		steps = append(steps, setAStep(0))
 	}
-	var last = prob.base - 1
+	var last = gg.base - 1
 	if gg.useForkUntil {
 		steps = append(steps, forkUntilStep(last))
 	} else {
@@ -274,7 +272,7 @@ func (gg *goGen) checkColumn(plan planner, cx [3]byte) {
 	if n > 0 {
 		steps = append(steps,
 			setCAStep{},
-			modStep(prob.base))
+			modStep(gg.base))
 	}
 	steps = append(steps,
 		subValueStep(cx[2]),
@@ -283,7 +281,7 @@ func (gg *goGen) checkColumn(plan planner, cx [3]byte) {
 	if n > 0 {
 		steps = append(steps,
 			setACStep{},
-			divStep(prob.base))
+			divStep(gg.base))
 	} else {
 		steps = append(steps, setAStep(0))
 	}
@@ -292,15 +290,13 @@ func (gg *goGen) checkColumn(plan planner, cx [3]byte) {
 }
 
 func (gg *goGen) verify(plan planner) {
-	prob := plan.problem()
-
 	gg.steps = append(gg.steps, labelStep(gg.gensym("verify")))
-	N := len(prob.letterSet)
-	C := prob.numColumns()
+	N := len(gg.letterSet)
+	C := gg.numColumns()
 	steps := make([]solutionStep, 0, N*N/2*4+N*4+1+C*9+2)
 
 	letters := make([]byte, 0, N)
-	for c := range prob.letterSet {
+	for c := range gg.letterSet {
 		letters = append(letters, c)
 	}
 
@@ -326,7 +322,7 @@ func (gg *goGen) verify(plan planner) {
 
 	steps = append(steps, setAStep(0))
 	for i := C - 1; i >= 0; i-- {
-		cx := prob.getColumn(i)
+		cx := gg.getColumn(i)
 		if cx[0] != 0 {
 			steps = append(steps, addValueStep(cx[0]))
 		}
@@ -335,12 +331,12 @@ func (gg *goGen) verify(plan planner) {
 		}
 		steps = append(steps,
 			setBAStep{},
-			modStep(prob.base),
+			modStep(gg.base),
 			subValueStep(cx[2]),
 			relJZStep(1),
 			exitStep{errVerifyFailed},
 			setABStep{},
-			divStep(prob.base))
+			divStep(gg.base))
 	}
 	steps = append(steps,
 		relJZStep(1),
