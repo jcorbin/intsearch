@@ -49,9 +49,9 @@ func (sl stepLabeler) label(sol *solution) string {
 	return label
 }
 
-func (gg *goGen) obsAfter() *afterGen {
+func (gg *goGen) obsAfter() afterGen {
 	i := 0
-	return &afterGen{func(plan planner) {
+	return afterGen(func(plan planner) {
 		j := i
 		for ; j < len(gg.steps); j++ {
 			fmt.Printf("%v: %v\n", j, gg.steps[j])
@@ -60,7 +60,7 @@ func (gg *goGen) obsAfter() *afterGen {
 			fmt.Println()
 			i = j
 		}
-	}}
+	})
 }
 
 func (gg *goGen) logf(format string, args ...interface{}) {
