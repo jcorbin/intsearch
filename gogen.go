@@ -52,22 +52,14 @@ func (gg *goGen) labelFor(sol *solution) string {
 }
 
 func (gg *goGen) logf(format string, args ...interface{}) {
-	var (
-		sol   *solution
-		label string
-	)
-
+	var label string
 	if gg.addrLabels != nil {
 		for _, arg := range args {
-			if s, ok := arg.(*solution); ok {
-				sol = s
+			if sol, ok := arg.(*solution); ok {
+				label = gg.labelFor(sol)
 				break
 			}
 		}
-	}
-
-	if sol != nil {
-		label = gg.labelFor(sol)
 	}
 
 	if label != "" {
