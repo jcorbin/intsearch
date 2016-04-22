@@ -36,7 +36,7 @@ func newGoGen(prob *planProblem) *goGen {
 
 func (gg *goGen) loggedGen() solutionGen {
 	return multiGen([]solutionGen{
-		&logGen{},
+		newLogGen(gg.planProblem),
 		gg,
 		afterGen(gg.dumpLastSteps),
 	})
