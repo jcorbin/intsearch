@@ -23,29 +23,8 @@ type goGen struct {
 	carryValid   bool
 	usedSymbols  map[string]struct{}
 	labels       map[string]int
-	labeler      stepLabeler
+	addrLabels   []string
 	outf         func(string, ...interface{})
-}
-
-type stepLabeler []string
-
-func newStepLabeler(n int, labels map[string]int) stepLabeler {
-	addrLabels := make([]string, n)
-	for label, addr := range labels {
-		addrLabels[addr] = label
-	}
-	return stepLabeler(addrLabels)
-}
-
-func (sl stepLabeler) label(sol *solution) string {
-	if sol.stepi >= len(sl) {
-		return ""
-	}
-	label := sl[sol.stepi]
-	if len(label) == 0 {
-		return ""
-	}
-	return label
 }
 
 func (gg *goGen) obsAfter() afterGen {
@@ -62,17 +41,24 @@ func (gg *goGen) obsAfter() afterGen {
 	})
 }
 
+func (gg *goGen) labelFor(sol *solution) string {
+	if sol.stepi >= len(gg.addrLabels) {
+		return ""
+	}
+	label := gg.addrLabels[sol.stepi]
+	if len(label) == 0 {
+		return ""
+	}
+	return label
+}
+
 func (gg *goGen) logf(format string, args ...interface{}) {
 	var (
 		sol   *solution
 		label string
 	)
 
-	if gg.labeler == nil && gg.labels != nil {
-		gg.labeler = newStepLabeler(len(gg.steps), gg.labels)
-	}
-
-	if gg.labeler != nil {
+	if gg.addrLabels != nil {
 		for _, arg := range args {
 			if s, ok := arg.(*solution); ok {
 				sol = s
@@ -82,7 +68,7 @@ func (gg *goGen) logf(format string, args ...interface{}) {
 	}
 
 	if sol != nil {
-		label = gg.labeler.label(sol)
+		label = gg.labelFor(sol)
 	}
 
 	if label != "" {
@@ -106,7 +92,7 @@ func (gg *goGen) init(plan planner, desc string) {
 	}
 	gg.usedSymbols = make(map[string]struct{}, 3*len(prob.letterSet))
 	gg.labels = nil
-	gg.labeler = nil
+	gg.addrLabels = nil
 }
 
 func (gg *goGen) setCarry(plan planner, v int) {
@@ -379,6 +365,11 @@ func (gg *goGen) finish(plan planner) {
 	gg.labels = extractLabels(gg.steps, nil)
 	gg.steps, gg.labels = eraseLabels(gg.steps, gg.labels)
 	gg.steps, gg.labels = resolveLabels(gg.steps, gg.labels)
+
+	gg.addrLabels = make([]string, len(gg.steps))
+	for label, addr := range gg.labels {
+		gg.addrLabels[addr] = label
+	}
 }
 
 func (gg *goGen) gensym(name string) string {
