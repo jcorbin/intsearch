@@ -46,7 +46,7 @@ func (gg *goGen) loggedGen() solutionGen {
 	})
 }
 
-func (gg *goGen) dumpLastSteps(plan planner) {
+func (gg *goGen) dumpLastSteps() {
 	i := gg.lastLogDump
 	for ; i < len(gg.steps); i++ {
 		fmt.Printf("%v: %v\n", i, gg.steps[i])
@@ -93,7 +93,7 @@ func (gg *goGen) logf(format string, args ...interface{}) {
 	}
 }
 
-func (gg *goGen) init(plan planner, desc string) {
+func (gg *goGen) init(desc string) {
 	if len(gg.steps) > 0 {
 		gg.steps = gg.steps[:0]
 	}
@@ -102,7 +102,7 @@ func (gg *goGen) init(plan planner, desc string) {
 	gg.addrLabels = nil
 }
 
-func (gg *goGen) setCarry(plan planner, v int) {
+func (gg *goGen) setCarry(v int) {
 	gg.steps = append(gg.steps,
 		labelStep(gg.gensym("setCarry")),
 		setAStep(v))
@@ -110,7 +110,7 @@ func (gg *goGen) setCarry(plan planner, v int) {
 	gg.carryValid = true
 }
 
-func (gg *goGen) fix(plan planner, c byte, v int) {
+func (gg *goGen) fix(c byte, v int) {
 	gg.steps = append(gg.steps,
 		labelStep(gg.gensym("fix(%s)", string(c))),
 		setAStep(v),
@@ -137,7 +137,7 @@ func (gg *goGen) restoreCarry() {
 	}
 }
 
-func (gg *goGen) computeSum(plan planner, a, b, c byte) {
+func (gg *goGen) computeSum(a, b, c byte) {
 	// Given:
 	//   carry + a + b = c (mod base)
 	// Solve for c:
@@ -165,7 +165,7 @@ func (gg *goGen) computeSum(plan planner, a, b, c byte) {
 	gg.steps = append(gg.steps, steps...)
 }
 
-func (gg *goGen) computeSummand(plan planner, a, b, c byte) {
+func (gg *goGen) computeSummand(a, b, c byte) {
 	// Given:
 	//   carry + a + b = c (mod base)
 	// Solve for a:
@@ -194,7 +194,7 @@ func (gg *goGen) computeSummand(plan planner, a, b, c byte) {
 	gg.steps = append(gg.steps, steps...)
 }
 
-func (gg *goGen) computeCarry(plan planner, c1, c2 byte) {
+func (gg *goGen) computeCarry(c1, c2 byte) {
 	gg.steps = append(gg.steps,
 		labelStep(gg.gensym("computeCarry(%s, %s)", string(c1), string(c2))))
 	gg.restoreCarry()
@@ -211,7 +211,7 @@ func (gg *goGen) computeCarry(plan planner, c1, c2 byte) {
 	gg.carrySaved = false
 }
 
-func (gg *goGen) choose(plan planner, c byte) {
+func (gg *goGen) choose(c byte) {
 	gg.steps = append(gg.steps,
 		labelStep(gg.gensym("choose(%s)", string(c))))
 	gg.saveCarry()
@@ -258,7 +258,7 @@ func (gg *goGen) choose(plan planner, c byte) {
 	gg.steps = append(gg.steps, steps...)
 }
 
-func (gg *goGen) checkColumn(plan planner, cx [3]byte) {
+func (gg *goGen) checkColumn(cx [3]byte) {
 	gg.steps = append(gg.steps,
 		labelStep(gg.gensym("checkColumn(%v, %v, %v)", string(cx[0]), string(cx[1]), string(cx[2]))))
 	gg.restoreCarry()
@@ -349,7 +349,7 @@ func (gg *goGen) verify() {
 	gg.steps = append(gg.steps, steps...)
 }
 
-func (gg *goGen) finish(plan planner) {
+func (gg *goGen) finish() {
 	if gg.verified {
 		gg.verify()
 	}

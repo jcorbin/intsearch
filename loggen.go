@@ -23,7 +23,7 @@ func (lg *logGen) stepf(format string, args ...interface{}) {
 	fmt.Printf(format, args...)
 }
 
-func (lg *logGen) init(plan planner, desc string) {
+func (lg *logGen) init(desc string) {
 	var w int
 	for _, word := range lg.words {
 		if len(word) > w {
@@ -40,15 +40,15 @@ func (lg *logGen) init(plan planner, desc string) {
 	fmt.Printf("\n")
 }
 
-func (lg *logGen) setCarry(plan planner, v int) {
+func (lg *logGen) setCarry(v int) {
 	lg.stepf("set carry = %d\n", v)
 }
 
-func (lg *logGen) fix(plan planner, c byte, v int) {
+func (lg *logGen) fix(c byte, v int) {
 	lg.stepf("fix %v = %v\n", string(c), v)
 }
 
-func (lg *logGen) computeSum(plan planner, a, b, c byte) {
+func (lg *logGen) computeSum(a, b, c byte) {
 	if a != 0 && b != 0 {
 		lg.stepf("compute %v = %v + %v + carry (mod %v)\n", string(c), string(a), string(b), lg.base)
 	} else if a != 0 {
@@ -60,7 +60,7 @@ func (lg *logGen) computeSum(plan planner, a, b, c byte) {
 	}
 }
 
-func (lg *logGen) computeSummand(plan planner, a, b, c byte) {
+func (lg *logGen) computeSummand(a, b, c byte) {
 	if b != 0 && c != 0 {
 		lg.stepf("compute %v = %v - %v - carry (mod %v)\n", string(a), string(b), string(c), lg.base)
 	} else if b != 0 {
@@ -72,7 +72,7 @@ func (lg *logGen) computeSummand(plan planner, a, b, c byte) {
 	}
 }
 
-func (lg *logGen) computeCarry(plan planner, c1, c2 byte) {
+func (lg *logGen) computeCarry(c1, c2 byte) {
 	if c1 != 0 && c2 != 0 {
 		lg.stepf("set carry = (carry + %v + %v) // %v\n", string(c1), string(c2), lg.base)
 	} else if c1 != 0 {
@@ -84,17 +84,17 @@ func (lg *logGen) computeCarry(plan planner, c1, c2 byte) {
 	}
 }
 
-func (lg *logGen) choose(plan planner, c byte) {
+func (lg *logGen) choose(c byte) {
 	branches := lg.base - len(lg.known)
 	lg.branches = append(lg.branches, branches)
 	lg.stepf("choose %v (branch by %v)\n", string(c), branches)
 }
 
-func (lg *logGen) checkColumn(plan planner, cx [3]byte) {
+func (lg *logGen) checkColumn(cx [3]byte) {
 	lg.stepf("check column %v + %v = %v\n", string(cx[0]), string(cx[1]), string(cx[2]))
 }
 
-func (lg *logGen) finish(plan planner) {
+func (lg *logGen) finish() {
 	lg.stepf("done\n")
 
 	branches := 1

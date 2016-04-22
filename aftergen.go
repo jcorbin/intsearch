@@ -1,39 +1,39 @@
 package main
 
-type afterGen func(plan planner)
+type afterGen func()
 
-func (ag afterGen) init(plan planner, desc string) {
-	ag(plan)
+func (ag afterGen) init(desc string) {
+	ag()
 }
 
-func (ag afterGen) setCarry(plan planner, v int) {
-	ag(plan)
+func (ag afterGen) setCarry(v int) {
+	ag()
 }
 
-func (ag afterGen) fix(plan planner, c byte, v int) {
-	ag(plan)
+func (ag afterGen) fix(c byte, v int) {
+	ag()
 }
 
-func (ag afterGen) computeSum(plan planner, a, b, c byte) {
-	ag(plan)
+func (ag afterGen) computeSum(a, b, c byte) {
+	ag()
 }
 
-func (ag afterGen) computeSummand(plan planner, a, b, c byte) {
-	ag(plan)
+func (ag afterGen) computeSummand(a, b, c byte) {
+	ag()
 }
 
-func (ag afterGen) computeCarry(plan planner, c1, c2 byte) {
-	ag(plan)
+func (ag afterGen) computeCarry(c1, c2 byte) {
+	ag()
 }
 
-func (ag afterGen) choose(plan planner, c byte) {
-	ag(plan)
+func (ag afterGen) choose(c byte) {
+	ag()
 }
 
-func (ag afterGen) checkColumn(plan planner, cx [3]byte) {
-	ag(plan)
+func (ag afterGen) checkColumn(cx [3]byte) {
+	ag()
 }
 
-func (ag afterGen) finish(plan planner) {
-	ag(plan)
+func (ag afterGen) finish() {
+	ag()
 }
