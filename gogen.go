@@ -376,10 +376,9 @@ func (gg *goGen) finish(plan planner) {
 	}
 	gg.steps = append(gg.steps, exitStep{nil})
 
-	labels := extractLabels(gg.steps, nil)
-	gg.steps, labels = eraseLabels(gg.steps, labels)
-	gg.steps, labels = resolveLabels(gg.steps, labels)
-	gg.labels = labels
+	gg.labels = extractLabels(gg.steps, nil)
+	gg.steps, gg.labels = eraseLabels(gg.steps, gg.labels)
+	gg.steps, gg.labels = resolveLabels(gg.steps, gg.labels)
 }
 
 func (gg *goGen) getSteps() []solutionStep {
