@@ -113,7 +113,7 @@ func (gg *goGen) fix(plan planner, c byte, v int) {
 		storeStep(c))
 }
 
-func (gg *goGen) saveCarry(plan planner) {
+func (gg *goGen) saveCarry() {
 	if !gg.carrySaved {
 		if !gg.carryValid {
 			panic("no valid carry to save")
@@ -123,7 +123,7 @@ func (gg *goGen) saveCarry(plan planner) {
 	}
 }
 
-func (gg *goGen) restoreCarry(plan planner) {
+func (gg *goGen) restoreCarry() {
 	if !gg.carryValid {
 		if !gg.carrySaved {
 			panic("no saved carry to restore")
@@ -140,8 +140,8 @@ func (gg *goGen) computeSum(plan planner, a, b, c byte) {
 	//   c = carry + a + b (mod base)
 	gg.steps = append(gg.steps,
 		labelStep(gg.gensym("computeSum(%s, %s, %s)", string(a), string(b), string(c))))
-	gg.restoreCarry(plan)
-	gg.saveCarry(plan)
+	gg.restoreCarry()
+	gg.saveCarry()
 	gg.carryValid = false
 	steps := make([]solutionStep, 0, 6)
 	if a != 0 {
@@ -168,8 +168,8 @@ func (gg *goGen) computeSummand(plan planner, a, b, c byte) {
 	//   a = c - b - carry (mod base)
 	gg.steps = append(gg.steps,
 		labelStep(gg.gensym("computeSummand(%s, %s, %s)", string(a), string(b), string(c))))
-	gg.restoreCarry(plan)
-	gg.saveCarry(plan)
+	gg.restoreCarry()
+	gg.saveCarry()
 	gg.carryValid = false
 	steps := make([]solutionStep, 0, 7)
 	steps = append(steps, negateStep{})
@@ -193,7 +193,7 @@ func (gg *goGen) computeSummand(plan planner, a, b, c byte) {
 func (gg *goGen) computeCarry(plan planner, c1, c2 byte) {
 	gg.steps = append(gg.steps,
 		labelStep(gg.gensym("computeCarry(%s, %s)", string(c1), string(c2))))
-	gg.restoreCarry(plan)
+	gg.restoreCarry()
 	steps := make([]solutionStep, 0, 3)
 	if c1 != 0 {
 		steps = append(steps, addValueStep(c1))
@@ -210,7 +210,7 @@ func (gg *goGen) computeCarry(plan planner, c1, c2 byte) {
 func (gg *goGen) choose(plan planner, c byte) {
 	gg.steps = append(gg.steps,
 		labelStep(gg.gensym("choose(%s)", string(c))))
-	gg.saveCarry(plan)
+	gg.saveCarry()
 	steps := make([]solutionStep, 0, 22)
 	gg.carryValid = false
 	if c == gg.words[0][0] || c == gg.words[1][0] || c == gg.words[2][0] {
@@ -257,7 +257,7 @@ func (gg *goGen) choose(plan planner, c byte) {
 func (gg *goGen) checkColumn(plan planner, cx [3]byte) {
 	gg.steps = append(gg.steps,
 		labelStep(gg.gensym("checkColumn(%v, %v, %v)", string(cx[0]), string(cx[1]), string(cx[2]))))
-	gg.restoreCarry(plan)
+	gg.restoreCarry()
 	steps := make([]solutionStep, 0, 9)
 
 	n := 0
@@ -289,7 +289,7 @@ func (gg *goGen) checkColumn(plan planner, cx [3]byte) {
 	gg.steps = append(gg.steps, steps...)
 }
 
-func (gg *goGen) verify(plan planner) {
+func (gg *goGen) verify() {
 	gg.steps = append(gg.steps, labelStep(gg.gensym("verify")))
 	N := len(gg.letterSet)
 	C := gg.numColumns()
@@ -347,7 +347,7 @@ func (gg *goGen) verify(plan planner) {
 
 func (gg *goGen) finish(plan planner) {
 	if gg.verified {
-		gg.verify(plan)
+		gg.verify()
 	}
 	gg.steps = append(gg.steps, exitStep{nil})
 
