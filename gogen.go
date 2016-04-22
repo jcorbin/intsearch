@@ -31,6 +31,7 @@ type goGen struct {
 func newGoGen(prob *planProblem) *goGen {
 	return &goGen{
 		planProblem: prob,
+		usedSymbols: make(map[string]struct{}, 3*len(prob.letterSet)),
 	}
 }
 
@@ -94,12 +95,6 @@ func (gg *goGen) logf(format string, args ...interface{}) {
 }
 
 func (gg *goGen) init(desc string) {
-	if len(gg.steps) > 0 {
-		gg.steps = gg.steps[:0]
-	}
-	gg.usedSymbols = make(map[string]struct{}, 3*len(gg.letterSet))
-	gg.labels = nil
-	gg.addrLabels = nil
 }
 
 func (gg *goGen) setCarry(v int) {
