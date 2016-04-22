@@ -15,7 +15,7 @@ var (
 	prob problem
 	srch search
 	gg   = goGen{}
-	gen  = solutionGen(&gg)
+	gen  solutionGen
 )
 
 func dump(sol *solution) bool {
@@ -127,6 +127,8 @@ func main() {
 			&gg,
 			gg.obsAfter(),
 		})
+	} else {
+		gen = &gg
 	}
 
 	plan(&prob, gen)
