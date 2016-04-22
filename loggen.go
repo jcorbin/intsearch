@@ -14,6 +14,7 @@ type logGen struct {
 func newLogGen(prob *planProblem) *logGen {
 	return &logGen{
 		planProblem: prob,
+		branches:    make([]int, 0, len(prob.letterSet)),
 	}
 }
 
