@@ -14,7 +14,7 @@ var (
 
 	prob problem
 	srch search
-	gg   = goGen{}
+	gg   *goGen
 	gen  solutionGen
 )
 
@@ -118,17 +118,18 @@ func main() {
 		log.Fatalf("setup failed: %v", err)
 	}
 
+	gg = &goGen{}
 	gg.verified = *verify
 	gg.debugLabels = *debug || *dumpProg
 
 	if *dumpProg {
 		gen = multiGen([]solutionGen{
 			&logGen{},
-			&gg,
+			gg,
 			gg.obsAfter(),
 		})
 	} else {
-		gen = &gg
+		gen = gg
 	}
 
 	plan(&prob, gen)
