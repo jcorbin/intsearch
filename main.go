@@ -35,7 +35,7 @@ func dump(sol *solution) bool {
 }
 
 func initSearch(emit emitFunc) {
-	emit(newSolution(&prob, gg.getSteps(), emit))
+	emit(newSolution(&prob, gg.steps, emit))
 }
 
 func traceFailures() {
@@ -134,7 +134,7 @@ func main() {
 	if *dumpProg {
 		fmt.Println()
 		fmt.Printf("//// Resolved Program Dump\n")
-		for i, step := range gg.getSteps() {
+		for i, step := range gg.steps {
 			fmt.Printf("%v: %v\n", i, step)
 		}
 		fmt.Println()

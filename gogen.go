@@ -381,10 +381,6 @@ func (gg *goGen) finish(plan planner) {
 	gg.steps, gg.labels = resolveLabels(gg.steps, gg.labels)
 }
 
-func (gg *goGen) getSteps() []solutionStep {
-	return gg.steps
-}
-
 func (gg *goGen) gensym(name string) string {
 	if _, used := gg.usedSymbols[name]; !used {
 		gg.usedSymbols[name] = struct{}{}
