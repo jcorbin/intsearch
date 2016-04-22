@@ -26,6 +26,14 @@ type goGen struct {
 	outf         func(string, ...interface{})
 }
 
+func (gg *goGen) loggedGen() solutionGen {
+	return multiGen([]solutionGen{
+		&logGen{},
+		gg,
+		gg.obsAfter(),
+	})
+}
+
 func (gg *goGen) obsAfter() afterGen {
 	i := 0
 	return afterGen(func(plan planner) {

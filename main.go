@@ -123,11 +123,7 @@ func main() {
 	gg.verified = *verify
 
 	if *dumpProg {
-		gen = multiGen([]solutionGen{
-			&logGen{},
-			gg,
-			gg.obsAfter(),
-		})
+		gen = gg.loggedGen()
 	} else {
 		gen = gg
 	}
