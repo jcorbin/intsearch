@@ -207,8 +207,8 @@ func (sol *solution) printCheck(printf func(string, ...interface{})) {
 	if !check {
 		rels[2] = "!="
 	}
-	for i, word := range prob.words {
-		pad := strings.Repeat(" ", len(prob.words[2])-len(word))
+	for i, word := range sol.prob.words {
+		pad := strings.Repeat(" ", len(sol.prob.words[2])-len(word))
 		printf("  %s%s %s == %s%v", marks[i], pad, word, pad, ns[i])
 	}
 }
