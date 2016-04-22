@@ -14,8 +14,7 @@ func newPlanProblem(prob *problem) *planProblem {
 	}
 }
 
-func plan(p *problem, gen solutionGen) {
-	prob := newPlanProblem(p)
+func plan(prob *planProblem, gen solutionGen) {
 	planTopDown(prob, gen)
 }
 

@@ -118,6 +118,7 @@ func main() {
 	if err := prob.setup(word1, word2, word3); err != nil {
 		log.Fatalf("setup failed: %v", err)
 	}
+	planProblem := newPlanProblem(&prob)
 
 	gg = newGoGen()
 	gg.verified = *verify
@@ -128,7 +129,7 @@ func main() {
 		gen = gg
 	}
 
-	plan(&prob, gen)
+	plan(planProblem, gen)
 
 	if *dumpProg {
 		fmt.Println()
