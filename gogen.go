@@ -34,6 +34,10 @@ func newGoGen(prob *planProblem) *goGen {
 	}
 }
 
+func (gg *goGen) searchInit(emit emitFunc) {
+	emit(newSolution(&gg.planProblem.problem, gg.steps, emit))
+}
+
 func (gg *goGen) loggedGen() solutionGen {
 	return multiGen([]solutionGen{
 		newLogGen(gg.planProblem),

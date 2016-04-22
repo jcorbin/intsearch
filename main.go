@@ -34,17 +34,13 @@ func dump(sol *solution) bool {
 	return false
 }
 
-func initSearch(emit emitFunc) {
-	emit(newSolution(&prob, gg.steps, emit))
-}
-
 func traceFailures() {
 	metrics := newMetricWatcher()
 	watcher := watchers([]searchWatcher{
 		metrics,
 		newTraceWatcher(),
 	})
-	srch.run(100000, initSearch, dump, watcher)
+	srch.run(100000, gg.searchInit, dump, watcher)
 	fmt.Printf("%+v\n", metrics)
 }
 
@@ -57,7 +53,7 @@ func debugRun() {
 			logf: gg.logf,
 		},
 	})
-	srch.run(100000, initSearch, dump, watcher)
+	srch.run(100000, gg.searchInit, dump, watcher)
 	fmt.Printf("%+v\n", metrics)
 }
 
@@ -76,7 +72,7 @@ func findOne() *solution {
 	var theSol *solution
 	srch.run(
 		100000,
-		initSearch,
+		gg.searchInit,
 		func(sol *solution) bool {
 			if sol.err == errVerifyFailed {
 				failed = true

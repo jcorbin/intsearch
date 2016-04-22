@@ -15,10 +15,6 @@ func TestGogenSendMoreMoney(t *testing.T) {
 
 	numGood := 0
 
-	initFunc := func(emit emitFunc) {
-		emit(newSolution(&prob, gg.steps, emit))
-	}
-
 	resultFunc := func(sol *solution) bool {
 		if sol.err == errVerifyFailed {
 			gg.logf("!!! invalid solution found: %v %v", sol, sol.letterMapping())
@@ -34,7 +30,7 @@ func TestGogenSendMoreMoney(t *testing.T) {
 
 	var srch search
 	traces := newTraceWatcher()
-	srch.run(100000, initFunc, resultFunc, traces)
+	srch.run(100000, gg.searchInit, resultFunc, traces)
 
 	if numGood == 0 {
 		t.Logf("didn't find any solution")
@@ -47,7 +43,7 @@ func TestGogenSendMoreMoney(t *testing.T) {
 	if t.Failed() {
 		planProblem := newPlanProblem(&prob)
 		plan(planProblem, gg.loggedGen())
-		srch.run(100000, initFunc, resultFunc, watchers([]searchWatcher{
+		srch.run(100000, gg.searchInit, resultFunc, watchers([]searchWatcher{
 			traces,
 			debugWatcher{},
 		}))
@@ -79,9 +75,7 @@ func BenchmarkRun(b *testing.B) {
 		numGood := 0
 		srch.run(
 			100000,
-			func(emit emitFunc) {
-				emit(newSolution(&prob, gg.steps, emit))
-			},
+			gg.searchInit,
 			func(sol *solution) bool {
 				if sol.err == nil {
 					numGood++
