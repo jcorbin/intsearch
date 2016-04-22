@@ -1,6 +1,21 @@
 package main
 
-func plan(prob *problem, gen solutionGen) {
+type planProblem struct {
+	problem
+	solved []bool
+	known  map[byte]bool
+}
+
+func newPlanProblem(prob *problem) *planProblem {
+	return &planProblem{
+		problem: *prob,
+		solved:  make([]bool, prob.numColumns()),
+		known:   make(map[byte]bool, len(prob.letterSet)),
+	}
+}
+
+func plan(p *problem, gen solutionGen) {
+	prob := newPlanProblem(p)
 	planTopDown(prob, gen)
 }
 
@@ -17,43 +32,35 @@ type solutionGen interface {
 }
 
 type planner interface {
-	problem() *problem
+	problem() *planProblem
 	knownLetters() map[byte]bool
 }
 
 type bottomUpPlan struct {
-	prob   *problem
-	gen    solutionGen
-	solved []bool
-	known  map[byte]bool
+	prob *planProblem
+	gen  solutionGen
 }
 
 type topDownPlan struct {
 	bottomUpPlan
 }
 
-func planTopDown(prob *problem, gen solutionGen) {
-	td := topDownPlan{
-		bottomUpPlan{
-			prob:   prob,
-			gen:    gen,
-			solved: make([]bool, prob.numColumns()),
-			known:  make(map[byte]bool, len(prob.letterSet)),
-		},
-	}
+func planTopDown(prob *planProblem, gen solutionGen) {
+	td := topDownPlan{bottomUpPlan{prob: prob, gen: gen}}
 	td.gen.init(&td, "top down ... bottom up")
 	td.plan()
 }
 
 func (td *topDownPlan) plan() {
-	N := td.bottomUpPlan.prob.numColumns()
+	prob := td.bottomUpPlan.prob
+	N := prob.numColumns()
 	for i := 0; i < N; i++ {
-		cx := td.bottomUpPlan.prob.getColumn(i)
+		cx := prob.getColumn(i)
 
-		if cx[0] == 0 && cx[1] == 0 && cx[2] != 0 && !td.known[cx[2]] {
+		if cx[0] == 0 && cx[1] == 0 && cx[2] != 0 && !prob.known[cx[2]] {
 			td.gen.fix(td, cx[2], 1)
-			td.solved[i] = true
-			td.known[cx[2]] = true
+			prob.solved[i] = true
+			prob.known[cx[2]] = true
 			continue
 		}
 	}
@@ -61,25 +68,21 @@ func (td *topDownPlan) plan() {
 	td.bottomUpPlan.plan()
 }
 
-func planBottomUp(prob *problem, gen solutionGen) {
-	bu := bottomUpPlan{
-		prob:   prob,
-		gen:    gen,
-		solved: make([]bool, prob.numColumns()),
-		known:  make(map[byte]bool, len(prob.letterSet)),
-	}
+func planBottomUp(prob *planProblem, gen solutionGen) {
+	bu := bottomUpPlan{prob: prob, gen: gen}
 	bu.gen.init(&bu, "bottom up")
 	bu.plan()
 }
 
 func (bu *bottomUpPlan) plan() {
+	prob := bu.prob
 	// for each column from the right
 	//   choose letters until 2/3 are known
 	//   compute the third (if unknown)
-	n := bu.prob.numColumns() - 1
+	n := prob.numColumns() - 1
 	var last [3]byte
 	for i := n; i >= 0; i-- {
-		cx := bu.prob.getColumn(i)
+		cx := prob.getColumn(i)
 		if i == n {
 			bu.gen.setCarry(bu, 0)
 		} else {
@@ -91,23 +94,24 @@ func (bu *bottomUpPlan) plan() {
 	bu.gen.finish(bu)
 }
 
-func (bu *bottomUpPlan) problem() *problem {
+func (bu *bottomUpPlan) problem() *planProblem {
 	return bu.prob
 }
 
 func (bu *bottomUpPlan) knownLetters() map[byte]bool {
-	return bu.known
+	return bu.prob.known
 }
 
 func (bu *bottomUpPlan) solveColumn(i int, cx [3]byte) {
+	prob := bu.prob
 	numKnown := 0
 	numUnknown := 0
 	for _, c := range cx {
 		if c != 0 {
-			if bu.known[c] {
+			if prob.known[c] {
 				numKnown++
 			}
-			if !bu.known[c] {
+			if !prob.known[c] {
 				numUnknown++
 			}
 		}
@@ -121,14 +125,14 @@ func (bu *bottomUpPlan) solveColumn(i int, cx [3]byte) {
 	}
 
 	// TODO: reevaluate this check once we reify column struct
-	if bu.solved[i] {
+	if prob.solved[i] {
 		// we have numUnknown > 0, but solved[i]
 		panic("incorrect column solved note")
 	}
 
 	for x, c := range cx {
 		if c != 0 {
-			if !bu.known[c] {
+			if !prob.known[c] {
 				if numUnknown == 1 {
 					switch x {
 					case 0:
@@ -141,12 +145,12 @@ func (bu *bottomUpPlan) solveColumn(i int, cx [3]byte) {
 				} else {
 					bu.gen.choose(bu, c)
 				}
-				bu.known[c] = true
+				prob.known[c] = true
 				numUnknown--
 				numKnown++
 			}
 		}
 	}
 
-	bu.solved[i] = true
+	prob.solved[i] = true
 }
