@@ -24,28 +24,26 @@ type goGen struct {
 	labels       map[string]int
 	addrLabels   []string
 	outf         func(string, ...interface{})
+	lastLogDump  int
 }
 
 func (gg *goGen) loggedGen() solutionGen {
 	return multiGen([]solutionGen{
 		&logGen{},
 		gg,
-		gg.obsAfter(),
+		afterGen(gg.dumpLastSteps),
 	})
 }
 
-func (gg *goGen) obsAfter() afterGen {
-	i := 0
-	return afterGen(func(plan planner) {
-		j := i
-		for ; j < len(gg.steps); j++ {
-			fmt.Printf("%v: %v\n", j, gg.steps[j])
-		}
-		if j > i {
-			fmt.Println()
-			i = j
-		}
-	})
+func (gg *goGen) dumpLastSteps(plan planner) {
+	i := gg.lastLogDump
+	for ; i < len(gg.steps); i++ {
+		fmt.Printf("%v: %v\n", i, gg.steps[i])
+	}
+	if i > gg.lastLogDump {
+		fmt.Println()
+		gg.lastLogDump = i
+	}
 }
 
 func (gg *goGen) labelFor(sol *solution) string {
