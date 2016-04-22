@@ -119,11 +119,11 @@ func main() {
 	gg.debugLabels = *debug || *dumpProg
 
 	if *dumpProg {
-		gen = &multiGen{[]solutionGen{
+		gen = multiGen([]solutionGen{
 			&logGen{},
 			&gg,
 			gg.obsAfter(),
-		}}
+		})
 	}
 
 	if err := prob.setup(word1, word2, word3); err != nil {

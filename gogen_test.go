@@ -48,11 +48,11 @@ func TestGogenSendMoreMoney(t *testing.T) {
 	}
 
 	if t.Failed() {
-		plan(&prob, &multiGen{[]solutionGen{
+		plan(&prob, multiGen([]solutionGen{
 			&logGen{},
 			&gg,
 			gg.obsAfter(),
-		}})
+		}))
 		srch.run(100000, initFunc, resultFunc, watchers([]searchWatcher{
 			traces,
 			debugWatcher{},
