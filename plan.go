@@ -15,6 +15,7 @@ func newPlanProblem(prob *problem) *planProblem {
 }
 
 func plan(prob *planProblem, gen solutionGen) {
+	gen.init("top down ... bottom up")
 	planTopDown(prob, gen)
 }
 
@@ -30,46 +31,23 @@ type solutionGen interface {
 	finish()
 }
 
-type bottomUpPlan struct {
-	prob *planProblem
-	gen  solutionGen
-}
-
-type topDownPlan struct {
-	bottomUpPlan
-}
-
 func planTopDown(prob *planProblem, gen solutionGen) {
-	td := topDownPlan{bottomUpPlan{prob: prob, gen: gen}}
-	td.gen.init("top down ... bottom up")
-	td.plan()
-}
-
-func (td *topDownPlan) plan() {
-	prob := td.bottomUpPlan.prob
 	N := prob.numColumns()
 	for i := 0; i < N; i++ {
 		cx := prob.getColumn(i)
 
 		if cx[0] == 0 && cx[1] == 0 && cx[2] != 0 && !prob.known[cx[2]] {
-			td.gen.fix(cx[2], 1)
+			gen.fix(cx[2], 1)
 			prob.solved[i] = true
 			prob.known[cx[2]] = true
 			continue
 		}
 	}
 
-	td.bottomUpPlan.plan()
+	planBottomUp(prob, gen)
 }
 
 func planBottomUp(prob *planProblem, gen solutionGen) {
-	bu := bottomUpPlan{prob: prob, gen: gen}
-	bu.gen.init("bottom up")
-	bu.plan()
-}
-
-func (bu *bottomUpPlan) plan() {
-	prob := bu.prob
 	// for each column from the right
 	//   choose letters until 2/3 are known
 	//   compute the third (if unknown)
@@ -78,26 +56,17 @@ func (bu *bottomUpPlan) plan() {
 	for i := n; i >= 0; i-- {
 		cx := prob.getColumn(i)
 		if i == n {
-			bu.gen.setCarry(0)
+			gen.setCarry(0)
 		} else {
-			bu.gen.computeCarry(last[0], last[1])
+			gen.computeCarry(last[0], last[1])
 		}
-		bu.solveColumn(i, cx)
+		solveColumn(prob, gen, i, cx)
 		last = cx
 	}
-	bu.gen.finish()
+	gen.finish()
 }
 
-func (bu *bottomUpPlan) problem() *planProblem {
-	return bu.prob
-}
-
-func (bu *bottomUpPlan) knownLetters() map[byte]bool {
-	return bu.prob.known
-}
-
-func (bu *bottomUpPlan) solveColumn(i int, cx [3]byte) {
-	prob := bu.prob
+func solveColumn(prob *planProblem, gen solutionGen, i int, cx [3]byte) {
 	numKnown := 0
 	numUnknown := 0
 	for _, c := range cx {
@@ -111,10 +80,10 @@ func (bu *bottomUpPlan) solveColumn(i int, cx [3]byte) {
 		}
 	}
 
-	// TODO: hoist this call-site out to bu.plan once we reify a column struct
-	// that can carry known counts, index, etc
+	// TODO: hoist this call-site out to planBottomUp once we reify a column
+	// struct that can carry known counts, index, etc
 	if numUnknown == 0 {
-		bu.gen.checkColumn(cx)
+		gen.checkColumn(cx)
 		return
 	}
 
@@ -130,14 +99,14 @@ func (bu *bottomUpPlan) solveColumn(i int, cx [3]byte) {
 				if numUnknown == 1 {
 					switch x {
 					case 0:
-						bu.gen.computeSummand(c, cx[1], cx[2])
+						gen.computeSummand(c, cx[1], cx[2])
 					case 1:
-						bu.gen.computeSummand(c, cx[0], cx[2])
+						gen.computeSummand(c, cx[0], cx[2])
 					case 2:
-						bu.gen.computeSum(cx[0], cx[1], c)
+						gen.computeSum(cx[0], cx[1], c)
 					}
 				} else {
-					bu.gen.choose(c)
+					gen.choose(c)
 				}
 				prob.known[c] = true
 				numUnknown--
