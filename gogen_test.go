@@ -3,19 +3,16 @@ package main
 import "testing"
 
 func TestGogenSendMoreMoney(t *testing.T) {
-	var (
-		prob problem
-		gg   = goGen{
-			outf:     t.Logf,
-			verified: true,
-		}
-		traces = newTraceWatcher()
-		srch   search
-	)
-
+	var prob problem
 	if err := prob.setup("send", "more", "money"); err != nil {
 		t.Fatalf("setup failed: %v", err)
 	}
+
+	gg := goGen{
+		outf:     t.Logf,
+		verified: true,
+	}
+
 	plan(&prob, &gg)
 
 	numGood := 0
@@ -37,6 +34,8 @@ func TestGogenSendMoreMoney(t *testing.T) {
 		return false
 	}
 
+	var srch search
+	traces := newTraceWatcher()
 	srch.run(100000, initFunc, resultFunc, traces)
 
 	if numGood == 0 {
@@ -72,13 +71,12 @@ func BenchmarkPlan(b *testing.B) {
 }
 
 func BenchmarkRun(b *testing.B) {
-	var (
-		prob problem
-		gg   goGen
-	)
+	var prob problem
 	if err := prob.setup("send", "more", "money"); err != nil {
 		b.Fatalf("setup failed: %v", err)
 	}
+
+	var gg goGen
 	plan(&prob, &gg)
 
 	for n := 0; n < b.N; n++ {

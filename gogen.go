@@ -232,23 +232,6 @@ func (gg *goGen) computeCarry(plan planner, c1, c2 byte) {
 	gg.carrySaved = false
 }
 
-func (gg *goGen) gensym(name string) string {
-	if _, used := gg.usedSymbols[name]; !used {
-		gg.usedSymbols[name] = struct{}{}
-		return name
-	}
-
-	i := 2
-	for {
-		sym := fmt.Sprintf("%s_%d", name, i)
-		if _, used := gg.usedSymbols[sym]; !used {
-			gg.usedSymbols[sym] = struct{}{}
-			return sym
-		}
-		i++
-	}
-}
-
 func (gg *goGen) choose(plan planner, c byte) {
 	if gg.debugLabels {
 		label := gg.gensym(fmt.Sprintf("choose(%s)", string(c)))
@@ -405,4 +388,21 @@ func (gg *goGen) getSteps() []solutionStep {
 		gg.labels = labels
 	}
 	return gg.steps
+}
+
+func (gg *goGen) gensym(name string) string {
+	if _, used := gg.usedSymbols[name]; !used {
+		gg.usedSymbols[name] = struct{}{}
+		return name
+	}
+
+	i := 2
+	for {
+		sym := fmt.Sprintf("%s_%d", name, i)
+		if _, used := gg.usedSymbols[sym]; !used {
+			gg.usedSymbols[sym] = struct{}{}
+			return sym
+		}
+		i++
+	}
 }
