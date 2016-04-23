@@ -9,6 +9,7 @@ type column struct {
 type planProblem struct {
 	problem
 	columns []column
+	letCols map[byte][]*column
 	known   map[byte]bool
 }
 
@@ -30,12 +31,23 @@ func newPlanProblem(p *problem) *planProblem {
 	prob := &planProblem{
 		problem: *p,
 		columns: make([]column, C),
+		letCols: make(map[byte][]*column, N),
 		known:   make(map[byte]bool, N),
 	}
 	for i := 0; i < C; i++ {
 		col := &prob.columns[i]
 		col.i = i
 		col.cx = prob.getColumn(i)
+		a, b, c := col.cx[0], col.cx[1], col.cx[2]
+		if a != 0 {
+			prob.letCols[a] = append(prob.letCols[a], col)
+		}
+		if b != 0 && b != a {
+			prob.letCols[b] = append(prob.letCols[b], col)
+		}
+		if c != 0 && c != b && c != a {
+			prob.letCols[c] = append(prob.letCols[c], col)
+		}
 	}
 	return prob
 }
