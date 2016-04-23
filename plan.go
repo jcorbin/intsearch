@@ -2,6 +2,7 @@ package main
 
 type column struct {
 	i       int
+	prior   *column
 	cx      [3]byte
 	solved  bool
 	known   int
@@ -36,9 +37,13 @@ func newPlanProblem(p *problem) *planProblem {
 		letCols: make(map[byte][]*column, N),
 		known:   make(map[byte]bool, N),
 	}
+	var last *column
 	for i := 0; i < C; i++ {
 		col := &prob.columns[i]
 		col.i = i
+		if last != nil {
+			last.prior = col
+		}
 		col.cx = prob.getColumn(i)
 		a, b, c := col.cx[0], col.cx[1], col.cx[2]
 		if a != 0 {
@@ -53,6 +58,7 @@ func newPlanProblem(p *problem) *planProblem {
 			col.unknown++
 			prob.letCols[c] = append(prob.letCols[c], col)
 		}
+		last = col
 	}
 	return prob
 }
