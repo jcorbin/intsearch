@@ -27,6 +27,10 @@ type goGen struct {
 	lastLogDump  int
 }
 
+func newGoGen() *goGen {
+	return &goGen{}
+}
+
 func (gg *goGen) loggedGen() solutionGen {
 	return multiGen([]solutionGen{
 		&logGen{},

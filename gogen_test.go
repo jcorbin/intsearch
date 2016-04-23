@@ -8,12 +8,11 @@ func TestGogenSendMoreMoney(t *testing.T) {
 		t.Fatalf("setup failed: %v", err)
 	}
 
-	gg := goGen{
-		outf:     t.Logf,
-		verified: true,
-	}
+	gg := newGoGen()
+	gg.outf = t.Logf
+	gg.verified = true
 
-	plan(&prob, &gg)
+	plan(&prob, gg)
 
 	numGood := 0
 
@@ -61,8 +60,8 @@ func BenchmarkPlan(b *testing.B) {
 		b.Fatalf("seutp failed: %v", err)
 	}
 	for n := 0; n < b.N; n++ {
-		var gg goGen
-		plan(&prob, &gg)
+		gg := newGoGen()
+		plan(&prob, gg)
 	}
 }
 
@@ -72,8 +71,8 @@ func BenchmarkRun(b *testing.B) {
 		b.Fatalf("setup failed: %v", err)
 	}
 
-	var gg goGen
-	plan(&prob, &gg)
+	gg := newGoGen()
+	plan(&prob, gg)
 
 	for n := 0; n < b.N; n++ {
 		var srch search

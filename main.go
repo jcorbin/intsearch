@@ -119,7 +119,7 @@ func main() {
 		log.Fatalf("setup failed: %v", err)
 	}
 
-	gg = &goGen{}
+	gg = newGoGen()
 	gg.verified = *verify
 
 	if *dumpProg {
