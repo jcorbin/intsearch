@@ -52,6 +52,10 @@ func newPlanProblem(p *problem) *planProblem {
 	return prob
 }
 
+func (prob *planProblem) markKnown(c byte) {
+	prob.known[c] = true
+}
+
 func (prob *planProblem) plan(gen solutionGen) {
 	gen.init("top down ... bottom up")
 	prob.planTopDown(gen)
@@ -66,7 +70,7 @@ func (prob *planProblem) planTopDown(gen solutionGen) {
 		if a == 0 && b == 0 && c != 0 && !prob.known[c] {
 			gen.fix(c, 1)
 			col.solved = true
-			prob.known[c] = true
+			prob.markKnown(c)
 			continue
 		}
 	}
@@ -136,7 +140,7 @@ func (prob *planProblem) solveColumn(gen solutionGen, col *column) {
 				} else {
 					gen.choose(c)
 				}
-				prob.known[c] = true
+				prob.markKnown(c)
 				numUnknown--
 				numKnown++
 			}
