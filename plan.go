@@ -94,15 +94,14 @@ func (prob *planProblem) planBottomUp(gen solutionGen) {
 	n := prob.numColumns() - 1
 	var last [3]byte
 	for i := n; i >= 0; i-- {
-		cx := prob.getColumn(i)
+		col := &prob.columns[i]
 		if i == n {
 			gen.setCarry(0)
 		} else {
 			gen.computeCarry(last[0], last[1])
 		}
-		col := &prob.columns[i]
 		prob.solveColumn(gen, col)
-		last = cx
+		last = col.cx
 	}
 	gen.finish()
 }
