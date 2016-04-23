@@ -1,9 +1,15 @@
 package main
 
+type column struct {
+	i      int
+	cx     [3]byte
+	solved bool
+}
+
 type planProblem struct {
 	problem
-	solved []bool
-	known  map[byte]bool
+	columns []column
+	known   map[byte]bool
 }
 
 type solutionGen interface {
@@ -23,8 +29,13 @@ func newPlanProblem(p *problem) *planProblem {
 	N := len(p.letterSet)
 	prob := &planProblem{
 		problem: *p,
-		solved:  make([]bool, C),
+		columns: make([]column, C),
 		known:   make(map[byte]bool, N),
+	}
+	for i := 0; i < C; i++ {
+		col := &prob.columns[i]
+		col.i = i
+		col.cx = prob.getColumn(i)
 	}
 	return prob
 }
@@ -37,12 +48,12 @@ func (prob *planProblem) plan(gen solutionGen) {
 func (prob *planProblem) planTopDown(gen solutionGen) {
 	N := prob.numColumns()
 	for i := 0; i < N; i++ {
-		cx := prob.getColumn(i)
-		a, b, c := cx[0], cx[1], cx[2]
+		col := &prob.columns[i]
+		a, b, c := col.cx[0], col.cx[1], col.cx[2]
 
 		if a == 0 && b == 0 && c != 0 && !prob.known[c] {
 			gen.fix(c, 1)
-			prob.solved[i] = true
+			col.solved = true
 			prob.known[c] = true
 			continue
 		}
@@ -64,16 +75,17 @@ func (prob *planProblem) planBottomUp(gen solutionGen) {
 		} else {
 			gen.computeCarry(last[0], last[1])
 		}
-		prob.solveColumn(gen, i, cx)
+		col := &prob.columns[i]
+		prob.solveColumn(gen, col)
 		last = cx
 	}
 	gen.finish()
 }
 
-func (prob *planProblem) solveColumn(gen solutionGen, i int, cx [3]byte) {
+func (prob *planProblem) solveColumn(gen solutionGen, col *column) {
 	numKnown := 0
 	numUnknown := 0
-	for _, c := range cx {
+	for _, c := range col.cx {
 		if c != 0 {
 			if prob.known[c] {
 				numKnown++
@@ -87,27 +99,27 @@ func (prob *planProblem) solveColumn(gen solutionGen, i int, cx [3]byte) {
 	// TODO: hoist this call-site out to planBottomUp once we reify a column
 	// struct that can carry known counts, index, etc
 	if numUnknown == 0 {
-		gen.checkColumn(cx)
+		gen.checkColumn(col.cx)
 		return
 	}
 
 	// TODO: reevaluate this check once we reify column struct
-	if prob.solved[i] {
-		// we have numUnknown > 0, but solved[i]
+	if col.solved {
+		// we have numUnknown > 0, but solved
 		panic("incorrect column solved note")
 	}
 
-	for x, c := range cx {
+	for x, c := range col.cx {
 		if c != 0 {
 			if !prob.known[c] {
 				if numUnknown == 1 {
 					switch x {
 					case 0:
-						gen.computeSummand(c, cx[1], cx[2])
+						gen.computeSummand(c, col.cx[1], col.cx[2])
 					case 1:
-						gen.computeSummand(c, cx[0], cx[2])
+						gen.computeSummand(c, col.cx[0], col.cx[2])
 					case 2:
-						gen.computeSum(cx[0], cx[1], c)
+						gen.computeSum(col.cx[0], col.cx[1], c)
 					}
 				} else {
 					gen.choose(c)
@@ -119,5 +131,5 @@ func (prob *planProblem) solveColumn(gen solutionGen, i int, cx [3]byte) {
 		}
 	}
 
-	prob.solved[i] = true
+	col.solved = true
 }
