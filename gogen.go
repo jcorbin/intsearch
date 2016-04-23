@@ -12,6 +12,7 @@ var (
 	errNegativeValue  = errors.New("negative valued character")
 	errDuplicateValue = errors.New("duplicate valued character")
 	errVerifyFailed   = errors.New("verify failed")
+	errNoChoices      = errors.New("no choices left")
 )
 
 type goGen struct {
@@ -21,6 +22,7 @@ type goGen struct {
 	useForkUntil bool
 	carrySaved   bool
 	carryValid   bool
+	usedDigits   []bool
 	usedSymbols  map[string]struct{}
 	labels       map[string]int
 	addrLabels   []string
@@ -32,6 +34,7 @@ func newGoGen(prob *planProblem) *goGen {
 	return &goGen{
 		planProblem: prob,
 		usedSymbols: make(map[string]struct{}, 3*len(prob.letterSet)),
+		usedDigits:  make([]bool, prob.base),
 	}
 }
 
@@ -106,6 +109,7 @@ func (gg *goGen) setCarry(v int) {
 }
 
 func (gg *goGen) fix(c byte, v int) {
+	gg.usedDigits[v] = true
 	gg.steps = append(gg.steps,
 		labelStep(gg.gensym("fix(%s)", string(c))),
 		setAStep(v),
@@ -210,10 +214,35 @@ func (gg *goGen) choose(c byte) {
 	gg.saveCarry()
 	gg.carryValid = false
 	min := 0
-	if c == gg.words[0][0] || c == gg.words[1][0] || c == gg.words[2][0] {
+	if gg.usedDigits[0] ||
+		c == gg.words[0][0] ||
+		c == gg.words[1][0] ||
+		c == gg.words[2][0] {
 		min = 1
 	}
+
 	var last = gg.base - 1
+	for last > 0 && gg.usedDigits[last] {
+		last--
+	}
+	for min <= last && gg.usedDigits[min] {
+		min++
+	}
+
+	if min > last {
+		gg.steps = append(gg.steps,
+			labelStep(gg.gensym("no_choices_for(%s)", string(c))),
+			exitStep{errNoChoices})
+		return
+	} else if min == last {
+		gg.usedDigits[min] = true
+		gg.steps = append(gg.steps,
+			labelStep(gg.gensym("only_choice_for(%s)", string(c))),
+			setAStep(min),
+			storeStep(c))
+		return
+	}
+
 	if gg.useForkUntil {
 		gg.steps = append(gg.steps,
 			labelStep(gg.gensym("choose(%s)", string(c))), // :choose($c)
