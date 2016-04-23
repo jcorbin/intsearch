@@ -88,9 +88,6 @@ func (prob *planProblem) planTopDown(gen solutionGen) {
 }
 
 func (prob *planProblem) planBottomUp(gen solutionGen) {
-	// for each column from the right
-	//   choose letters until 2/3 are known
-	//   compute the third (if unknown)
 	gen.setCarry(0)
 	for i := prob.numColumns() - 1; i > 0; i-- {
 		col := &prob.columns[i]
@@ -102,17 +99,13 @@ func (prob *planProblem) planBottomUp(gen solutionGen) {
 }
 
 func (prob *planProblem) solveColumn(gen solutionGen, col *column) {
-	// TODO: hoist this call-site out to planBottomUp once we reify a column
-	// struct that can carry known counts, index, etc
 	if col.unknown == 0 {
 		gen.checkColumn(col.cx)
 		return
 	}
 
-	// TODO: reevaluate this check once we reify column struct
 	if col.solved {
-		// we have col.unknown > 0, but solved
-		panic("incorrect column solved note")
+		panic("invalid column solved state")
 	}
 
 	for x, c := range col.cx {
