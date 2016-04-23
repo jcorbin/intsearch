@@ -6,12 +6,15 @@ type planProblem struct {
 	known  map[byte]bool
 }
 
-func newPlanProblem(prob *problem) *planProblem {
-	return &planProblem{
-		problem: *prob,
-		solved:  make([]bool, prob.numColumns()),
-		known:   make(map[byte]bool, len(prob.letterSet)),
+func newPlanProblem(p *problem) *planProblem {
+	C := p.numColumns()
+	N := len(p.letterSet)
+	prob := &planProblem{
+		problem: *p,
+		solved:  make([]bool, C),
+		known:   make(map[byte]bool, N),
 	}
+	return prob
 }
 
 func plan(prob *planProblem, gen solutionGen) {
