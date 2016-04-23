@@ -14,11 +14,15 @@ func (ag afterGen) fix(c byte, v int) {
 	ag()
 }
 
-func (ag afterGen) computeSum(a, b, c byte) {
+func (ag afterGen) computeSum(col *column) {
 	ag()
 }
 
-func (ag afterGen) computeSummand(a, b, c byte) {
+func (ag afterGen) computeFirstSummand(col *column) {
+	ag()
+}
+
+func (ag afterGen) computeSecondSummand(col *column) {
 	ag()
 }
 
@@ -30,7 +34,7 @@ func (ag afterGen) choose(c byte) {
 	ag()
 }
 
-func (ag afterGen) checkColumn(cx [3]byte) {
+func (ag afterGen) checkColumn(col *column) {
 	ag()
 }
 

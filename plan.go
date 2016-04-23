@@ -20,11 +20,12 @@ type solutionGen interface {
 	init(desc string)
 	setCarry(v int)
 	fix(c byte, v int)
-	computeSum(a, b, c byte)
-	computeSummand(a, b, c byte)
+	computeSum(col *column)
+	computeFirstSummand(col *column)
+	computeSecondSummand(col *column)
 	computeCarry(c1, c2 byte)
 	choose(c byte)
-	checkColumn(cx [3]byte)
+	checkColumn(col *column)
 	finish()
 }
 
@@ -108,7 +109,7 @@ func (prob *planProblem) solveColumn(gen solutionGen, col *column) {
 	}
 
 	if col.unknown == 0 {
-		gen.checkColumn(col.cx)
+		gen.checkColumn(col)
 		return
 	}
 
@@ -121,11 +122,11 @@ func (prob *planProblem) solveColumn(gen solutionGen, col *column) {
 			if col.unknown == 1 {
 				switch x {
 				case 0:
-					gen.computeSummand(c, col.cx[1], col.cx[2])
+					gen.computeFirstSummand(col)
 				case 1:
-					gen.computeSummand(c, col.cx[0], col.cx[2])
+					gen.computeSecondSummand(col)
 				case 2:
-					gen.computeSum(col.cx[0], col.cx[1], c)
+					gen.computeSum(col)
 				}
 			} else {
 				gen.choose(c)

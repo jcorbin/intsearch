@@ -49,7 +49,8 @@ func (lg *logGen) fix(c byte, v int) {
 	lg.stepf("fix %v = %v\n", string(c), v)
 }
 
-func (lg *logGen) computeSum(a, b, c byte) {
+func (lg *logGen) computeSum(col *column) {
+	a, b, c := col.cx[0], col.cx[1], col.cx[2]
 	if a != 0 && b != 0 {
 		lg.stepf("compute %v = %v + %v + carry (mod %v)\n", string(c), string(a), string(b), lg.base)
 	} else if a != 0 {
@@ -59,6 +60,14 @@ func (lg *logGen) computeSum(a, b, c byte) {
 	} else {
 		lg.stepf("compute %v = carry (mod %v)\n", string(c), lg.base)
 	}
+}
+
+func (lg *logGen) computeFirstSummand(col *column) {
+	lg.computeSummand(col.cx[0], col.cx[1], col.cx[2])
+}
+
+func (lg *logGen) computeSecondSummand(col *column) {
+	lg.computeSummand(col.cx[1], col.cx[0], col.cx[2])
 }
 
 func (lg *logGen) computeSummand(a, b, c byte) {
@@ -91,8 +100,9 @@ func (lg *logGen) choose(c byte) {
 	lg.stepf("choose %v (branch by %v)\n", string(c), branches)
 }
 
-func (lg *logGen) checkColumn(cx [3]byte) {
-	lg.stepf("check column %v + %v = %v\n", string(cx[0]), string(cx[1]), string(cx[2]))
+func (lg *logGen) checkColumn(col *column) {
+	a, b, c := col.cx[0], col.cx[1], col.cx[2]
+	lg.stepf("check column %v + %v = %v\n", string(a), string(b), string(c))
 }
 
 func (lg *logGen) finish() {

@@ -136,11 +136,12 @@ func (gg *goGen) restoreCarry() {
 	}
 }
 
-func (gg *goGen) computeSum(a, b, c byte) {
+func (gg *goGen) computeSum(col *column) {
 	// Given:
 	//   carry + a + b = c (mod base)
 	// Solve for c:
 	//   c = carry + a + b (mod base)
+	a, b, c := col.cx[0], col.cx[1], col.cx[2]
 	gg.steps = append(gg.steps,
 		labelStep(gg.gensym("computeSum(%s, %s, %s)", string(a), string(b), string(c))))
 	gg.restoreCarry()
@@ -164,7 +165,15 @@ func (gg *goGen) computeSum(a, b, c byte) {
 	gg.steps = append(gg.steps, steps...)
 }
 
-func (gg *goGen) computeSummand(a, b, c byte) {
+func (gg *goGen) computeFirstSummand(col *column) {
+	gg.computeSummand(col, col.cx[0], col.cx[1], col.cx[2])
+}
+
+func (gg *goGen) computeSecondSummand(col *column) {
+	gg.computeSummand(col, col.cx[1], col.cx[0], col.cx[2])
+}
+
+func (gg *goGen) computeSummand(col *column, a, b, c byte) {
 	// Given:
 	//   carry + a + b = c (mod base)
 	// Solve for a:
@@ -284,20 +293,21 @@ func (gg *goGen) choose(c byte) {
 	}
 }
 
-func (gg *goGen) checkColumn(cx [3]byte) {
+func (gg *goGen) checkColumn(col *column) {
+	a, b, c := col.cx[0], col.cx[1], col.cx[2]
 	gg.steps = append(gg.steps,
-		labelStep(gg.gensym("checkColumn(%v, %v, %v)", string(cx[0]), string(cx[1]), string(cx[2]))))
+		labelStep(gg.gensym("checkColumn(%v, %v, %v)", string(a), string(b), string(c))))
 	gg.restoreCarry()
 	steps := make([]solutionStep, 0, 9)
 
 	n := 0
-	if cx[0] != 0 {
+	if a != 0 {
 		n++
-		steps = append(steps, addValueStep(cx[0]))
+		steps = append(steps, addValueStep(a))
 	}
-	if cx[1] != 0 {
+	if b != 0 {
 		n++
-		steps = append(steps, addValueStep(cx[1]))
+		steps = append(steps, addValueStep(b))
 	}
 	if n > 0 {
 		steps = append(steps,
@@ -305,7 +315,7 @@ func (gg *goGen) checkColumn(cx [3]byte) {
 			modStep(gg.base))
 	}
 	steps = append(steps,
-		subValueStep(cx[2]),
+		subValueStep(c),
 		relJZStep(1),
 		exitStep{errCheckFailed})
 	if n > 0 {

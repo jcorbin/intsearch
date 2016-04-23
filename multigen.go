@@ -20,15 +20,21 @@ func (mg multiGen) fix(c byte, v int) {
 	}
 }
 
-func (mg multiGen) computeSum(a, b, c byte) {
+func (mg multiGen) computeSum(col *column) {
 	for _, gen := range mg {
-		gen.computeSum(a, b, c)
+		gen.computeSum(col)
 	}
 }
 
-func (mg multiGen) computeSummand(a, b, c byte) {
+func (mg multiGen) computeFirstSummand(col *column) {
 	for _, gen := range mg {
-		gen.computeSummand(a, b, c)
+		gen.computeFirstSummand(col)
+	}
+}
+
+func (mg multiGen) computeSecondSummand(col *column) {
+	for _, gen := range mg {
+		gen.computeSecondSummand(col)
 	}
 }
 
@@ -44,9 +50,9 @@ func (mg multiGen) choose(c byte) {
 	}
 }
 
-func (mg multiGen) checkColumn(cx [3]byte) {
+func (mg multiGen) checkColumn(col *column) {
 	for _, gen := range mg {
-		gen.checkColumn(cx)
+		gen.checkColumn(col)
 	}
 }
 
