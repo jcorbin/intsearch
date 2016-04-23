@@ -124,7 +124,7 @@ func main() {
 		gen = gg
 	}
 
-	plan(gg.planProblem, gen)
+	gg.planProblem.plan(gen)
 
 	if *dumpProg {
 		fmt.Println()

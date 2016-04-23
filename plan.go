@@ -17,9 +17,9 @@ func newPlanProblem(p *problem) *planProblem {
 	return prob
 }
 
-func plan(prob *planProblem, gen solutionGen) {
+func (prob *planProblem) plan(gen solutionGen) {
 	gen.init("top down ... bottom up")
-	planTopDown(prob, gen)
+	prob.planTopDown(gen)
 }
 
 type solutionGen interface {
@@ -34,7 +34,7 @@ type solutionGen interface {
 	finish()
 }
 
-func planTopDown(prob *planProblem, gen solutionGen) {
+func (prob *planProblem) planTopDown(gen solutionGen) {
 	N := prob.numColumns()
 	for i := 0; i < N; i++ {
 		cx := prob.getColumn(i)
@@ -47,10 +47,10 @@ func planTopDown(prob *planProblem, gen solutionGen) {
 		}
 	}
 
-	planBottomUp(prob, gen)
+	prob.planBottomUp(gen)
 }
 
-func planBottomUp(prob *planProblem, gen solutionGen) {
+func (prob *planProblem) planBottomUp(gen solutionGen) {
 	// for each column from the right
 	//   choose letters until 2/3 are known
 	//   compute the third (if unknown)
@@ -63,13 +63,13 @@ func planBottomUp(prob *planProblem, gen solutionGen) {
 		} else {
 			gen.computeCarry(last[0], last[1])
 		}
-		solveColumn(prob, gen, i, cx)
+		prob.solveColumn(gen, i, cx)
 		last = cx
 	}
 	gen.finish()
 }
 
-func solveColumn(prob *planProblem, gen solutionGen, i int, cx [3]byte) {
+func (prob *planProblem) solveColumn(gen solutionGen, i int, cx [3]byte) {
 	numKnown := 0
 	numUnknown := 0
 	for _, c := range cx {
