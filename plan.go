@@ -1,9 +1,11 @@
 package main
 
 type column struct {
-	i      int
-	cx     [3]byte
-	solved bool
+	i       int
+	cx      [3]byte
+	solved  bool
+	known   int
+	unknown int
 }
 
 type planProblem struct {
@@ -40,12 +42,15 @@ func newPlanProblem(p *problem) *planProblem {
 		col.cx = prob.getColumn(i)
 		a, b, c := col.cx[0], col.cx[1], col.cx[2]
 		if a != 0 {
+			col.unknown++
 			prob.letCols[a] = append(prob.letCols[a], col)
 		}
 		if b != 0 && b != a {
+			col.unknown++
 			prob.letCols[b] = append(prob.letCols[b], col)
 		}
 		if c != 0 && c != b && c != a {
+			col.unknown++
 			prob.letCols[c] = append(prob.letCols[c], col)
 		}
 	}
@@ -54,6 +59,10 @@ func newPlanProblem(p *problem) *planProblem {
 
 func (prob *planProblem) markKnown(c byte) {
 	prob.known[c] = true
+	for _, col := range prob.letCols[c] {
+		col.unknown--
+		col.known++
+	}
 }
 
 func (prob *planProblem) plan(gen solutionGen) {
@@ -99,36 +108,23 @@ func (prob *planProblem) planBottomUp(gen solutionGen) {
 }
 
 func (prob *planProblem) solveColumn(gen solutionGen, col *column) {
-	numKnown := 0
-	numUnknown := 0
-	for _, c := range col.cx {
-		if c != 0 {
-			if prob.known[c] {
-				numKnown++
-			}
-			if !prob.known[c] {
-				numUnknown++
-			}
-		}
-	}
-
 	// TODO: hoist this call-site out to planBottomUp once we reify a column
 	// struct that can carry known counts, index, etc
-	if numUnknown == 0 {
+	if col.unknown == 0 {
 		gen.checkColumn(col.cx)
 		return
 	}
 
 	// TODO: reevaluate this check once we reify column struct
 	if col.solved {
-		// we have numUnknown > 0, but solved
+		// we have col.unknown > 0, but solved
 		panic("incorrect column solved note")
 	}
 
 	for x, c := range col.cx {
 		if c != 0 {
 			if !prob.known[c] {
-				if numUnknown == 1 {
+				if col.unknown == 1 {
 					switch x {
 					case 0:
 						gen.computeSummand(c, col.cx[1], col.cx[2])
@@ -141,8 +137,6 @@ func (prob *planProblem) solveColumn(gen solutionGen, col *column) {
 					gen.choose(c)
 				}
 				prob.markKnown(c)
-				numUnknown--
-				numKnown++
 			}
 		}
 	}
