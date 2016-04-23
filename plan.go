@@ -91,18 +91,13 @@ func (prob *planProblem) planBottomUp(gen solutionGen) {
 	// for each column from the right
 	//   choose letters until 2/3 are known
 	//   compute the third (if unknown)
-	n := prob.numColumns() - 1
-	var last [3]byte
-	for i := n; i >= 0; i-- {
+	gen.setCarry(0)
+	for i := prob.numColumns() - 1; i > 0; i-- {
 		col := &prob.columns[i]
-		if i == n {
-			gen.setCarry(0)
-		} else {
-			gen.computeCarry(last[0], last[1])
-		}
 		prob.solveColumn(gen, col)
-		last = col.cx
+		gen.computeCarry(col.cx[0], col.cx[1])
 	}
+	prob.solveColumn(gen, &prob.columns[0])
 	gen.finish()
 }
 
