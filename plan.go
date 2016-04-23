@@ -38,11 +38,12 @@ func (prob *planProblem) planTopDown(gen solutionGen) {
 	N := prob.numColumns()
 	for i := 0; i < N; i++ {
 		cx := prob.getColumn(i)
+		a, b, c := cx[0], cx[1], cx[2]
 
-		if cx[0] == 0 && cx[1] == 0 && cx[2] != 0 && !prob.known[cx[2]] {
-			gen.fix(cx[2], 1)
+		if a == 0 && b == 0 && c != 0 && !prob.known[c] {
+			gen.fix(c, 1)
 			prob.solved[i] = true
-			prob.known[cx[2]] = true
+			prob.known[c] = true
 			continue
 		}
 	}
