@@ -6,6 +6,18 @@ type planProblem struct {
 	known  map[byte]bool
 }
 
+type solutionGen interface {
+	init(desc string)
+	setCarry(v int)
+	fix(c byte, v int)
+	computeSum(a, b, c byte)
+	computeSummand(a, b, c byte)
+	computeCarry(c1, c2 byte)
+	choose(c byte)
+	checkColumn(cx [3]byte)
+	finish()
+}
+
 func newPlanProblem(p *problem) *planProblem {
 	C := p.numColumns()
 	N := len(p.letterSet)
@@ -20,18 +32,6 @@ func newPlanProblem(p *problem) *planProblem {
 func (prob *planProblem) plan(gen solutionGen) {
 	gen.init("top down ... bottom up")
 	prob.planTopDown(gen)
-}
-
-type solutionGen interface {
-	init(desc string)
-	setCarry(v int)
-	fix(c byte, v int)
-	computeSum(a, b, c byte)
-	computeSummand(a, b, c byte)
-	computeCarry(c1, c2 byte)
-	choose(c byte)
-	checkColumn(cx [3]byte)
-	finish()
 }
 
 func (prob *planProblem) planTopDown(gen solutionGen) {
