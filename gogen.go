@@ -207,50 +207,52 @@ func (gg *goGen) computeCarry(c1, c2 byte) {
 }
 
 func (gg *goGen) choose(c byte) {
-	gg.steps = append(gg.steps,
-		labelStep(gg.gensym("choose(%s)", string(c))))
 	gg.saveCarry()
-	steps := make([]solutionStep, 0, 22)
 	gg.carryValid = false
 	min := 0
 	if c == gg.words[0][0] || c == gg.words[1][0] || c == gg.words[2][0] {
 		min = 1
 	}
-	steps = append(steps, setAStep(min))
 	var last = gg.base - 1
 	if gg.useForkUntil {
-		steps = append(steps, forkUntilStep(last))
+		gg.steps = append(gg.steps,
+			labelStep(gg.gensym("choose(%s)", string(c))), // :choose($c)
+			setAStep(min),                                 // ra = $min
+			forkUntilStep(last),                           // forUntil $last
+			storeStep(c),                                  // store $c
+		)
 	} else {
 		var (
 			loopSym     = gg.gensym("choose(%s):loop", string(c))
 			nextLoopSym = gg.gensym("choose(%s):nextLoop", string(c))
 			contSym     = gg.gensym("choose(%s):cont", string(c))
 		)
-		steps = append(steps,
-			setCAStep{},                // rc = ra
-			labelStep(loopSym),         // :loop
-			setACStep{},                // ra = rc
-			isUsedStep{},               // used?
-			labelJNZStep(nextLoopSym),  // jnz :next_loop
-			forkLabelStep(nextLoopSym), // fork :next_loop
-			setACStep{},                // ra = rc
-			labelJmpStep(contSym),      // jmp :cont
-			labelStep(nextLoopSym),     // :nextLoop
-			setACStep{},                // ra = rc
-			addStep(1),                 // add 1
-			setCAStep{},                // rc = ra
-			ltStep(last),               // lt $last
-			labelJNZStep(loopSym),      // jnz :loop
-			setACStep{},                // ra = rc
-			isUsedStep{},               // used?
-			labelJZStep(contSym),       // jz :cont
-			exitStep{errAlreadyUsed},   // exit errAlreadyUsed
-			labelStep(contSym),         // :cont
-			setACStep{},                // ra = rc
+		gg.steps = append(gg.steps,
+			labelStep(gg.gensym("choose(%s)", string(c))), // :choose($c)
+			setAStep(min),                                 // ra = $min
+			setCAStep{},                                   // rc = ra
+			labelStep(loopSym),                            // :loop
+			setACStep{},                                   // ra = rc
+			isUsedStep{},                                  // used?
+			labelJNZStep(nextLoopSym),                     // jnz :next_loop
+			forkLabelStep(nextLoopSym),                    // fork :next_loop
+			setACStep{},                                   // ra = rc
+			labelJmpStep(contSym),                         // jmp :cont
+			labelStep(nextLoopSym),                        // :nextLoop
+			setACStep{},                                   // ra = rc
+			addStep(1),                                    // add 1
+			setCAStep{},                                   // rc = ra
+			ltStep(last),                                  // lt $last
+			labelJNZStep(loopSym),                         // jnz :loop
+			setACStep{},                                   // ra = rc
+			isUsedStep{},                                  // used?
+			labelJZStep(contSym),                          // jz :cont
+			exitStep{errAlreadyUsed},                      // exit errAlreadyUsed
+			labelStep(contSym),                            // :cont
+			setACStep{},                                   // ra = rc
+			storeStep(c),                                  // store $c
 		)
 	}
-	steps = append(steps, storeStep(c))
-	gg.steps = append(gg.steps, steps...)
 }
 
 func (gg *goGen) checkColumn(cx [3]byte) {
