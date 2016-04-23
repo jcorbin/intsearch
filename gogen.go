@@ -212,11 +212,11 @@ func (gg *goGen) choose(c byte) {
 	gg.saveCarry()
 	steps := make([]solutionStep, 0, 22)
 	gg.carryValid = false
+	min := 0
 	if c == gg.words[0][0] || c == gg.words[1][0] || c == gg.words[2][0] {
-		steps = append(steps, setAStep(1))
-	} else {
-		steps = append(steps, setAStep(0))
+		min = 1
 	}
+	steps = append(steps, setAStep(min))
 	var last = gg.base - 1
 	if gg.useForkUntil {
 		steps = append(steps, forkUntilStep(last))
