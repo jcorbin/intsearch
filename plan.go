@@ -94,17 +94,19 @@ func (prob *planProblem) planTopDown(gen solutionGen) {
 }
 
 func (prob *planProblem) planBottomUp(gen solutionGen) {
-	gen.setCarry(0)
-	for i := prob.numColumns() - 1; i > 0; i-- {
-		col := &prob.columns[i]
-		prob.solveColumn(gen, col)
-		gen.computeCarry(col.cx[0], col.cx[1])
+	for i := prob.numColumns() - 1; i >= 0; i-- {
+		prob.solveColumn(gen, &prob.columns[i])
 	}
-	prob.solveColumn(gen, &prob.columns[0])
 	gen.finish()
 }
 
 func (prob *planProblem) solveColumn(gen solutionGen, col *column) {
+	if pri := col.prior; pri == nil {
+		gen.setCarry(0)
+	} else {
+		gen.computeCarry(pri.cx[0], pri.cx[1])
+	}
+
 	if col.unknown == 0 {
 		gen.checkColumn(col.cx)
 		return
