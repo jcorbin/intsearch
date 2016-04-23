@@ -8,12 +8,6 @@ func (mg multiGen) init(desc string) {
 	}
 }
 
-func (mg multiGen) setCarry(v int) {
-	for _, gen := range mg {
-		gen.setCarry(v)
-	}
-}
-
 func (mg multiGen) fix(c byte, v int) {
 	for _, gen := range mg {
 		gen.fix(c, v)
@@ -35,12 +29,6 @@ func (mg multiGen) computeFirstSummand(col *column) {
 func (mg multiGen) computeSecondSummand(col *column) {
 	for _, gen := range mg {
 		gen.computeSecondSummand(col)
-	}
-}
-
-func (mg multiGen) computeCarry(c1, c2 byte) {
-	for _, gen := range mg {
-		gen.computeCarry(c1, c2)
 	}
 }
 

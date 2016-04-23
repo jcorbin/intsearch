@@ -20,6 +20,7 @@ type goGen struct {
 	steps        []solutionStep
 	verified     bool
 	useForkUntil bool
+	carryPrior   *column
 	carrySaved   bool
 	carryValid   bool
 	usedDigits   []bool
@@ -100,14 +101,6 @@ func (gg *goGen) logf(format string, args ...interface{}) {
 func (gg *goGen) init(desc string) {
 }
 
-func (gg *goGen) setCarry(v int) {
-	gg.steps = append(gg.steps,
-		labelStep(gg.gensym("setCarry")),
-		setAStep(v))
-	gg.carrySaved = false
-	gg.carryValid = true
-}
-
 func (gg *goGen) fix(c byte, v int) {
 	gg.usedDigits[v] = true
 	gg.steps = append(gg.steps,
@@ -117,22 +110,12 @@ func (gg *goGen) fix(c byte, v int) {
 }
 
 func (gg *goGen) saveCarry() {
-	if !gg.carrySaved {
+	if gg.carryPrior != nil && !gg.carrySaved {
 		if !gg.carryValid {
 			panic("no valid carry to save")
 		}
 		gg.steps = append(gg.steps, setBAStep{})
 		gg.carrySaved = true
-	}
-}
-
-func (gg *goGen) restoreCarry() {
-	if !gg.carryValid {
-		if !gg.carrySaved {
-			panic("no saved carry to restore")
-		}
-		gg.steps = append(gg.steps, setABStep{})
-		gg.carryValid = true
 	}
 }
 
@@ -142,9 +125,9 @@ func (gg *goGen) computeSum(col *column) {
 	// Solve for c:
 	//   c = carry + a + b (mod base)
 	a, b, c := col.cx[0], col.cx[1], col.cx[2]
+	gg.ensurePriorCarry(col)
 	gg.steps = append(gg.steps,
 		labelStep(gg.gensym("computeSum(%s, %s, %s)", string(a), string(b), string(c))))
-	gg.restoreCarry()
 	gg.saveCarry()
 	gg.carryValid = false
 	steps := make([]solutionStep, 0, 6)
@@ -178,9 +161,9 @@ func (gg *goGen) computeSummand(col *column, a, b, c byte) {
 	//   carry + a + b = c (mod base)
 	// Solve for a:
 	//   a = c - b - carry (mod base)
+	gg.ensurePriorCarry(col)
 	gg.steps = append(gg.steps,
 		labelStep(gg.gensym("computeSummand(%s, %s, %s)", string(a), string(b), string(c))))
-	gg.restoreCarry()
 	gg.saveCarry()
 	gg.carryValid = false
 	steps := make([]solutionStep, 0, 7)
@@ -200,23 +183,6 @@ func (gg *goGen) computeSummand(col *column, a, b, c byte) {
 			exitStep{errCheckFailed})
 	}
 	gg.steps = append(gg.steps, steps...)
-}
-
-func (gg *goGen) computeCarry(c1, c2 byte) {
-	gg.steps = append(gg.steps,
-		labelStep(gg.gensym("computeCarry(%s, %s)", string(c1), string(c2))))
-	gg.restoreCarry()
-	steps := make([]solutionStep, 0, 3)
-	if c1 != 0 {
-		steps = append(steps, addValueStep(c1))
-	}
-	if c2 != 0 {
-		steps = append(steps, addValueStep(c2))
-	}
-	steps = append(steps, divStep(gg.base))
-	gg.steps = append(gg.steps, steps...)
-	gg.carryValid = true
-	gg.carrySaved = false
 }
 
 func (gg *goGen) choose(c byte) {
@@ -293,11 +259,48 @@ func (gg *goGen) choose(c byte) {
 	}
 }
 
+func (gg *goGen) ensurePriorCarry(col *column) {
+	pri := col.prior
+	if pri == nil {
+		gg.steps = append(gg.steps,
+			labelStep(gg.gensym("ensureCarry(%d):noPrior", col.i)),
+			setAStep(0))
+	} else if pri == gg.carryPrior {
+		if gg.carryValid {
+			return
+		} else if !gg.carrySaved {
+			panic("no saved carry to restore")
+		}
+		gg.steps = append(gg.steps,
+			labelStep(gg.gensym("ensureCarry(%d):restore", col.i)),
+			setABStep{})
+		gg.carryValid = true
+		return
+	} else {
+		c1, c2 := pri.cx[0], pri.cx[1]
+		gg.steps = append(gg.steps,
+			labelStep(gg.gensym("ensureCarry(%d):compute(%s, %s)", col.i, string(c1), string(c2))))
+		gg.ensurePriorCarry(pri)
+		steps := make([]solutionStep, 0, 3)
+		if c1 != 0 {
+			steps = append(steps, addValueStep(c1))
+		}
+		if c2 != 0 {
+			steps = append(steps, addValueStep(c2))
+		}
+		steps = append(steps, divStep(gg.base))
+		gg.steps = append(gg.steps, steps...)
+	}
+	gg.carryPrior = pri
+	gg.carrySaved = false
+	gg.carryValid = true
+}
+
 func (gg *goGen) checkColumn(col *column) {
 	a, b, c := col.cx[0], col.cx[1], col.cx[2]
+	gg.ensurePriorCarry(col)
 	gg.steps = append(gg.steps,
 		labelStep(gg.gensym("checkColumn(%v, %v, %v)", string(a), string(b), string(c))))
-	gg.restoreCarry()
 	steps := make([]solutionStep, 0, 9)
 
 	n := 0
@@ -325,7 +328,9 @@ func (gg *goGen) checkColumn(col *column) {
 	} else {
 		steps = append(steps, setAStep(0))
 	}
+	gg.carryPrior = col
 	gg.carrySaved = false
+	gg.carryValid = true
 	gg.steps = append(gg.steps, steps...)
 }
 

@@ -41,10 +41,6 @@ func (lg *logGen) init(desc string) {
 	fmt.Printf("\n")
 }
 
-func (lg *logGen) setCarry(v int) {
-	lg.stepf("set carry = %d\n", v)
-}
-
 func (lg *logGen) fix(c byte, v int) {
 	lg.stepf("fix %v = %v\n", string(c), v)
 }
@@ -79,18 +75,6 @@ func (lg *logGen) computeSummand(a, b, c byte) {
 		lg.stepf("compute %v = %v - carry (mod %v)\n", string(a), string(c), lg.base)
 	} else {
 		lg.stepf("compute %v = - carry (mod %v)\n", string(a), lg.base)
-	}
-}
-
-func (lg *logGen) computeCarry(c1, c2 byte) {
-	if c1 != 0 && c2 != 0 {
-		lg.stepf("set carry = (carry + %v + %v) // %v\n", string(c1), string(c2), lg.base)
-	} else if c1 != 0 {
-		lg.stepf("set carry = (carry + %v) // %v\n", string(c1), lg.base)
-	} else if c2 != 0 {
-		lg.stepf("set carry = (carry + %v) // %v\n", string(c2), lg.base)
-	} else {
-		lg.stepf("set carry = carry // %v = 0\n", lg.base)
 	}
 }
 

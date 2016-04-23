@@ -18,12 +18,10 @@ type planProblem struct {
 
 type solutionGen interface {
 	init(desc string)
-	setCarry(v int)
 	fix(c byte, v int)
 	computeSum(col *column)
 	computeFirstSummand(col *column)
 	computeSecondSummand(col *column)
-	computeCarry(c1, c2 byte)
 	choose(c byte)
 	checkColumn(col *column)
 	finish()
@@ -102,12 +100,6 @@ func (prob *planProblem) planBottomUp(gen solutionGen) {
 }
 
 func (prob *planProblem) solveColumn(gen solutionGen, col *column) {
-	if pri := col.prior; pri == nil {
-		gen.setCarry(0)
-	} else {
-		gen.computeCarry(pri.cx[0], pri.cx[1])
-	}
-
 	if col.unknown == 0 {
 		gen.checkColumn(col)
 		return

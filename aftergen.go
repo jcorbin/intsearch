@@ -6,10 +6,6 @@ func (ag afterGen) init(desc string) {
 	ag()
 }
 
-func (ag afterGen) setCarry(v int) {
-	ag()
-}
-
 func (ag afterGen) fix(c byte, v int) {
 	ag()
 }
@@ -23,10 +19,6 @@ func (ag afterGen) computeFirstSummand(col *column) {
 }
 
 func (ag afterGen) computeSecondSummand(col *column) {
-	ag()
-}
-
-func (ag afterGen) computeCarry(c1, c2 byte) {
 	ag()
 }
 
