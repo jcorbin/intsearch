@@ -122,22 +122,20 @@ func (prob *planProblem) solveColumn(gen solutionGen, col *column) {
 	}
 
 	for x, c := range col.cx {
-		if c != 0 {
-			if !prob.known[c] {
-				if col.unknown == 1 {
-					switch x {
-					case 0:
-						gen.computeSummand(c, col.cx[1], col.cx[2])
-					case 1:
-						gen.computeSummand(c, col.cx[0], col.cx[2])
-					case 2:
-						gen.computeSum(col.cx[0], col.cx[1], c)
-					}
-				} else {
-					gen.choose(c)
+		if c != 0 && !prob.known[c] {
+			if col.unknown == 1 {
+				switch x {
+				case 0:
+					gen.computeSummand(c, col.cx[1], col.cx[2])
+				case 1:
+					gen.computeSummand(c, col.cx[0], col.cx[2])
+				case 2:
+					gen.computeSum(col.cx[0], col.cx[1], c)
 				}
-				prob.markKnown(c)
+			} else {
+				gen.choose(c)
 			}
+			prob.markKnown(c)
 		}
 	}
 
