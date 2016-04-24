@@ -113,21 +113,26 @@ func resolveLabels(steps []solutionStep, labels map[string]int) ([]solutionStep,
 }
 
 // eraseLabels erases all labeledSteps in steps, updating passed labels values
-// as appropriate.  If the passed labels map is nil, then extractLabels is used
-// to get labels.
+// as appropriate.
 //
 // For each labeledStep, the step is replaced by the (maybe empty) list of
 // steps returned by step.eraseLabel().
 func eraseLabels(steps []solutionStep, labels map[string]int) ([]solutionStep, map[string]int) {
+	n := len(labels)
 	if labels == nil {
-		labels = extractLabels(steps, nil)
+		for _, step := range steps {
+			if _, ok := step.(labeledStep); ok {
+				n++
+			}
+		}
 	}
 
 	var (
-		n, prior int
+		prior int
 		parts    = make([][]solutionStep, 0, 2*len(labels)+1)
 		remap    = make([]int, len(steps))
 	)
+	n = 0
 	for addr, step := range steps {
 		if ls, ok := step.(labeledStep); ok {
 			labels[ls.labelName()] = addr
