@@ -47,7 +47,8 @@ func (gg *goGen) loggedGen() solutionGen {
 	return multiGen([]solutionGen{
 		newLogGen(gg.planProblem),
 		gg,
-		afterGen(gg.dumpLastSteps),
+		// TODO: doesn't work right wrt fork alt
+		// afterGen(gg.dumpLastSteps),
 	})
 }
 
