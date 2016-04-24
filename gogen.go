@@ -47,6 +47,15 @@ func newGoGen(prob *planProblem, annotated bool) *goGen {
 	return gg
 }
 
+func (gg *goGen) copy() *goGen {
+	alt := &goGen{
+		planProblem: gg.planProblem,
+		usedSymbols: gg.usedSymbols,
+	}
+	// TODO: carry state copy... but whither column
+	return alt
+}
+
 func fallFact(x, y int) int {
 	z := 1
 	for y > 0 {
