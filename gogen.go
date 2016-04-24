@@ -400,6 +400,10 @@ func (gg *goGen) verify() {
 }
 
 func (gg *goGen) finish() {
+	if _, ok := gg.steps[len(gg.steps)-1].(exitStep); ok {
+		panic("double goGen.finish")
+	}
+
 	if gg.verified {
 		gg.verify()
 	}
