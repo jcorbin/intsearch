@@ -62,11 +62,11 @@ func (gg *goGen) dumpLastSteps() {
 	}
 }
 
-func (gg *goGen) labelFor(sol *solution) string {
-	if sol.stepi >= len(gg.addrLabels) {
+func (gg *goGen) labelFor(i int) string {
+	if i >= len(gg.addrLabels) {
 		return ""
 	}
-	label := gg.addrLabels[sol.stepi]
+	label := gg.addrLabels[i]
 	if len(label) == 0 {
 		return ""
 	}
@@ -78,7 +78,7 @@ func (gg *goGen) logf(format string, args ...interface{}) {
 	if gg.addrLabels != nil {
 		for _, arg := range args {
 			if sol, ok := arg.(*solution); ok {
-				label = gg.labelFor(sol)
+				label = gg.labelFor(sol.stepi)
 				break
 			}
 		}
