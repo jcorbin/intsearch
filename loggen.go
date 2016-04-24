@@ -7,6 +7,7 @@ import (
 
 type logGen struct {
 	*planProblem
+	prefix   string
 	step     int
 	branches []int
 }
@@ -20,7 +21,11 @@ func newLogGen(prob *planProblem) *logGen {
 
 func (lg *logGen) stepf(format string, args ...interface{}) {
 	lg.step++
-	fmt.Printf("// Step[%v]: ", lg.step)
+	if lg.prefix == "" {
+		fmt.Printf("// Step[%v]: ", lg.step)
+	} else {
+		fmt.Printf("// %s> step[%v]: ", lg.prefix, lg.step)
+	}
 	fmt.Printf(format, args...)
 }
 
@@ -105,6 +110,9 @@ func (lg *logGen) finish() {
 		branches *= b
 	}
 
-	fmt.Printf("")
-	fmt.Printf("# Total Branches: %v\n", branches)
+	if lg.prefix == "" {
+		fmt.Printf("// Total Branches: %v\n", branches)
+	} else {
+		fmt.Printf("// %s> Total Branches: %v\n", lg.prefix, branches)
+	}
 }
