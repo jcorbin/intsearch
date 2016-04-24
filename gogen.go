@@ -267,7 +267,13 @@ func (gg *goGen) ensurePriorCarry(col *column) {
 		gg.steps = append(gg.steps,
 			labelStep(gg.gensym("ensureCarry(%d):noPrior", col.i)),
 			setAStep(0))
-	} else if pri == gg.carryPrior {
+		gg.carryPrior = pri
+		gg.carrySaved = false
+		gg.carryValid = true
+		return
+	}
+
+	if pri == gg.carryPrior {
 		if gg.carryValid {
 			return
 		} else if !gg.carrySaved {
@@ -278,21 +284,22 @@ func (gg *goGen) ensurePriorCarry(col *column) {
 			setABStep{})
 		gg.carryValid = true
 		return
-	} else {
-		c1, c2 := pri.cx[0], pri.cx[1]
-		gg.steps = append(gg.steps,
-			labelStep(gg.gensym("ensureCarry(%d):compute(%s)", col.i, charsLabel(c1, c2))))
-		gg.ensurePriorCarry(pri)
-		steps := make([]solutionStep, 0, 3)
-		if c1 != 0 {
-			steps = append(steps, addValueStep(c1))
-		}
-		if c2 != 0 {
-			steps = append(steps, addValueStep(c2))
-		}
-		steps = append(steps, divStep(gg.base))
-		gg.steps = append(gg.steps, steps...)
 	}
+
+	c1, c2 := pri.cx[0], pri.cx[1]
+	gg.steps = append(gg.steps,
+		labelStep(gg.gensym("ensureCarry(%d):compute(%s)", col.i, charsLabel(c1, c2))))
+	gg.ensurePriorCarry(pri)
+	steps := make([]solutionStep, 0, 3)
+	if c1 != 0 {
+		steps = append(steps, addValueStep(c1))
+	}
+	if c2 != 0 {
+		steps = append(steps, addValueStep(c2))
+	}
+	steps = append(steps, divStep(gg.base))
+	gg.steps = append(gg.steps, steps...)
+
 	gg.carryPrior = pri
 	gg.carrySaved = false
 	gg.carryValid = true
