@@ -128,9 +128,14 @@ func main() {
 
 	if *dumpProg {
 		fmt.Println()
-		fmt.Printf("//// Resolved Program Dump\n")
+		fmt.Printf("//// Program Dump\n")
 		for i, step := range gg.steps {
-			fmt.Printf("%v: %v\n", i, step)
+			label := gg.labelFor(i)
+			if label == "" {
+				fmt.Printf("%v: %v\n", i, step)
+			} else {
+				fmt.Printf("%v: %v  // :%s\n", i, step, label)
+			}
 		}
 		fmt.Println()
 	}
