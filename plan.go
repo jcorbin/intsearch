@@ -205,6 +205,47 @@ func newPlanProblem(p *problem) *planProblem {
 	return prob
 }
 
+func (prob *planProblem) copy() *planProblem {
+	C := prob.numColumns()
+	N := len(prob.letterSet)
+	other := &planProblem{
+		problem:      prob.problem,
+		columns:      make([]column, C),
+		letCols:      make(map[byte][]*column, N),
+		known:        make(map[byte]bool, N),
+		fixedLetters: make(map[byte]int, N),
+		fixedValues:  append([]bool(nil), prob.fixedValues...),
+	}
+
+	for l, v := range prob.fixedLetters {
+		other.fixedLetters[l] = v
+	}
+
+	remap := make(map[*column]*column, len(prob.columns))
+	var last *column
+	for i := 0; i < C; i++ {
+		other.columns[i] = prob.columns[i]
+		col := &other.columns[i]
+		remap[&prob.columns[i]] = col
+		if last != nil {
+			last.prior = col
+		}
+		last = col
+	}
+	for c, cols := range prob.letCols {
+		otherCols := make([]*column, len(cols))
+		for i, col := range cols {
+			otherCols[i] = remap[col]
+		}
+		other.letCols[c] = otherCols
+	}
+	for c, k := range prob.known {
+		other.known[c] = k
+	}
+
+	return other
+}
+
 func (prob *planProblem) markKnown(c byte) {
 	prob.known[c] = true
 	for _, col := range prob.letCols[c] {
