@@ -86,7 +86,15 @@ func (lg *logGen) choose(c byte) {
 
 func (lg *logGen) checkColumn(col *column) {
 	a, b, c := col.cx[0], col.cx[1], col.cx[2]
-	lg.stepf("check column carry + %v + %v = %v\n", string(a), string(b), string(c))
+	if a != 0 && b != 0 {
+		lg.stepf("check column carry + %v + %v = %v\n", string(a), string(b), string(c))
+	} else if a != 0 {
+		lg.stepf("check column carry + %v = %v\n", string(a), string(c))
+	} else if b != 0 {
+		lg.stepf("check column carry + %v = %v\n", string(b), string(c))
+	} else {
+		lg.stepf("check column carry = %v\n", string(c))
+	}
 }
 
 func (lg *logGen) finish() {
