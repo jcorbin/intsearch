@@ -409,7 +409,6 @@ func (gg *goGen) finish() {
 	}
 	gg.steps = append(gg.steps, exitStep{nil})
 
-	gg.labels = extractLabels(gg.steps, nil)
 	gg.steps, gg.labels = eraseLabels(gg.steps, gg.labels)
 	gg.steps, gg.labels = resolveLabels(gg.steps, gg.labels)
 
