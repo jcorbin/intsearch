@@ -86,7 +86,7 @@ func (lg *logGen) choose(c byte) {
 
 func (lg *logGen) checkColumn(col *column) {
 	a, b, c := col.cx[0], col.cx[1], col.cx[2]
-	lg.stepf("check column %v + %v = %v\n", string(a), string(b), string(c))
+	lg.stepf("check column carry + %v + %v = %v\n", string(a), string(b), string(c))
 }
 
 func (lg *logGen) finish() {
