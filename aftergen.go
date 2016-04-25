@@ -10,6 +10,10 @@ func (ag afterGen) fix(c byte, v int) {
 	ag()
 }
 
+func (ag afterGen) fixCarry(i, v int) {
+	ag()
+}
+
 func (ag afterGen) computeSum(col *column) {
 	ag()
 }

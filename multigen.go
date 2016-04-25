@@ -14,6 +14,12 @@ func (mg multiGen) fix(c byte, v int) {
 	}
 }
 
+func (mg multiGen) fixCarry(i, v int) {
+	for _, gen := range mg {
+		gen.fixCarry(i, v)
+	}
+}
+
 func (mg multiGen) computeSum(col *column) {
 	for _, gen := range mg {
 		gen.computeSum(col)

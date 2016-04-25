@@ -19,6 +19,7 @@ type planProblem struct {
 type solutionGen interface {
 	init(desc string)
 	fix(c byte, v int)
+	fixCarry(i, v int)
 	computeSum(col *column)
 	computeFirstSummand(col *column)
 	computeSecondSummand(col *column)
