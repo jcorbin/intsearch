@@ -409,8 +409,13 @@ func (gg *goGen) finish() {
 	}
 	gg.steps = append(gg.steps, exitStep{nil})
 
-	gg.steps, gg.labels = eraseLabels(gg.steps, gg.labels)
-	gg.steps, gg.labels = resolveLabels(gg.steps, gg.labels)
+	var parts [][]solutionStep
+	parts, gg.labels = eraseLabels(gg.steps, nil, gg.labels)
+	var steps []solutionStep
+	for _, part := range parts {
+		steps = append(steps, part...)
+	}
+	gg.steps, gg.labels = resolveLabels(steps, gg.labels)
 
 	gg.addrLabels = make([]string, len(gg.steps))
 	for label, addr := range gg.labels {

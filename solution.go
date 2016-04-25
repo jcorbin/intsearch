@@ -117,20 +117,19 @@ func resolveLabels(steps []solutionStep, labels map[string]int) ([]solutionStep,
 //
 // For each labeledStep, the step is replaced by the (maybe empty) list of
 // steps returned by step.eraseLabel().
-func eraseLabels(steps []solutionStep, labels map[string]int) ([]solutionStep, map[string]int) {
-	n := len(labels)
-	if labels == nil {
-		for _, step := range steps {
-			if _, ok := step.(labeledStep); ok {
-				n++
+func eraseLabels(steps []solutionStep, parts [][]solutionStep, labels map[string]int) ([][]solutionStep, map[string]int) {
+	if parts == nil {
+		nl := len(labels)
+		if labels == nil {
+			for _, step := range steps {
+				if _, ok := step.(labeledStep); ok {
+					nl++
+				}
 			}
 		}
+		parts = make([][]solutionStep, 0, 2*nl+1)
 	}
-
-	var (
-		prior int
-		parts = make([][]solutionStep, 0, 2*n+1)
-	)
+	var n, prior int
 	n = 0
 	for addr, step := range steps {
 		if ls, ok := step.(labeledStep); ok {
@@ -152,12 +151,7 @@ func eraseLabels(steps []solutionStep, labels map[string]int) ([]solutionStep, m
 		parts = append(parts, tail)
 		n += len(tail)
 	}
-
-	steps = make([]solutionStep, 0, n)
-	for _, part := range parts {
-		steps = append(steps, part...)
-	}
-	return steps, labels
+	return parts, labels
 }
 
 type solution struct {
