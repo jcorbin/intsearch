@@ -76,17 +76,18 @@ func (prob *planProblem) plan(gen solutionGen) {
 }
 
 func (prob *planProblem) planTopDown(gen solutionGen) {
-	N := prob.numColumns()
-	for i := 0; i < N; i++ {
-		col := &prob.columns[i]
-		a, b, c := col.cx[0], col.cx[1], col.cx[2]
+	prob.procTopDown(gen, &prob.columns[0], 0)
+}
 
-		if a == 0 && b == 0 && c != 0 && !prob.known[c] {
-			gen.fix(c, 1)
-			col.solved = true
-			prob.markKnown(c)
-			continue
-		}
+func (prob *planProblem) procTopDown(gen solutionGen, col *column, carryOut int) {
+	a, b, c := col.cx[0], col.cx[1], col.cx[2]
+
+	if a == 0 && b == 0 && c != 0 && !prob.known[c] {
+		gen.fix(c, 1)
+		col.solved = true
+		prob.markKnown(c)
+		prob.procTopDown(gen, col.prior, 1)
+		return
 	}
 
 	prob.planBottomUp(gen)
