@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 type setABStep struct{}
 type setACStep struct{}
@@ -435,6 +438,61 @@ func isForkStep(step solutionStep) bool {
 	default:
 		return false
 	}
+}
+
+var errDeadFork = errors.New("dead fork")
+
+type forkAltStep struct {
+	alt       *goGen
+	name      string
+	altLabel  string
+	contLabel string
+}
+
+func (step forkAltStep) String() string    { return fmt.Sprintf("forkAlt :%s", step.name) }
+func (step forkAltStep) labelName() string { return step.name }
+func (step forkAltStep) run(sol *solution) {
+	panic(fmt.Sprintf("unexpanded forkAlt :%s", step.name))
+}
+func (step forkAltStep) expandStep(
+	addr int,
+	parts [][]solutionStep,
+	labels map[string]int,
+	annotate annoFunc,
+) (int, [][]solutionStep, map[string]int) {
+	// expands to:
+	// fork :$name:cont
+	// :$name:alt
+	// ...
+	// ... alt.steps
+	// ...
+	// exit errDeadFork
+	// :$name:cont
+	if step.alt.labels != nil {
+		panic("double alt expand")
+	}
+	step.alt.labels = labels
+
+	if annotate != nil {
+		annotate(addr, labelForkStep(step.contLabel).annotate())
+		annotate(addr+1, fmt.Sprintf(":%s", step.altLabel))
+	}
+
+	addr, parts = addr+1, append(parts, []solutionStep{
+		labelForkStep(step.contLabel)})
+	labels[step.altLabel] = addr
+
+	addr, parts, labels = expandSteps(addr, step.alt.steps, parts, labels, annotate)
+
+	addr, parts = addr+1, append(parts, []solutionStep{
+		exitStep{errDeadFork}})
+	labels[step.contLabel] = addr
+
+	if annotate != nil {
+		annotate(addr, fmt.Sprintf(":%s", step.contLabel))
+	}
+
+	return addr, parts, labels
 }
 
 type finishStep string
