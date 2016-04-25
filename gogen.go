@@ -22,6 +22,7 @@ type goGen struct {
 	verified     bool
 	useForkUntil bool
 	carryPrior   *column
+	carryFixed   map[int]int
 	carrySaved   bool
 	carryValid   bool
 	usedDigits   []bool
@@ -35,6 +36,7 @@ type goGen struct {
 func newGoGen(prob *planProblem) *goGen {
 	return &goGen{
 		planProblem: prob,
+		carryFixed:  make(map[int]int, prob.numColumns()),
 		usedSymbols: make(map[string]struct{}, 3*len(prob.letterSet)),
 		usedDigits:  make([]bool, prob.base),
 	}
@@ -109,6 +111,10 @@ func (gg *goGen) fix(c byte, v int) {
 		labelStep(gg.gensym("fix(%s)", string(c))),
 		setAStep(v),
 		storeStep(c))
+}
+
+func (gg *goGen) fixCarry(i, v int) {
+	gg.carryFixed[i] = v
 }
 
 func (gg *goGen) saveCarry() {
