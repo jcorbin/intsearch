@@ -126,6 +126,7 @@ func eraseLabels(steps []solutionStep, parts [][]solutionStep, labels map[string
 					nl++
 				}
 			}
+			labels = make(map[string]int, nl)
 		}
 		parts = make([][]solutionStep, 0, 2*nl+1)
 	}
