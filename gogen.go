@@ -135,6 +135,24 @@ func (gg *goGen) logf(format string, args ...interface{}) error {
 func (gg *goGen) init(desc string) {
 }
 
+func (gg *goGen) fork(prob *planProblem, name, altLabel, contLabel string) solutionGen {
+	if altLabel == "" {
+		altLabel = gg.gensym("%s:alt", name)
+	}
+	if contLabel == "" {
+		contLabel = gg.gensym("%s:cont", name)
+	}
+	alt := gg.copy()
+	alt.planProblem = prob
+	gg.steps = append(gg.steps, forkAltStep{
+		alt:       alt,
+		name:      name,
+		altLabel:  altLabel,
+		contLabel: contLabel,
+	})
+	return alt
+}
+
 func (gg *goGen) fix(c byte, v int) {
 	gg.steps = append(gg.steps,
 		labelStep(gg.gensym("fix(%s)", string(c))),
