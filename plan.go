@@ -90,6 +90,7 @@ func (prob *planProblem) procTopDown(gen solutionGen, col *column, carryOut int)
 		gen.fix(c, 1)
 		col.solved = true
 		prob.markKnown(c)
+		gen.fixCarry(col.i, 1)
 		prob.procTopDown(gen, col.prior, 1)
 		return
 	}
