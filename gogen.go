@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strings"
 )
 
 var (
@@ -128,7 +129,7 @@ func (gg *goGen) computeSum(col *column) {
 	a, b, c := col.cx[0], col.cx[1], col.cx[2]
 	gg.ensurePriorCarry(col)
 	gg.steps = append(gg.steps,
-		labelStep(gg.gensym("computeSum(%s, %s, %s)", string(a), string(b), string(c))))
+		labelStep(gg.gensym("computeSum(%s)", charsLabel(a, b, c))))
 	gg.saveCarry()
 	gg.carryValid = false
 	steps := make([]solutionStep, 0, 6)
@@ -164,7 +165,7 @@ func (gg *goGen) computeSummand(col *column, a, b, c byte) {
 	//   a = c - b - carry (mod base)
 	gg.ensurePriorCarry(col)
 	gg.steps = append(gg.steps,
-		labelStep(gg.gensym("computeSummand(%s, %s, %s)", string(a), string(b), string(c))))
+		labelStep(gg.gensym("computeSummand(%s)", charsLabel(a, b, c))))
 	gg.saveCarry()
 	gg.carryValid = false
 	steps := make([]solutionStep, 0, 7)
@@ -280,7 +281,7 @@ func (gg *goGen) ensurePriorCarry(col *column) {
 	} else {
 		c1, c2 := pri.cx[0], pri.cx[1]
 		gg.steps = append(gg.steps,
-			labelStep(gg.gensym("ensureCarry(%d):compute(%s, %s)", col.i, string(c1), string(c2))))
+			labelStep(gg.gensym("ensureCarry(%d):compute(%s)", col.i, charsLabel(c1, c2))))
 		gg.ensurePriorCarry(pri)
 		steps := make([]solutionStep, 0, 3)
 		if c1 != 0 {
@@ -301,7 +302,7 @@ func (gg *goGen) checkColumn(col *column) {
 	a, b, c := col.cx[0], col.cx[1], col.cx[2]
 	gg.ensurePriorCarry(col)
 	gg.steps = append(gg.steps,
-		labelStep(gg.gensym("checkColumn(%v, %v, %v)", string(a), string(b), string(c))))
+		labelStep(gg.gensym("checkColumn(%s)", charsLabel(a, b, c))))
 	steps := make([]solutionStep, 0, 9)
 
 	n := 0
@@ -424,4 +425,22 @@ func (gg *goGen) gensym(format string, args ...interface{}) string {
 		}
 		i++
 	}
+}
+
+func charsLabel(cs ...byte) string {
+	if len(cs) == 1 {
+		return charLabel(cs[0])
+	}
+	ss := make([]string, len(cs))
+	for i, c := range cs {
+		ss[i] = charsLabel(c)
+	}
+	return strings.Join(ss, ", ")
+}
+
+func charLabel(c byte) string {
+	if c == 0 {
+		return "nil"
+	}
+	return string(c)
 }
