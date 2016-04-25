@@ -132,18 +132,18 @@ func eraseLabels(steps []solutionStep, parts [][]solutionStep, labels map[string
 	}
 	var n, prior int
 	n = 0
-	for addr, step := range steps {
+	for i, step := range steps {
 		if ls, ok := step.(labeledStep); ok {
 			theAddr := n
 			labels[ls.labelName()] = theAddr
-			if head := steps[prior:addr]; len(head) > 0 {
+			if head := steps[prior:i]; len(head) > 0 {
 				parts = append(parts, head)
 			}
 			if replace := ls.eraseLabel(); len(replace) > 0 {
 				parts = append(parts, replace)
 				n += len(replace)
 			}
-			prior = addr + 1
+			prior = i + 1
 		} else {
 			n++
 		}
