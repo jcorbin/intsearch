@@ -143,6 +143,7 @@ type planProblem struct {
 type solutionGen interface {
 	logf(string, ...interface{}) error
 	init(desc string)
+	fork(prob *planProblem, name, alt, cont string) solutionGen
 	fix(c byte, v int)
 	computeSum(col *column)
 	computeFirstSummand(col *column)

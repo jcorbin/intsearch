@@ -15,6 +15,14 @@ func (mg multiGen) init(desc string) {
 	}
 }
 
+func (mg multiGen) fork(prob *planProblem, name, alt, cont string) solutionGen {
+	altGen := make([]solutionGen, len(mg))
+	for i, gen := range mg {
+		altGen[i] = gen.fork(prob, name, alt, cont)
+	}
+	return multiGen(altGen)
+}
+
 func (mg multiGen) fix(c byte, v int) {
 	for _, gen := range mg {
 		gen.fix(c, v)

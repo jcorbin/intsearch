@@ -10,6 +10,11 @@ func (ag afterGen) init(desc string) {
 	ag()
 }
 
+func (ag afterGen) fork(prob *planProblem, name, alt, cont string) solutionGen {
+	ag()
+	return ag
+}
+
 func (ag afterGen) fix(c byte, v int) {
 	ag()
 }
