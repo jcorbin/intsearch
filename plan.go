@@ -82,7 +82,10 @@ func (prob *planProblem) planTopDown(gen solutionGen) {
 func (prob *planProblem) procTopDown(gen solutionGen, col *column, carryOut int) {
 	a, b, c := col.cx[0], col.cx[1], col.cx[2]
 
-	if a == 0 && b == 0 && c != 0 && !prob.known[c] {
+	if col.i == 0 && a == 0 && b == 0 && c != 0 && !prob.known[c] {
+		if col.prior == nil {
+			panic("shouldn't be possible")
+		}
 		gen.fix(c, 1)
 		col.solved = true
 		prob.markKnown(c)
