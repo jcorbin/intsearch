@@ -280,6 +280,16 @@ func (gg *goGen) ensurePriorCarry(col *column) {
 		return
 	}
 
+	if value, ok := gg.carryFixed[pri.i]; ok {
+		gg.steps = append(gg.steps,
+			labelStep(gg.gensym("ensurePriorCarry(%d):fixed", col.i)),
+			setAStep(value))
+		gg.carryPrior = pri
+		gg.carrySaved = false
+		gg.carryValid = true
+		return
+	}
+
 	if pri == gg.carryPrior {
 		if gg.carryValid {
 			return
