@@ -263,9 +263,10 @@ func (gg *goGen) choose(c byte) {
 
 func (gg *goGen) ensurePriorCarry(col *column) {
 	pri := col.prior
+
 	if pri == nil {
 		gg.steps = append(gg.steps,
-			labelStep(gg.gensym("ensureCarry(%d):noPrior", col.i)),
+			labelStep(gg.gensym("ensurePriorCarry(%d):noPrior", col.i)),
 			setAStep(0))
 		gg.carryPrior = pri
 		gg.carrySaved = false
@@ -280,7 +281,7 @@ func (gg *goGen) ensurePriorCarry(col *column) {
 			panic("no saved carry to restore")
 		}
 		gg.steps = append(gg.steps,
-			labelStep(gg.gensym("ensureCarry(%d):restore", col.i)),
+			labelStep(gg.gensym("ensurePriorCarry(%d):restore", col.i)),
 			setABStep{})
 		gg.carryValid = true
 		return
@@ -288,7 +289,7 @@ func (gg *goGen) ensurePriorCarry(col *column) {
 
 	c1, c2 := pri.cx[0], pri.cx[1]
 	gg.steps = append(gg.steps,
-		labelStep(gg.gensym("ensureCarry(%d):compute(%s)", col.i, charsLabel(c1, c2))))
+		labelStep(gg.gensym("ensurePriorCarry(%d):compute(%s)", col.i, charsLabel(c1, c2))))
 	gg.ensurePriorCarry(pri)
 	steps := make([]solutionStep, 0, 3)
 	if c1 != 0 {
