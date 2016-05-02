@@ -77,10 +77,10 @@ func (prob *planProblem) plan(gen solutionGen) {
 }
 
 func (prob *planProblem) planTopDown(gen solutionGen) {
-	prob.procTopDown(gen, &prob.columns[0], 0)
+	prob.procTopDown(gen, &prob.columns[0])
 }
 
-func (prob *planProblem) procTopDown(gen solutionGen, col *column, carryOut int) {
+func (prob *planProblem) procTopDown(gen solutionGen, col *column) {
 	a, b, c := col.cx[0], col.cx[1], col.cx[2]
 
 	if col.i == 0 && a == 0 && b == 0 && c != 0 && !prob.known[c] {
@@ -90,12 +90,16 @@ func (prob *planProblem) procTopDown(gen solutionGen, col *column, carryOut int)
 		gen.fix(c, 1)
 		col.solved = true
 		prob.markKnown(c)
-		gen.fixCarry(col.i, 1)
-		prob.procTopDown(gen, col.prior, 1)
+		prob.fixCarryIn(gen, col, 1)
+		prob.procTopDown(gen, col.prior)
 		return
 	}
 
 	prob.planBottomUp(gen)
+}
+
+func (prob *planProblem) fixCarryIn(gen solutionGen, col *column, carry int) {
+	gen.fixCarry(col.i, carry)
 }
 
 func (prob *planProblem) planBottomUp(gen solutionGen) {
