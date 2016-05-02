@@ -87,7 +87,7 @@ func (lg *logGen) computeSummand(a, b, c byte) {
 	}
 }
 
-func (lg *logGen) choose(c byte) {
+func (lg *logGen) choose(col *column, i int, c byte) {
 	branches := lg.base - len(lg.known)
 	lg.branches = append(lg.branches, branches)
 	lg.stepf("choose %v (branch by %v)\n", string(c), branches)

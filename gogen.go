@@ -193,7 +193,7 @@ func (gg *goGen) computeSummand(col *column, a, b, c byte) {
 	gg.steps = append(gg.steps, steps...)
 }
 
-func (gg *goGen) choose(c byte) {
+func (gg *goGen) choose(col *column, i int, c byte) {
 	gg.saveCarry()
 	gg.carryValid = false
 	min := 0

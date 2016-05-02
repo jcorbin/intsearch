@@ -38,9 +38,9 @@ func (mg multiGen) computeSecondSummand(col *column) {
 	}
 }
 
-func (mg multiGen) choose(c byte) {
+func (mg multiGen) choose(col *column, i int, c byte) {
 	for _, gen := range mg {
-		gen.choose(c)
+		gen.choose(col, i, c)
 	}
 }
 

@@ -23,7 +23,7 @@ type solutionGen interface {
 	computeSum(col *column)
 	computeFirstSummand(col *column)
 	computeSecondSummand(col *column)
-	choose(c byte)
+	choose(col *column, i int, c byte)
 	checkColumn(col *column)
 	finish()
 }
@@ -127,7 +127,7 @@ func (prob *planProblem) solveColumn(gen solutionGen, col *column) {
 					gen.computeSum(col)
 				}
 			} else {
-				gen.choose(c)
+				gen.choose(col, x, c)
 			}
 			prob.markKnown(c)
 		}
