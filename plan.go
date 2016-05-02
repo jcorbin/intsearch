@@ -7,6 +7,7 @@ type column struct {
 	solved  bool
 	known   int
 	unknown int
+	carry   int
 }
 
 type planProblem struct {
@@ -41,6 +42,7 @@ func newPlanProblem(p *problem) *planProblem {
 	for i := 0; i < C; i++ {
 		col := &prob.columns[i]
 		col.i = i
+		col.carry = -1
 		if last != nil {
 			last.prior = col
 		}
@@ -73,6 +75,7 @@ func (prob *planProblem) markKnown(c byte) {
 
 func (prob *planProblem) plan(gen solutionGen) {
 	gen.init("top down ... bottom up")
+	prob.columns[0].carry = 0
 	prob.planTopDown(gen)
 }
 
@@ -99,6 +102,7 @@ func (prob *planProblem) procTopDown(gen solutionGen, col *column) {
 }
 
 func (prob *planProblem) fixCarryIn(gen solutionGen, col *column, carry int) {
+	col.prior.carry = carry
 	gen.fixCarry(col.i, carry)
 }
 
