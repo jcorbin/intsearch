@@ -166,8 +166,12 @@ func (prob *planProblem) solveColumn(gen solutionGen, col *column) {
 }
 
 func (prob *planProblem) solveSingularColumn(gen solutionGen, col *column) {
-	a, b, c := col.cx[0], col.cx[1], col.cx[2]
-	if col.i == 0 && a == 0 && b == 0 && c != 0 && !prob.known[c] {
+	if col.have != 1 || col.unknown != 1 {
+		return
+	}
+
+	if c := col.cx[2]; col.i == 0 && c != 0 {
+		// carry + _ + _ = c --> c == carry --> c = carry = 1
 		if col.prior == nil {
 			panic("invalid final column: has no prior")
 		}
