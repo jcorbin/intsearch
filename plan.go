@@ -31,6 +31,7 @@ type column struct {
 	prior   *column
 	cx      [3]byte
 	solved  bool
+	have    int
 	known   int
 	unknown int
 	carry   carryValue
@@ -75,16 +76,23 @@ func newPlanProblem(p *problem) *planProblem {
 		col.cx = prob.getColumn(i)
 		a, b, c := col.cx[0], col.cx[1], col.cx[2]
 		if a != 0 {
+			col.have++
 			col.unknown++
 			prob.letCols[a] = append(prob.letCols[a], col)
 		}
-		if b != 0 && b != a {
-			col.unknown++
-			prob.letCols[b] = append(prob.letCols[b], col)
+		if b != 0 {
+			col.have++
+			if b != a {
+				col.unknown++
+				prob.letCols[b] = append(prob.letCols[b], col)
+			}
 		}
-		if c != 0 && c != b && c != a {
-			col.unknown++
-			prob.letCols[c] = append(prob.letCols[c], col)
+		if c != 0 {
+			col.have++
+			if c != b && c != a {
+				col.unknown++
+				prob.letCols[c] = append(prob.letCols[c], col)
+			}
 		}
 		last = col
 	}
