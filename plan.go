@@ -1,9 +1,10 @@
 package main
 
 const (
-	carryUnknown = -1
-	carryZero    = 0
-	carryOne     = 1
+	carryUnknown  = -1
+	carryZero     = 0
+	carryOne      = 1
+	carryComputed = 2
 )
 
 type carryValue int
@@ -16,6 +17,8 @@ func (c carryValue) String() string {
 		return "0"
 	case carryOne:
 		return "1"
+	case carryComputed:
+		return "computed"
 	default:
 		return "invalid"
 	}
@@ -151,6 +154,12 @@ func (prob *planProblem) solveColumn(gen solutionGen, col *column) {
 		panic("invalid column solved state")
 	}
 
+	if col.prior != nil && col.prior.carry == carryUnknown {
+		// unknown prior carry not yet support; i.e. solveColumn must be called
+		// in bottom-up/right-to-left/decreasing-index order
+		panic("cannot solve column, prior carry unknown")
+	}
+
 	for x, c := range col.cx {
 		if c != 0 && !prob.known[c] {
 			if col.unknown == 1 {
@@ -170,4 +179,5 @@ func (prob *planProblem) solveColumn(gen solutionGen, col *column) {
 	}
 
 	col.solved = true
+	col.carry = carryComputed
 }
