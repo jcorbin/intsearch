@@ -1,5 +1,26 @@
 package main
 
+const (
+	carryUnknown = -1
+	carryZero    = 0
+	carryOne     = 1
+)
+
+type carryValue int
+
+func (c carryValue) String() string {
+	switch c {
+	case carryUnknown:
+		return "unknown"
+	case carryZero:
+		return "0"
+	case carryOne:
+		return "1"
+	default:
+		return "invalid"
+	}
+}
+
 type column struct {
 	i       int
 	prior   *column
@@ -7,7 +28,7 @@ type column struct {
 	solved  bool
 	known   int
 	unknown int
-	carry   int
+	carry   carryValue
 }
 
 type planProblem struct {
@@ -42,7 +63,7 @@ func newPlanProblem(p *problem) *planProblem {
 	for i := 0; i < C; i++ {
 		col := &prob.columns[i]
 		col.i = i
-		col.carry = -1
+		col.carry = carryUnknown
 		if last != nil {
 			last.prior = col
 		}
@@ -75,7 +96,7 @@ func (prob *planProblem) markKnown(c byte) {
 
 func (prob *planProblem) plan(gen solutionGen) {
 	gen.init("top down ... bottom up")
-	prob.columns[0].carry = 0
+	prob.columns[0].carry = carryZero
 	prob.planTopDown(gen)
 }
 
@@ -93,7 +114,7 @@ func (prob *planProblem) procTopDown(gen solutionGen, col *column) {
 		gen.fix(c, 1)
 		col.solved = true
 		prob.markKnown(c)
-		prob.fixCarryIn(gen, col, 1)
+		prob.fixCarryIn(gen, col, carryOne)
 		prob.procTopDown(gen, col.prior)
 		return
 	}
@@ -101,9 +122,16 @@ func (prob *planProblem) procTopDown(gen solutionGen, col *column) {
 	prob.planBottomUp(gen)
 }
 
-func (prob *planProblem) fixCarryIn(gen solutionGen, col *column, carry int) {
-	col.prior.carry = carry
-	gen.fixCarry(col.i, carry)
+func (prob *planProblem) fixCarryIn(gen solutionGen, col *column, carry carryValue) {
+	switch carry {
+	case carryZero:
+		fallthrough
+	case carryOne:
+		col.prior.carry = carry
+		gen.fixCarry(col.i, int(carry))
+	default:
+		panic("can only fix carry to a definite value")
+	}
 }
 
 func (prob *planProblem) planBottomUp(gen solutionGen) {
