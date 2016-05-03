@@ -1,5 +1,7 @@
 package main
 
+import "log"
+
 const (
 	carryUnknown  = -1
 	carryZero     = 0
@@ -157,7 +159,7 @@ func (prob *planProblem) solveColumn(gen solutionGen, col *column) {
 	prob.solveColumnFromPrior(gen, col)
 
 	if !col.solved {
-		panic("cannot solve column")
+		log.Fatalf("cannot solve column: %#v", col)
 	}
 }
 
