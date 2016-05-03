@@ -118,18 +118,12 @@ func (prob *planProblem) planTopDown(gen solutionGen) {
 }
 
 func (prob *planProblem) procTopDown(gen solutionGen, col *column) {
-	a, b, c := col.cx[0], col.cx[1], col.cx[2]
-
-	if col.i == 0 && a == 0 && b == 0 && c != 0 && !prob.known[c] {
-		if col.prior == nil {
-			panic("shouldn't be possible")
+	if col.have == 1 {
+		prob.solveSingularColumn(gen, col)
+		if col.solved {
+			prob.procTopDown(gen, col.prior)
+			return
 		}
-		gen.fix(c, 1)
-		col.solved = true
-		prob.markKnown(c)
-		prob.fixCarryIn(gen, col, carryOne)
-		prob.procTopDown(gen, col.prior)
-		return
 	}
 
 	prob.planBottomUp(gen)
@@ -168,6 +162,20 @@ func (prob *planProblem) solveColumn(gen solutionGen, col *column) {
 
 	if !col.solved {
 		log.Fatalf("cannot solve column: %#v", col)
+	}
+}
+
+func (prob *planProblem) solveSingularColumn(gen solutionGen, col *column) {
+	a, b, c := col.cx[0], col.cx[1], col.cx[2]
+	if col.i == 0 && a == 0 && b == 0 && c != 0 && !prob.known[c] {
+		if col.prior == nil {
+			panic("invalid final column: has no prior")
+		}
+		gen.fix(c, 1)
+		col.solved = true
+		prob.markKnown(c)
+		prob.fixCarryIn(gen, col, carryOne)
+		return
 	}
 }
 
