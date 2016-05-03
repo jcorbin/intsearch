@@ -154,10 +154,18 @@ func (prob *planProblem) solveColumn(gen solutionGen, col *column) {
 		panic("invalid column solved state")
 	}
 
+	prob.solveColumnFromPrior(gen, col)
+
+	if !col.solved {
+		panic("cannot solve column")
+	}
+}
+
+func (prob *planProblem) solveColumnFromPrior(gen solutionGen, col *column) {
 	if col.prior != nil && col.prior.carry == carryUnknown {
 		// unknown prior carry not yet support; i.e. solveColumn must be called
 		// in bottom-up/right-to-left/decreasing-index order
-		panic("cannot solve column, prior carry unknown")
+		return
 	}
 
 	for x, c := range col.cx {
@@ -177,7 +185,6 @@ func (prob *planProblem) solveColumn(gen solutionGen, col *column) {
 			prob.markKnown(c)
 		}
 	}
-
 	col.solved = true
 	col.carry = carryComputed
 }
