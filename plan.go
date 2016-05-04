@@ -122,8 +122,7 @@ func (prob *planProblem) planTopDown(gen solutionGen) {
 
 func (prob *planProblem) procTopDown(gen solutionGen, col *column) {
 	if col.have == 1 {
-		prob.solveSingularColumn(gen, col)
-		if col.solved {
+		if prob.solveSingularColumn(gen, col) {
 			prob.procTopDown(gen, col.prior)
 			return
 		}
@@ -181,9 +180,9 @@ func (prob *planProblem) solveColumn(gen solutionGen, col *column) {
 	}
 }
 
-func (prob *planProblem) solveSingularColumn(gen solutionGen, col *column) {
+func (prob *planProblem) solveSingularColumn(gen solutionGen, col *column) bool {
 	if col.have != 1 || col.unknown != 1 {
-		return
+		return false
 	}
 
 	if c := col.cx[2]; col.i == 0 && c != 0 {
@@ -195,8 +194,10 @@ func (prob *planProblem) solveSingularColumn(gen solutionGen, col *column) {
 		col.solved = true
 		prob.markKnown(c)
 		prob.fixCarryIn(gen, col, carryOne)
-		return
+		return true
 	}
+
+	return false
 }
 
 func (prob *planProblem) solveColumnFromPrior(gen solutionGen, col *column) bool {
