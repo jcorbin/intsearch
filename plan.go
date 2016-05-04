@@ -151,9 +151,13 @@ func (prob *planProblem) planBottomUp(gen solutionGen) {
 	gen.finish()
 }
 
+func (prob *planProblem) checkColumn(gen solutionGen, col *column) {
+	gen.checkColumn(col)
+}
+
 func (prob *planProblem) solveColumn(gen solutionGen, col *column) {
 	if col.unknown == 0 {
-		gen.checkColumn(col)
+		prob.checkColumn(gen, col)
 		return
 	}
 
