@@ -172,8 +172,7 @@ func (prob *planProblem) maySolveColumn(gen solutionGen, col *column) bool {
 		return prob.checkColumn(gen, col)
 	}
 
-	prob.solveColumnFromPrior(gen, col)
-	return col.solved
+	return prob.solveColumnFromPrior(gen, col)
 }
 
 func (prob *planProblem) solveColumn(gen solutionGen, col *column) {
@@ -200,11 +199,11 @@ func (prob *planProblem) solveSingularColumn(gen solutionGen, col *column) {
 	}
 }
 
-func (prob *planProblem) solveColumnFromPrior(gen solutionGen, col *column) {
+func (prob *planProblem) solveColumnFromPrior(gen solutionGen, col *column) bool {
 	if col.prior != nil && col.prior.carry == carryUnknown {
 		// unknown prior carry not yet support; i.e. solveColumn must be called
 		// in bottom-up/right-to-left/decreasing-index order
-		return
+		return false
 	}
 
 	for x, c := range col.cx {
@@ -226,4 +225,5 @@ func (prob *planProblem) solveColumnFromPrior(gen solutionGen, col *column) {
 	}
 	col.solved = true
 	col.carry = carryComputed
+	return true
 }
