@@ -153,6 +153,8 @@ func (prob *planProblem) planBottomUp(gen solutionGen) {
 
 func (prob *planProblem) checkColumn(gen solutionGen, col *column) {
 	gen.checkColumn(col)
+	col.solved = true
+	col.carry = carryComputed
 }
 
 func (prob *planProblem) solveColumn(gen solutionGen, col *column) {
