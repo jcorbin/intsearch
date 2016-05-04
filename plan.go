@@ -121,11 +121,9 @@ func (prob *planProblem) planTopDown(gen solutionGen) {
 }
 
 func (prob *planProblem) procTopDown(gen solutionGen, col *column) {
-	if col.have == 1 {
-		if prob.solveSingularColumn(gen, col) {
-			prob.procTopDown(gen, col.prior)
-			return
-		}
+	if prob.maySolveColumn(gen, col) {
+		prob.procTopDown(gen, col.prior)
+		return
 	}
 
 	prob.planBottomUp(gen)
@@ -169,6 +167,12 @@ func (prob *planProblem) maySolveColumn(gen solutionGen, col *column) bool {
 
 	if col.unknown == 0 {
 		return prob.checkColumn(gen, col)
+	}
+
+	if col.have == 1 {
+		if prob.solveSingularColumn(gen, col) {
+			return true
+		}
 	}
 
 	return prob.solveColumnFromPrior(gen, col)
