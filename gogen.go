@@ -417,14 +417,16 @@ func (gg *goGen) verify() {
 }
 
 func (gg *goGen) finish() {
-	if _, ok := gg.steps[len(gg.steps)-1].(exitStep); ok {
+	if _, finished := gg.usedSymbols["finish"]; finished {
 		panic("double goGen.finish")
 	}
 
 	if gg.verified {
 		gg.verify()
 	}
-	gg.steps = append(gg.steps, exitStep{nil})
+	gg.steps = append(gg.steps,
+		labelStep(gg.gensym("finish")),
+		exitStep{nil})
 
 	var parts [][]solutionStep
 	var addr int
