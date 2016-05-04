@@ -479,3 +479,13 @@ func charLabel(c byte) string {
 	}
 	return string(c)
 }
+
+func printLastKSteps(k int, steps []solutionStep) {
+	i := len(steps) - k - 1
+	if i < 0 {
+		i = 0
+	}
+	for j, step := range steps[i:] {
+		fmt.Printf("[%v]: %v\n", i+j, step)
+	}
+}
