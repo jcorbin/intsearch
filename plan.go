@@ -151,12 +151,13 @@ func (prob *planProblem) planBottomUp(gen solutionGen) {
 	gen.finish()
 }
 
-func (prob *planProblem) checkColumn(gen solutionGen, col *column) {
+func (prob *planProblem) checkColumn(gen solutionGen, col *column) bool {
 	if !col.solved {
 		gen.checkColumn(col)
 		col.solved = true
 		col.carry = carryComputed
 	}
+	return true
 }
 
 func (prob *planProblem) maySolveColumn(gen solutionGen, col *column) bool {
@@ -168,8 +169,7 @@ func (prob *planProblem) maySolveColumn(gen solutionGen, col *column) bool {
 	}
 
 	if col.unknown == 0 {
-		prob.checkColumn(gen, col)
-		return true
+		return prob.checkColumn(gen, col)
 	}
 
 	prob.solveColumnFromPrior(gen, col)
