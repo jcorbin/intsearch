@@ -159,19 +159,25 @@ func (prob *planProblem) checkColumn(gen solutionGen, col *column) {
 	}
 }
 
-func (prob *planProblem) solveColumn(gen solutionGen, col *column) {
-	if col.unknown == 0 {
-		prob.checkColumn(gen, col)
-		return
+func (prob *planProblem) maySolveColumn(gen solutionGen, col *column) bool {
+	if col.solved {
+		if col.unknown != 0 {
+			panic("invalid column solved state")
+		}
+		return true
 	}
 
-	if col.solved {
-		panic("invalid column solved state")
+	if col.unknown == 0 {
+		prob.checkColumn(gen, col)
+		return true
 	}
 
 	prob.solveColumnFromPrior(gen, col)
+	return col.solved
+}
 
-	if !col.solved {
+func (prob *planProblem) solveColumn(gen solutionGen, col *column) {
+	if !prob.maySolveColumn(gen, col) {
 		log.Fatalf("cannot solve column: %#v", col)
 	}
 }
