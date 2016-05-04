@@ -69,7 +69,11 @@ func newPlanProblem(p *problem) *planProblem {
 	for i := 0; i < C; i++ {
 		col := &prob.columns[i]
 		col.i = i
-		col.carry = carryUnknown
+		if i == 0 {
+			col.carry = carryZero
+		} else {
+			col.carry = carryUnknown
+		}
 		if last != nil {
 			last.prior = col
 		}
@@ -109,7 +113,6 @@ func (prob *planProblem) markKnown(c byte) {
 
 func (prob *planProblem) plan(gen solutionGen) {
 	gen.init("top down ... bottom up")
-	prob.columns[0].carry = carryZero
 	prob.planTopDown(gen)
 }
 
