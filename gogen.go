@@ -133,7 +133,7 @@ func (gg *goGen) computeSum(col *column) {
 	// Solve for c:
 	//   c = carry + a + b (mod base)
 	a, b, c := col.cx[0], col.cx[1], col.cx[2]
-	gg.ensurePriorCarry(col)
+	gg.ensureCarry(col.prior)
 	gg.steps = append(gg.steps,
 		labelStep(gg.gensym("computeSum(%s)", charsLabel(a, b, c))))
 	gg.saveCarry()
@@ -165,7 +165,7 @@ func (gg *goGen) computeSummand(col *column, a, b, c byte) {
 	//   carry + a + b = c (mod base)
 	// Solve for a:
 	//   a = c - b - carry (mod base)
-	gg.ensurePriorCarry(col)
+	gg.ensureCarry(col.prior)
 	gg.steps = append(gg.steps,
 		labelStep(gg.gensym("computeSummand(%s)", charsLabel(a, b, c))))
 	gg.saveCarry()
@@ -268,46 +268,44 @@ func (gg *goGen) choose(col *column, i int, c byte) {
 	}
 }
 
-func (gg *goGen) ensurePriorCarry(col *column) {
-	pri := col.prior
-
-	if pri == nil {
+func (gg *goGen) ensureCarry(col *column) {
+	if col == nil {
 		gg.steps = append(gg.steps,
-			labelStep(gg.gensym("ensurePriorCarry(%d):noPrior", col.i)),
+			labelStep(gg.gensym("ensureCarry:nil")),
 			setAStep(0))
-		gg.carryPrior = pri
+		gg.carryPrior = nil
 		gg.carrySaved = false
 		gg.carryValid = true
 		return
 	}
 
-	if value, ok := gg.carryFixed[pri.i]; ok {
+	if value, ok := gg.carryFixed[col.i]; ok {
 		gg.steps = append(gg.steps,
-			labelStep(gg.gensym("ensurePriorCarry(%d):fixed", col.i)),
+			labelStep(gg.gensym("ensureCarry(%d):fixed", col.i)),
 			setAStep(value))
-		gg.carryPrior = pri
+		gg.carryPrior = col
 		gg.carrySaved = false
 		gg.carryValid = true
 		return
 	}
 
-	if pri == gg.carryPrior {
+	if col == gg.carryPrior {
 		if gg.carryValid {
 			return
 		} else if !gg.carrySaved {
 			panic("no saved carry to restore")
 		}
 		gg.steps = append(gg.steps,
-			labelStep(gg.gensym("ensurePriorCarry(%d):restore", col.i)),
+			labelStep(gg.gensym("ensureCarry(%d):restore", col.i)),
 			setABStep{})
 		gg.carryValid = true
 		return
 	}
 
-	c1, c2 := pri.cx[0], pri.cx[1]
+	c1, c2 := col.cx[0], col.cx[1]
 	gg.steps = append(gg.steps,
-		labelStep(gg.gensym("ensurePriorCarry(%d):compute(%s)", col.i, charsLabel(c1, c2))))
-	gg.ensurePriorCarry(pri)
+		labelStep(gg.gensym("ensureCarry(%d):compute(%s)", col.i, charsLabel(c1, c2))))
+	gg.ensureCarry(col.prior)
 	steps := make([]solutionStep, 0, 3)
 	if c1 != 0 {
 		steps = append(steps, addValueStep(c1))
@@ -318,14 +316,14 @@ func (gg *goGen) ensurePriorCarry(col *column) {
 	steps = append(steps, divStep(gg.base))
 	gg.steps = append(gg.steps, steps...)
 
-	gg.carryPrior = pri
+	gg.carryPrior = col
 	gg.carrySaved = false
 	gg.carryValid = true
 }
 
 func (gg *goGen) checkColumn(col *column) {
 	a, b, c := col.cx[0], col.cx[1], col.cx[2]
-	gg.ensurePriorCarry(col)
+	gg.ensureCarry(col.prior)
 	gg.steps = append(gg.steps,
 		labelStep(gg.gensym("checkColumn(%s)", charsLabel(a, b, c))))
 	steps := make([]solutionStep, 0, 9)
