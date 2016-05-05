@@ -138,7 +138,7 @@ func (gg *goGen) computeSum(col *column) {
 		labelStep(gg.gensym("computeSum(%s)", charsLabel(a, b, c))))
 	gg.saveCarry()
 	gg.carryValid = false
-	steps := make([]solutionStep, 0, 6)
+	steps := make([]solutionStep, 0, 4)
 	if a != 0 {
 		steps = append(steps, addValueStep(a))
 	}
@@ -148,12 +148,8 @@ func (gg *goGen) computeSum(col *column) {
 	steps = append(steps,
 		modStep(gg.base),
 		storeStep(c))
-	if c == gg.words[0][0] || c == gg.words[1][0] || c == gg.words[2][0] {
-		steps = append(steps,
-			relJNZStep(1),
-			exitStep{errCheckFailed})
-	}
 	gg.steps = append(gg.steps, steps...)
+	gg.checkAfterCompute(col, c)
 }
 
 func (gg *goGen) computeFirstSummand(col *column) {
@@ -174,7 +170,7 @@ func (gg *goGen) computeSummand(col *column, a, b, c byte) {
 		labelStep(gg.gensym("computeSummand(%s)", charsLabel(a, b, c))))
 	gg.saveCarry()
 	gg.carryValid = false
-	steps := make([]solutionStep, 0, 7)
+	steps := make([]solutionStep, 0, 5)
 	steps = append(steps, negateStep{})
 	if c != 0 {
 		steps = append(steps, addValueStep(c))
@@ -185,12 +181,16 @@ func (gg *goGen) computeSummand(col *column, a, b, c byte) {
 	steps = append(steps,
 		modStep(gg.base),
 		storeStep(a))
-	if a == gg.words[0][0] || a == gg.words[1][0] || a == gg.words[2][0] {
-		steps = append(steps,
+	gg.steps = append(gg.steps, steps...)
+	gg.checkAfterCompute(col, a)
+}
+
+func (gg *goGen) checkAfterCompute(col *column, c byte) {
+	if c == gg.words[0][0] || c == gg.words[1][0] || c == gg.words[2][0] {
+		gg.steps = append(gg.steps,
 			relJNZStep(1),
 			exitStep{errCheckFailed})
 	}
-	gg.steps = append(gg.steps, steps...)
 }
 
 func (gg *goGen) choose(col *column, i int, c byte) {
