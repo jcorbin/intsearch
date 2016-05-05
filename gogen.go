@@ -188,6 +188,7 @@ func (gg *goGen) computeSummand(col *column, a, b, c byte) {
 func (gg *goGen) checkAfterCompute(col *column, c byte) {
 	if c == gg.words[0][0] || c == gg.words[1][0] || c == gg.words[2][0] {
 		gg.steps = append(gg.steps,
+			labelStep(gg.gensym("checkInitialLetter(%s)", string(c))),
 			relJNZStep(1),
 			exitStep{errCheckFailed})
 	}
