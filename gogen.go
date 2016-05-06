@@ -334,14 +334,13 @@ func (gg *goGen) ensureCarry(col *column) {
 	if col == gg.carryPrior {
 		if gg.carryValid {
 			return
-		} else if !gg.carrySaved {
-			panic("no saved carry to restore")
+		} else if gg.carrySaved {
+			gg.steps = append(gg.steps,
+				labelStep(gg.gensym("ensureCarry(%d):restore", col.i)),
+				setABStep{})
+			gg.carryValid = true
+			return
 		}
-		gg.steps = append(gg.steps,
-			labelStep(gg.gensym("ensureCarry(%d):restore", col.i)),
-			setABStep{})
-		gg.carryValid = true
-		return
 	}
 
 	c1, c2 := col.cx[0], col.cx[1]
