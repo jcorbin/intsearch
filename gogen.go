@@ -134,11 +134,12 @@ func (gg *goGen) computeSum(col *column) {
 	//   c = carry + a + b (mod base)
 	a, b, c := col.cx[0], col.cx[1], col.cx[2]
 	gg.ensureCarry(col.prior)
-	gg.steps = append(gg.steps,
-		labelStep(gg.gensym("computeSum(%s)", charsLabel(a, b, c))))
 	gg.saveCarry()
 	gg.carryValid = false
-	steps := make([]solutionStep, 0, 4)
+
+	steps := make([]solutionStep, 0, 5)
+	steps = append(steps,
+		labelStep(gg.gensym("computeSum(%s)", charsLabel(a, b, c))))
 	if a != 0 {
 		steps = append(steps, addValueStep(a))
 	}
@@ -166,12 +167,13 @@ func (gg *goGen) computeSummand(col *column, a, b, c byte) {
 	// Solve for a:
 	//   a = c - b - carry (mod base)
 	gg.ensureCarry(col.prior)
-	gg.steps = append(gg.steps,
-		labelStep(gg.gensym("computeSummand(%s)", charsLabel(a, b, c))))
 	gg.saveCarry()
 	gg.carryValid = false
-	steps := make([]solutionStep, 0, 5)
-	steps = append(steps, negateStep{})
+
+	steps := make([]solutionStep, 0, 6)
+	steps = append(steps,
+		labelStep(gg.gensym("computeSummand(%s)", charsLabel(a, b, c))),
+		negateStep{})
 	if c != 0 {
 		steps = append(steps, addValueStep(c))
 	}
