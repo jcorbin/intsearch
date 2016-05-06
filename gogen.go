@@ -195,6 +195,11 @@ func (gg *goGen) checkAfterCompute(col *column, c byte) {
 			exitStep{errCheckFailed})
 	}
 
+	gg.checkFixedCarry(col)
+
+}
+
+func (gg *goGen) checkFixedCarry(col *column) {
 	var carryCheck solutionStep
 	if col.i > 0 {
 		if carryOut, fixed := gg.carryFixed[col.i-1]; fixed {
@@ -208,9 +213,9 @@ func (gg *goGen) checkAfterCompute(col *column, c byte) {
 	if carryCheck != nil {
 		gg.ensureCarry(col)
 		gg.steps = append(gg.steps,
-			labelStep(gg.gensym("checkFixedCarry(%s)", charsLabel(col.cx[0], col.cx[1], col.cx[2]))),
-			carryCheck,
-			exitStep{errCheckFailed})
+		labelStep(gg.gensym("checkFixedCarry(%s)", charsLabel(col.cx[0], col.cx[1], col.cx[2]))),
+		carryCheck,
+		exitStep{errCheckFailed})
 	}
 }
 
