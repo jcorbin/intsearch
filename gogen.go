@@ -222,6 +222,7 @@ func (gg *goGen) checkFixedCarry(col *column) {
 }
 
 func (gg *goGen) choose(col *column, i int, c byte) {
+	gg.ensureCarry(col.prior)
 	gg.saveCarry()
 	gg.carryValid = false
 	min := 0
