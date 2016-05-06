@@ -196,7 +196,7 @@ func (gg *goGen) computeSummand(col *column, a, b, c byte) {
 	gg.saveCarry(col.prior)
 	gg.carryValid = false
 
-	steps := make([]solutionStep, 0, 6)
+	steps := make([]solutionStep, 0, 9)
 	steps = append(steps,
 		labelStep(gg.gensym("computeSummand(%s)", charsLabel(a, b, c))),
 		negateStep{})
@@ -208,8 +208,18 @@ func (gg *goGen) computeSummand(col *column, a, b, c byte) {
 	}
 	steps = append(steps,
 		modStep(gg.base),
-		storeStep(a))
+		storeStep(a),
+		addRegBStep{})
+	if b != 0 {
+		steps = append(steps, addValueStep(b))
+	}
+	steps = append(steps, divStep(gg.base))
 	gg.steps = append(gg.steps, steps...)
+
+	gg.carryPrior = col
+	gg.carryValid = true
+	gg.carrySaved = false
+
 	gg.checkAfterCompute(col, a)
 }
 
