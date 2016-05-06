@@ -117,14 +117,17 @@ func (gg *goGen) fixCarry(i, v int) {
 	gg.carryFixed[i] = v
 }
 
-func (gg *goGen) saveCarry() {
-	if gg.carryPrior != nil && !gg.carrySaved {
+func (gg *goGen) saveCarry(col *column) {
+	if col == nil {
+		gg.carrySaved = false
+	} else if gg.carryPrior != col || !gg.carrySaved {
 		if !gg.carryValid {
 			panic("no valid carry to save")
 		}
 		gg.steps = append(gg.steps, setBAStep{})
 		gg.carrySaved = true
 	}
+	gg.carryPrior = col
 }
 
 func (gg *goGen) computeSum(col *column) {
@@ -134,7 +137,7 @@ func (gg *goGen) computeSum(col *column) {
 	//   c = carry + a + b (mod base)
 	a, b, c := col.cx[0], col.cx[1], col.cx[2]
 	gg.ensureCarry(col.prior)
-	gg.saveCarry()
+	gg.saveCarry(col.prior)
 	gg.carryValid = false
 
 	steps := make([]solutionStep, 0, 5)
@@ -167,7 +170,7 @@ func (gg *goGen) computeSummand(col *column, a, b, c byte) {
 	// Solve for a:
 	//   a = c - b - carry (mod base)
 	gg.ensureCarry(col.prior)
-	gg.saveCarry()
+	gg.saveCarry(col.prior)
 	gg.carryValid = false
 
 	steps := make([]solutionStep, 0, 6)
@@ -223,7 +226,7 @@ func (gg *goGen) checkFixedCarry(col *column) {
 
 func (gg *goGen) choose(col *column, i int, c byte) {
 	gg.ensureCarry(col.prior)
-	gg.saveCarry()
+	gg.saveCarry(col.prior)
 	gg.carryValid = false
 	min := 0
 	if gg.usedDigits[0] ||
