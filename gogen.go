@@ -198,10 +198,17 @@ func (gg *goGen) checkAfterCompute(col *column, c byte) {
 }
 
 func (gg *goGen) checkInitialLetter(col *column, c byte) {
-	gg.steps = append(gg.steps,
-		labelStep(gg.gensym("checkInitialLetter(%s)", string(c))),
+	steps := make([]solutionStep, 0, 4)
+	steps = append(steps,
+		labelStep(gg.gensym("checkInitialLetter(%s)", string(c))))
+	if gg.carryValid {
+		gg.saveCarry(col)
+		steps = append(steps, loadStep(c))
+	}
+	steps = append(steps,
 		relJNZStep(1),
 		exitStep{errCheckFailed})
+	gg.steps = append(gg.steps, steps...)
 }
 
 func (gg *goGen) checkFixedCarry(col *column) {
