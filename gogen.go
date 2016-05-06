@@ -152,10 +152,11 @@ func (gg *goGen) computeSum(col *column) {
 	// Solve for c:
 	//   c = carry + a + b (mod base)
 	a, b, c := col.cx[0], col.cx[1], col.cx[2]
-	gg.saveCarry(col.prior)
+	gg.ensureCarry(col.prior)
 	gg.carryValid = false
+	gg.carrySaved = false
 
-	steps := make([]solutionStep, 0, 5)
+	steps := make([]solutionStep, 0, 8)
 	steps = append(steps,
 		labelStep(gg.gensym("computeSum(%s)", charsLabel(a, b, c))))
 	if a != 0 {
@@ -165,9 +166,17 @@ func (gg *goGen) computeSum(col *column) {
 		steps = append(steps, addValueStep(b))
 	}
 	steps = append(steps,
+		setBAStep{},
 		modStep(gg.base),
-		storeStep(c))
+		storeStep(c),
+		setABStep{},
+		divStep(gg.base))
 	gg.steps = append(gg.steps, steps...)
+
+	gg.carryPrior = col
+	gg.carryValid = true
+	gg.carrySaved = false
+
 	gg.checkAfterCompute(col, c)
 }
 
