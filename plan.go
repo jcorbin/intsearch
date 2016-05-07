@@ -11,20 +11,7 @@ const (
 	carryComputed
 )
 
-func (c carryValue) String() string {
-	switch c {
-	case carryUnknown:
-		return "unknown"
-	case carryZero:
-		return "0"
-	case carryOne:
-		return "1"
-	case carryComputed:
-		return "computed"
-	default:
-		return "invalid"
-	}
-}
+//go:generate stringer -type=carryValue
 
 type column struct {
 	i       int
