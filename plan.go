@@ -2,14 +2,14 @@ package main
 
 import "log"
 
-const (
-	carryUnknown  = -1
-	carryZero     = 0
-	carryOne      = 1
-	carryComputed = 2
-)
-
 type carryValue int
+
+const (
+	carryUnknown carryValue = iota - 1
+	carryZero
+	carryOne
+	carryComputed
+)
 
 func (c carryValue) String() string {
 	switch c {
