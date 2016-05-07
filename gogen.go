@@ -117,7 +117,7 @@ func (gg *goGen) fixCarry(i, v int) {
 	gg.carryFixed[i] = v
 }
 
-func (gg *goGen) saveCarry(col *column) {
+func (gg *goGen) stashCarry(col *column) {
 	if gg.carryPrior == col && gg.carrySaved {
 		return
 	}
@@ -129,14 +129,21 @@ func (gg *goGen) saveCarry(col *column) {
 	}
 
 	if !gg.carryValid {
-		panic("no valid carry to save")
+		return
 	}
 
 	gg.steps = append(gg.steps,
-		labelStep(gg.gensym("saveCarry(%d)", col.i)),
+		labelStep(gg.gensym("stashCarry(%d)", col.i)),
 		setBAStep{})
 	gg.carrySaved = true
 	gg.carryPrior = col
+}
+
+func (gg *goGen) saveCarry(col *column) {
+	if !gg.carryValid {
+		panic("no valid carry to save")
+	}
+	gg.stashCarry(col)
 }
 
 func (gg *goGen) computeSum(col *column) {
