@@ -118,13 +118,13 @@ func (gg *goGen) fixCarry(i, v int) {
 }
 
 func (gg *goGen) saveCarry(col *column) {
-	if col == nil {
-		gg.carrySaved = false
-		gg.carryPrior = nil
+	if gg.carryPrior == col && gg.carrySaved {
 		return
 	}
 
-	if gg.carryPrior == col && gg.carrySaved {
+	if col == nil {
+		gg.carrySaved = false
+		gg.carryPrior = nil
 		return
 	}
 
