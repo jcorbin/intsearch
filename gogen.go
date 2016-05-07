@@ -124,13 +124,16 @@ func (gg *goGen) saveCarry(col *column) {
 		return
 	}
 
-	if gg.carryPrior != col || !gg.carrySaved {
-		if !gg.carryValid {
-			panic("no valid carry to save")
-		}
-		gg.steps = append(gg.steps, setBAStep{})
-		gg.carrySaved = true
+	if gg.carryPrior == col && gg.carrySaved {
+		return
 	}
+
+	if !gg.carryValid {
+		panic("no valid carry to save")
+	}
+
+	gg.steps = append(gg.steps, setBAStep{})
+	gg.carrySaved = true
 	gg.carryPrior = col
 }
 
