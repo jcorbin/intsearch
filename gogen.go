@@ -120,7 +120,11 @@ func (gg *goGen) fixCarry(i, v int) {
 func (gg *goGen) saveCarry(col *column) {
 	if col == nil {
 		gg.carrySaved = false
-	} else if gg.carryPrior != col || !gg.carrySaved {
+		gg.carryPrior = nil
+		return
+	}
+
+	if gg.carryPrior != col || !gg.carrySaved {
 		if !gg.carryValid {
 			panic("no valid carry to save")
 		}
