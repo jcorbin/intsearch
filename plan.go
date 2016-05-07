@@ -24,6 +24,13 @@ type column struct {
 	carry   carryValue
 }
 
+func (col *column) priorCarry() carryValue {
+	if col.prior == nil {
+		return carryZero
+	}
+	return col.prior.carry
+}
+
 type planProblem struct {
 	problem
 	columns []column
@@ -192,7 +199,7 @@ func (prob *planProblem) solveSingularColumn(gen solutionGen, col *column) bool 
 }
 
 func (prob *planProblem) solveColumnFromPrior(gen solutionGen, col *column) bool {
-	if col.prior != nil && col.prior.carry == carryUnknown {
+	if col.priorCarry() == carryUnknown {
 		// unknown prior carry not yet support; i.e. solveColumn must be called
 		// in bottom-up/right-to-left/decreasing-index order
 		return false
