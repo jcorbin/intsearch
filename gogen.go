@@ -141,7 +141,7 @@ func (gg *goGen) stashCarry(col *column) {
 
 func (gg *goGen) saveCarry(col *column) {
 	if !gg.carryValid {
-		panic("no valid carry to save")
+		gg.ensureCarry(col)
 	}
 	gg.stashCarry(col)
 }
@@ -152,7 +152,6 @@ func (gg *goGen) computeSum(col *column) {
 	// Solve for c:
 	//   c = carry + a + b (mod base)
 	a, b, c := col.cx[0], col.cx[1], col.cx[2]
-	gg.ensureCarry(col.prior)
 	gg.saveCarry(col.prior)
 	gg.carryValid = false
 
@@ -185,7 +184,6 @@ func (gg *goGen) computeSummand(col *column, a, b, c byte) {
 	//   carry + a + b = c (mod base)
 	// Solve for a:
 	//   a = c - b - carry (mod base)
-	gg.ensureCarry(col.prior)
 	gg.saveCarry(col.prior)
 	gg.carryValid = false
 
@@ -253,7 +251,6 @@ func (gg *goGen) checkFixedCarry(col *column) {
 }
 
 func (gg *goGen) choose(col *column, i int, c byte) {
-	gg.ensureCarry(col.prior)
 	gg.saveCarry(col.prior)
 	gg.carryValid = false
 	min := 0
