@@ -132,7 +132,9 @@ func (gg *goGen) saveCarry(col *column) {
 		panic("no valid carry to save")
 	}
 
-	gg.steps = append(gg.steps, setBAStep{})
+	gg.steps = append(gg.steps,
+		labelStep(gg.gensym("saveCarry(%d)", col.i)),
+		setBAStep{})
 	gg.carrySaved = true
 	gg.carryPrior = col
 }
