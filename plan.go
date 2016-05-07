@@ -115,6 +115,12 @@ func (prob *planProblem) planTopDown(gen solutionGen) {
 }
 
 func (prob *planProblem) procTopDown(gen solutionGen, col *column) {
+	if col.prior == nil {
+		prob.solveColumn(gen, col)
+		gen.finish()
+		return
+	}
+
 	if prob.maySolveColumn(gen, col) {
 		prob.procTopDown(gen, col.prior)
 		return
