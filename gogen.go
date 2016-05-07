@@ -218,7 +218,7 @@ func (gg *goGen) checkInitialLetter(col *column, c byte) {
 	steps = append(steps,
 		labelStep(gg.gensym("checkInitialLetter(%s)", string(c))))
 	if gg.carryValid {
-		gg.saveCarry(col)
+		gg.stashCarry(col)
 		gg.carryValid = false
 		steps = append(steps, loadStep(c))
 	}
