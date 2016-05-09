@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"strings"
 )
 
 var (
@@ -18,18 +19,27 @@ var (
 	gen  solutionGen
 )
 
+func logf(format string, args ...interface{}) {
+	dec := gg.decorate(args)
+	if len(dec) > 0 {
+		format = fmt.Sprintf("%s  // %s", format, strings.Join(dec, ", "))
+	}
+	fmt.Printf(format, args...)
+	fmt.Println()
+}
+
 func dump(sol *solution) bool {
 	if sol.err == nil {
-		gg.logf("=== Solution: %v %s", sol, sol.letterMapping())
+		logf("=== Solution: %v %s", sol, sol.letterMapping())
 	} else if sol.err == errVerifyFailed {
-		gg.logf("!!! Fail: %v %s", sol, sol.letterMapping())
+		logf("!!! Fail: %v %s", sol, sol.letterMapping())
 	} else if *debug {
-		gg.logf("--- Dead end: %v %s", sol, sol.letterMapping())
+		logf("--- Dead end: %v %s", sol, sol.letterMapping())
 	} else {
 		return false
 	}
 	for i, soli := range sol.trace {
-		gg.logf("... [%v] %v %s", i, soli, soli.letterMapping())
+		logf("... [%v] %v %s", i, soli, soli.letterMapping())
 	}
 	return false
 }
@@ -50,7 +60,7 @@ func debugRun() {
 		metrics,
 		newTraceWatcher(),
 		debugWatcher{
-			logf: gg.logf,
+			logf: logf,
 		},
 	})
 	srch.run(100000, gg.searchInit, dump, watcher)
@@ -146,11 +156,11 @@ func main() {
 	}
 
 	if sol := findOne(); sol != nil {
-		gg.logf("found: %v", sol.letterMapping())
-		sol.printCheck(gg.logf)
+		logf("found: %v", sol.letterMapping())
+		sol.printCheck(logf)
 		if sol.trace != nil {
 			for i, soli := range sol.trace {
-				gg.logf("... [%v] %v %s", i, soli, soli.letterMapping())
+				logf("... [%v] %v %s", i, soli, soli.letterMapping())
 			}
 		}
 	} else {
