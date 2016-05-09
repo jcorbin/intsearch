@@ -222,6 +222,7 @@ func (prob *planProblem) solveColumnFromPrior(gen solutionGen, col *column) bool
 				case 2:
 					gen.computeSum(col)
 				}
+				col.carry = carryComputed
 			} else {
 				gen.choose(col, x, c)
 			}
@@ -229,6 +230,5 @@ func (prob *planProblem) solveColumnFromPrior(gen solutionGen, col *column) bool
 		}
 	}
 	col.solved = true
-	col.carry = carryComputed
 	return true
 }
