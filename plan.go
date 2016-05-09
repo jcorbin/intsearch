@@ -39,6 +39,7 @@ type planProblem struct {
 }
 
 type solutionGen interface {
+	logf(string, ...interface{}) error
 	init(desc string)
 	fix(c byte, v int)
 	fixCarry(i, v int)

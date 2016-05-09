@@ -87,6 +87,10 @@ func (gg *goGen) decorate(args []interface{}) []string {
 	return dec
 }
 
+func (gg *goGen) logf(format string, args ...interface{}) error {
+	return nil
+}
+
 func (gg *goGen) init(desc string) {
 }
 

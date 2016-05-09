@@ -2,6 +2,13 @@ package main
 
 type multiGen []solutionGen
 
+func (mg multiGen) logf(format string, args ...interface{}) error {
+	for _, gen := range mg {
+		gen.logf(format, args...)
+	}
+	return nil // TODO: multiError fwiw
+}
+
 func (mg multiGen) init(desc string) {
 	for _, gen := range mg {
 		gen.init(desc)

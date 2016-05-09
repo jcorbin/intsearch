@@ -2,6 +2,10 @@ package main
 
 type afterGen func()
 
+func (ag afterGen) logf(format string, args ...interface{}) error {
+	return nil
+}
+
 func (ag afterGen) init(desc string) {
 	ag()
 }
