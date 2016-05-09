@@ -57,6 +57,26 @@ func (lg *logGen) init(desc string) {
 	lg.logf("")
 }
 
+func (lg *logGen) fork(prob *planProblem, name, alt, cont string) solutionGen {
+	if alt == "" {
+		alt = fmt.Sprintf("%s:alt", name)
+	}
+	if cont == "" {
+		cont = fmt.Sprintf("%s:cont", name)
+	}
+	n := 0
+	for n < len(lg.prefix)-1 && lg.prefix[n] == ' ' {
+		n++
+	}
+	lg.prefix = fmt.Sprintf("%s%s", strings.Repeat(" ", n), cont)
+	return &logGen{
+		planProblem: prob,
+		prefix:      fmt.Sprintf("%s%s", strings.Repeat(" ", n+2), alt),
+		step:        lg.step,
+		branches:    lg.branches,
+	}
+}
+
 func (lg *logGen) fix(c byte, v int) {
 	lg.stepf("fix %v = %v", string(c), v)
 }
