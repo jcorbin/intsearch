@@ -15,17 +15,14 @@ type logGen struct {
 func newLogGen(prob *planProblem) *logGen {
 	return &logGen{
 		planProblem: prob,
+		prefix:      "// ",
 		branches:    make([]int, 0, len(prob.letterSet)),
 	}
 }
 
 func (lg *logGen) stepf(format string, args ...interface{}) {
 	lg.step++
-	if lg.prefix == "" {
-		fmt.Printf("// Step[%v]: ", lg.step)
-	} else {
-		fmt.Printf("// %s> step[%v]: ", lg.prefix, lg.step)
-	}
+	fmt.Printf("%s step[%v]: ", lg.prefix, lg.step)
 	fmt.Printf(format, args...)
 }
 
