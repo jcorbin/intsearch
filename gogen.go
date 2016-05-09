@@ -77,17 +77,20 @@ func (gg *goGen) labelFor(i int) string {
 	return label
 }
 
-func (gg *goGen) logf(format string, args ...interface{}) {
-	var label string
+func (gg *goGen) decorate(args []interface{}) []string {
+	var dec []string
 	if gg.addrLabels != nil {
 		for _, arg := range args {
 			if sol, ok := arg.(*solution); ok {
-				label = gg.labelFor(sol.stepi)
-				break
+				dec = append(dec, gg.labelFor(sol.stepi))
 			}
 		}
 	}
+	return dec
+}
 
+func (gg *goGen) logf(format string, args ...interface{}) {
+	label := strings.Join(gg.decorate(args), ", ")
 	if label != "" {
 		str := fmt.Sprintf(format, args...)
 		if gg.outf == nil {
