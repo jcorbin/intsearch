@@ -20,10 +20,20 @@ func newLogGen(prob *planProblem) *logGen {
 	}
 }
 
+func (lg *logGen) logf(format string, args ...interface{}) error {
+	if _, err := fmt.Print(lg.prefix); err != nil {
+		return err
+	}
+	if _, err := fmt.Printf(format, args...); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (lg *logGen) stepf(format string, args ...interface{}) {
 	lg.step++
-	fmt.Printf("%s step[%v]: ", lg.prefix, lg.step)
-	fmt.Printf(format, args...)
+	format = fmt.Sprintf("step[%v]: %s", lg.step, format)
+	lg.logf(format, args...)
 }
 
 func (lg *logGen) init(desc string) {
