@@ -1,6 +1,10 @@
 package main
 
-import "testing"
+import (
+	"fmt"
+	"strings"
+	"testing"
+)
 
 func TestGogenSendMoreMoney(t *testing.T) {
 	var prob problem
@@ -8,8 +12,15 @@ func TestGogenSendMoreMoney(t *testing.T) {
 		t.Fatalf("setup failed: %v", err)
 	}
 
+	decs := func(args ...interface{}) string {
+		dec := gg.decorate(args)
+		if len(dec) == 0 {
+			return ""
+		}
+		return fmt.Sprintf("  // %s", strings.Join(dec, ", "))
+	}
+
 	gg := newGoGen(newPlanProblem(&prob))
-	gg.outf = t.Logf
 	gg.verified = true
 	gg.planProblem.plan(gg)
 
@@ -17,9 +28,9 @@ func TestGogenSendMoreMoney(t *testing.T) {
 
 	resultFunc := func(sol *solution) bool {
 		if sol.err == errVerifyFailed {
-			gg.logf("!!! invalid solution found: %v %v", sol, sol.letterMapping())
+			t.Logf("!!! invalid solution found: %v %s%s", sol, sol.letterMapping(), decs(sol))
 			for i, soli := range sol.trace {
-				gg.logf("trace[%v]: %v %s", i, soli, soli.letterMapping())
+				t.Logf("trace[%v]: %v %s%s", i, soli, soli.letterMapping(), decs(soli))
 			}
 			t.Fail()
 		} else if sol.err == nil {
