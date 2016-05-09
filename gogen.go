@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"log"
 	"strings"
 )
 
@@ -29,7 +28,6 @@ type goGen struct {
 	usedSymbols  map[string]struct{}
 	labels       map[string]int
 	addrLabels   []string
-	outf         func(string, ...interface{})
 	lastLogDump  int
 }
 
@@ -87,22 +85,6 @@ func (gg *goGen) decorate(args []interface{}) []string {
 		}
 	}
 	return dec
-}
-
-func (gg *goGen) logf(format string, args ...interface{}) {
-	label := strings.Join(gg.decorate(args), ", ")
-	if label != "" {
-		str := fmt.Sprintf(format, args...)
-		if gg.outf == nil {
-			log.Printf("%s  // %s", str, label)
-		} else {
-			gg.outf("%s  // %s", str, label)
-		}
-	} else if gg.outf == nil {
-		log.Printf(format, args...)
-	} else {
-		gg.outf(format, args...)
-	}
 }
 
 func (gg *goGen) init(desc string) {
