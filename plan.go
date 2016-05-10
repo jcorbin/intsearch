@@ -205,6 +205,17 @@ func (prob *planProblem) solveSingularColumn(gen solutionGen, col *column) bool 
 	return false
 }
 
+func (prob *planProblem) chooseOne(gen solutionGen, col *column) byte {
+	for x, c := range col.cx {
+		if c != 0 && !prob.known[c] {
+			gen.choose(col, x, c)
+			prob.markKnown(c)
+			return c
+		}
+	}
+	return 0
+}
+
 func (prob *planProblem) solveColumnFromPrior(gen solutionGen, col *column) bool {
 	if col.priorCarry() == carryUnknown {
 		// unknown prior carry not yet support; i.e. solveColumn must be called
@@ -212,24 +223,32 @@ func (prob *planProblem) solveColumnFromPrior(gen solutionGen, col *column) bool
 		return false
 	}
 
-	for x, c := range col.cx {
-		if c != 0 && !prob.known[c] {
-			if col.unknown == 1 {
-				switch x {
-				case 0:
-					gen.computeFirstSummand(col)
-				case 1:
-					gen.computeSecondSummand(col)
-				case 2:
-					gen.computeSum(col)
-				}
-				col.carry = carryComputed
-			} else {
-				gen.choose(col, x, c)
-			}
-			prob.markKnown(c)
+	for u := col.unknown; u > 1; u = col.unknown {
+		if c := prob.chooseOne(gen, col); c == 0 {
+			break
 		}
 	}
+	if col.unknown > 1 {
+		// chooseOne was unable to figure it out
+		return false
+	}
+
+	if c := col.cx[0]; c != 0 && !prob.known[c] {
+		gen.computeFirstSummand(col)
+		col.carry = carryComputed
+		prob.markKnown(c)
+	} else if c := col.cx[1]; c != 0 && !prob.known[c] {
+		gen.computeSecondSummand(col)
+		col.carry = carryComputed
+		prob.markKnown(c)
+	} else if c := col.cx[2]; c != 0 && !prob.known[c] {
+		gen.computeSum(col)
+		col.carry = carryComputed
+		prob.markKnown(c)
+	} else {
+		panic("invalid solveColumnFromPrior state")
+	}
+
 	col.solved = true
 	return true
 }
