@@ -24,7 +24,6 @@ type goGen struct {
 	carryFixed   map[int]int
 	carrySaved   bool
 	carryValid   bool
-	usedDigits   []bool
 	usedSymbols  map[string]struct{}
 	labels       map[string]int
 	addrLabels   []string
@@ -36,7 +35,6 @@ func newGoGen(prob *planProblem) *goGen {
 		planProblem: prob,
 		carryFixed:  make(map[int]int, prob.numColumns()),
 		usedSymbols: make(map[string]struct{}, 3*len(prob.letterSet)),
-		usedDigits:  make([]bool, prob.base),
 	}
 }
 
