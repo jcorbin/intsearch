@@ -47,7 +47,6 @@ type solutionGen interface {
 	computeSum(col *column)
 	computeFirstSummand(col *column)
 	computeSecondSummand(col *column)
-	choose(col *column, i int, c byte)
 	chooseRange(col *column, c byte, i, min, max int)
 	checkColumn(col *column)
 	finish()
@@ -213,11 +212,41 @@ func (prob *planProblem) solveSingularColumn(gen solutionGen, col *column) bool 
 	return false
 }
 
+func (prob *planProblem) choose(gen solutionGen, col *column, c byte, i int) {
+	min, max := 0, prob.base-1
+
+	if prob.fixedValues[0] ||
+		c == prob.words[0][0] ||
+		c == prob.words[1][0] ||
+		c == prob.words[2][0] {
+		min = 1
+	}
+
+	for max > 0 && prob.fixedValues[max] {
+		max--
+	}
+
+	for min <= max && prob.fixedValues[min] {
+		min++
+	}
+
+	if min > max {
+		panic("no choices possible")
+	}
+
+	if min == max {
+		prob.fix(gen, c, min)
+		return
+	}
+
+	gen.chooseRange(col, c, i, min, max)
+	prob.markKnown(c)
+}
+
 func (prob *planProblem) chooseOne(gen solutionGen, col *column) byte {
 	for x, c := range col.cx {
 		if c != 0 && !prob.known[c] {
-			gen.choose(col, x, c)
-			prob.markKnown(c)
+			prob.choose(gen, col, c, x)
 			return c
 		}
 	}

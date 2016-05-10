@@ -45,12 +45,6 @@ func (mg multiGen) computeSecondSummand(col *column) {
 	}
 }
 
-func (mg multiGen) choose(col *column, i int, c byte) {
-	for _, gen := range mg {
-		gen.choose(col, i, c)
-	}
-}
-
 func (mg multiGen) chooseRange(col *column, c byte, i, min, max int) {
 	for _, gen := range mg {
 		gen.chooseRange(col, c, i, min, max)

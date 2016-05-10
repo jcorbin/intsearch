@@ -255,40 +255,6 @@ func (gg *goGen) checkFixedCarry(col *column) {
 	}
 }
 
-func (gg *goGen) choose(col *column, i int, c byte) {
-	min := 0
-	if gg.fixedValues[0] ||
-		c == gg.words[0][0] ||
-		c == gg.words[1][0] ||
-		c == gg.words[2][0] {
-		min = 1
-	}
-
-	var max = gg.base - 1
-	for max > 0 && gg.fixedValues[max] {
-		max--
-	}
-	for min <= max && gg.fixedValues[min] {
-		min++
-	}
-
-	if min > max {
-		gg.steps = append(gg.steps,
-			labelStep(gg.gensym("no_choices_for(%s)", string(c))),
-			exitStep{errNoChoices})
-		return
-	} else if min == max {
-		gg.fixedValues[min] = true
-		gg.steps = append(gg.steps,
-			labelStep(gg.gensym("only_choice_for(%s)", string(c))),
-			setAStep(min),
-			storeStep(c))
-		return
-	}
-
-	gg.chooseRange(col, c, i, min, max)
-}
-
 func (gg *goGen) chooseRange(col *column, c byte, i, min, max int) {
 	gg.stashCarry(col.prior)
 	gg.carryValid = false
