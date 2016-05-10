@@ -221,6 +221,9 @@ func (prob *planProblem) solveColumnFromPrior(gen solutionGen, col *column) bool
 		// unknown prior carry not yet support; i.e. solveColumn must be called
 		// in bottom-up/right-to-left/decreasing-index order
 		return false
+	} else if col.unknown == 0 {
+		// this is checkColumn's job
+		return false
 	}
 
 	for u := col.unknown; u > 1; u = col.unknown {
