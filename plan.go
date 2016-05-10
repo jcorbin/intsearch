@@ -33,10 +33,10 @@ func (col *column) priorCarry() carryValue {
 
 type planProblem struct {
 	problem
-	columns    []column
-	letCols    map[byte][]*column
-	known      map[byte]bool
-	usedDigits []bool
+	columns     []column
+	letCols     map[byte][]*column
+	known       map[byte]bool
+	fixedValues []bool
 }
 
 type solutionGen interface {
@@ -57,11 +57,11 @@ func newPlanProblem(p *problem) *planProblem {
 	C := p.numColumns()
 	N := len(p.letterSet)
 	prob := &planProblem{
-		problem:    *p,
-		columns:    make([]column, C),
-		letCols:    make(map[byte][]*column, N),
-		known:      make(map[byte]bool, N),
-		usedDigits: make([]bool, p.base),
+		problem:     *p,
+		columns:     make([]column, C),
+		letCols:     make(map[byte][]*column, N),
+		known:       make(map[byte]bool, N),
+		fixedValues: make([]bool, p.base),
 	}
 	var last *column
 	for i := 0; i < C; i++ {
@@ -189,7 +189,7 @@ func (prob *planProblem) solveColumn(gen solutionGen, col *column) {
 }
 
 func (prob *planProblem) fix(gen solutionGen, c byte, v int) {
-	prob.usedDigits[v] = true
+	prob.fixedValues[v] = true
 	gen.fix(c, v)
 	prob.markKnown(c)
 }
