@@ -34,6 +34,10 @@ func (ag afterGen) choose(col *column, i int, c byte) {
 	ag()
 }
 
+func (ag afterGen) chooseRange(col *column, c byte, i, min, max int) {
+	ag()
+}
+
 func (ag afterGen) checkColumn(col *column) {
 	ag()
 }

@@ -100,6 +100,12 @@ func (lg *logGen) choose(col *column, i int, c byte) {
 	lg.stepf("choose %v (branch by %v)\n", string(c), branches)
 }
 
+func (lg *logGen) chooseRange(col *column, c byte, i, min, max int) {
+	branches := max - min
+	lg.branches = append(lg.branches, branches)
+	lg.stepf("choose %v (branch by %v)\n", string(c), branches)
+}
+
 func (lg *logGen) checkColumn(col *column) {
 	a, b, c := col.cx[0], col.cx[1], col.cx[2]
 	if a != 0 && b != 0 {

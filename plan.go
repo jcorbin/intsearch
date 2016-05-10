@@ -48,6 +48,7 @@ type solutionGen interface {
 	computeFirstSummand(col *column)
 	computeSecondSummand(col *column)
 	choose(col *column, i int, c byte)
+	chooseRange(col *column, c byte, i, min, max int)
 	checkColumn(col *column)
 	finish()
 }
