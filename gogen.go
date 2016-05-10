@@ -269,20 +269,20 @@ func (gg *goGen) choose(col *column, i int, c byte) {
 		min = 1
 	}
 
-	var last = gg.base - 1
-	for last > 0 && gg.usedDigits[last] {
-		last--
+	var max = gg.base - 1
+	for max > 0 && gg.usedDigits[max] {
+		max--
 	}
-	for min <= last && gg.usedDigits[min] {
+	for min <= max && gg.usedDigits[min] {
 		min++
 	}
 
-	if min > last {
+	if min > max {
 		gg.steps = append(gg.steps,
 			labelStep(gg.gensym("no_choices_for(%s)", string(c))),
 			exitStep{errNoChoices})
 		return
-	} else if min == last {
+	} else if min == max {
 		gg.usedDigits[min] = true
 		gg.steps = append(gg.steps,
 			labelStep(gg.gensym("only_choice_for(%s)", string(c))),
@@ -294,10 +294,10 @@ func (gg *goGen) choose(col *column, i int, c byte) {
 	label := gg.gensym("choose(%s)", string(c))
 	if gg.useForkUntil {
 		gg.steps = append(gg.steps,
-			labelStep(label),    // :choose($c)
-			setAStep(min),       // ra = $min
-			forkUntilStep(last), // forUntil $last
-			storeStep(c),        // store $c
+			labelStep(label),   // :choose($c)
+			setAStep(min),      // ra = $min
+			forkUntilStep(max), // forUntil $max
+			storeStep(c),       // store $c
 		)
 	} else {
 		var (
@@ -320,7 +320,7 @@ func (gg *goGen) choose(col *column, i int, c byte) {
 			setACStep{},                // ra = rc
 			addStep(1),                 // add 1
 			setCAStep{},                // rc = ra
-			ltStep(last),               // lt $last
+			ltStep(max),                // lt $max
 			labelJNZStep(loopSym),      // jnz :loop
 			setACStep{},                // ra = rc
 			isUsedStep{},               // used?
