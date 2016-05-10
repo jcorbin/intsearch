@@ -256,8 +256,6 @@ func (gg *goGen) checkFixedCarry(col *column) {
 }
 
 func (gg *goGen) choose(col *column, i int, c byte) {
-	gg.stashCarry(col.prior)
-	gg.carryValid = false
 	min := 0
 	if gg.usedDigits[0] ||
 		c == gg.words[0][0] ||
@@ -287,6 +285,13 @@ func (gg *goGen) choose(col *column, i int, c byte) {
 			storeStep(c))
 		return
 	}
+
+	gg.chooseRange(col, c, i, min, max)
+}
+
+func (gg *goGen) chooseRange(col *column, c byte, i, min, max int) {
+	gg.stashCarry(col.prior)
+	gg.carryValid = false
 
 	label := gg.gensym("choose(%s)", string(c))
 	if gg.useForkUntil {
