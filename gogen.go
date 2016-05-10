@@ -293,7 +293,7 @@ func (gg *goGen) chooseRange(col *column, c byte, i, min, max int) {
 	gg.stashCarry(col.prior)
 	gg.carryValid = false
 
-	label := gg.gensym("choose(%s)", string(c))
+	label := gg.gensym("choose(%s, %d, %d)", string(c), min, max)
 	if gg.useForkUntil {
 		gg.steps = append(gg.steps,
 			labelStep(label),   // :choose($c)
