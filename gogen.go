@@ -93,7 +93,6 @@ func (gg *goGen) init(desc string) {
 }
 
 func (gg *goGen) fix(c byte, v int) {
-	gg.usedDigits[v] = true
 	gg.steps = append(gg.steps,
 		labelStep(gg.gensym("fix(%s)", string(c))),
 		setAStep(v),

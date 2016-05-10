@@ -187,6 +187,12 @@ func (prob *planProblem) solveColumn(gen solutionGen, col *column) {
 	}
 }
 
+func (prob *planProblem) fix(gen solutionGen, c byte, v int) {
+	prob.usedDigits[v] = true
+	gen.fix(c, v)
+	prob.markKnown(c)
+}
+
 func (prob *planProblem) solveSingularColumn(gen solutionGen, col *column) bool {
 	if col.have != 1 || col.unknown != 1 {
 		return false
@@ -197,9 +203,8 @@ func (prob *planProblem) solveSingularColumn(gen solutionGen, col *column) bool 
 		if col.prior == nil {
 			panic("invalid final column: has no prior")
 		}
-		gen.fix(c, 1)
+		prob.fix(gen, c, 1)
 		col.solved = true
-		prob.markKnown(c)
 		prob.fixCarryIn(gen, col, carryOne)
 		return true
 	}
