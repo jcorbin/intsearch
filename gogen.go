@@ -291,12 +291,13 @@ func (gg *goGen) choose(col *column, i int, c byte) {
 		return
 	}
 
+	label := gg.gensym("choose(%s)", string(c))
 	if gg.useForkUntil {
 		gg.steps = append(gg.steps,
-			labelStep(gg.gensym("choose(%s)", string(c))), // :choose($c)
-			setAStep(min),                                 // ra = $min
-			forkUntilStep(last),                           // forUntil $last
-			storeStep(c),                                  // store $c
+			labelStep(label),    // :choose($c)
+			setAStep(min),       // ra = $min
+			forkUntilStep(last), // forUntil $last
+			storeStep(c),        // store $c
 		)
 	} else {
 		var (
@@ -305,29 +306,29 @@ func (gg *goGen) choose(col *column, i int, c byte) {
 			contSym     = gg.gensym("choose(%s):cont", string(c))
 		)
 		gg.steps = append(gg.steps,
-			labelStep(gg.gensym("choose(%s)", string(c))), // :choose($c)
-			setAStep(min),                                 // ra = $min
-			setCAStep{},                                   // rc = ra
-			labelStep(loopSym),                            // :loop
-			setACStep{},                                   // ra = rc
-			isUsedStep{},                                  // used?
-			labelJNZStep(nextLoopSym),                     // jnz :next_loop
-			forkLabelStep(nextLoopSym),                    // fork :next_loop
-			setACStep{},                                   // ra = rc
-			labelJmpStep(contSym),                         // jmp :cont
-			labelStep(nextLoopSym),                        // :nextLoop
-			setACStep{},                                   // ra = rc
-			addStep(1),                                    // add 1
-			setCAStep{},                                   // rc = ra
-			ltStep(last),                                  // lt $last
-			labelJNZStep(loopSym),                         // jnz :loop
-			setACStep{},                                   // ra = rc
-			isUsedStep{},                                  // used?
-			labelJZStep(contSym),                          // jz :cont
-			exitStep{errAlreadyUsed},                      // exit errAlreadyUsed
-			labelStep(contSym),                            // :cont
-			setACStep{},                                   // ra = rc
-			storeStep(c),                                  // store $c
+			labelStep(label),           // :choose($c)
+			setAStep(min),              // ra = $min
+			setCAStep{},                // rc = ra
+			labelStep(loopSym),         // :loop
+			setACStep{},                // ra = rc
+			isUsedStep{},               // used?
+			labelJNZStep(nextLoopSym),  // jnz :next_loop
+			forkLabelStep(nextLoopSym), // fork :next_loop
+			setACStep{},                // ra = rc
+			labelJmpStep(contSym),      // jmp :cont
+			labelStep(nextLoopSym),     // :nextLoop
+			setACStep{},                // ra = rc
+			addStep(1),                 // add 1
+			setCAStep{},                // rc = ra
+			ltStep(last),               // lt $last
+			labelJNZStep(loopSym),      // jnz :loop
+			setACStep{},                // ra = rc
+			isUsedStep{},               // used?
+			labelJZStep(contSym),       // jz :cont
+			exitStep{errAlreadyUsed},   // exit errAlreadyUsed
+			labelStep(contSym),         // :cont
+			setACStep{},                // ra = rc
+			storeStep(c),               // store $c
 		)
 	}
 }
