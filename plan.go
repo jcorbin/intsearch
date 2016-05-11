@@ -245,19 +245,13 @@ func (prob *planProblem) chooseOne(gen solutionGen, col *column) bool {
 		if cc == 0 || prob.known[cc] {
 			continue
 		}
-
 		cMin, cMax := prob.choiceRange(col, cc, j)
 		if cMin == cMax {
 			prob.fix(gen, cc, cMin)
 			return true
 		}
-
-		if i < 0 {
-			i, min, max, N = j, cMin, cMax, cMax-cMin
-			continue
-		}
-
-		if M := cMax - cMin; M < N {
+		M := cMax - cMin
+		if i < 0 || M < N {
 			i, min, max, N = j, cMin, cMax, M
 		}
 	}
