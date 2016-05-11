@@ -231,6 +231,30 @@ func (prob *planProblem) fixRange(min, max int, c byte) (int, int) {
 	return min, max
 }
 
+func (prob *planProblem) sumRange(a, b, c, d int, cc byte) (int, int) {
+	if b > a {
+		if d > c {
+			if a == c {
+				a += c + 1
+			} else {
+				a += c
+			}
+			if b == d {
+				b += d + 1
+			} else {
+				b += d
+			}
+			if b > prob.base {
+				b = prob.base - 1
+			}
+		}
+		return prob.fixRange(a, b, cc)
+	} else if d > c {
+		return prob.fixRange(c, d, cc)
+	}
+	return 1, 1
+}
+
 func (prob *planProblem) chooseOne(gen solutionGen, col *column) bool {
 	var min, max, N [3]int
 
@@ -239,7 +263,11 @@ func (prob *planProblem) chooseOne(gen solutionGen, col *column) bool {
 		if cc == 0 || prob.known[cc] {
 			continue
 		}
-		min[j], max[j] = prob.fixRange(0, prob.base-1, cc)
+		if j == 2 {
+			min[j], max[j] = prob.sumRange(min[0], max[0], min[1], max[1], cc)
+		} else {
+			min[j], max[j] = prob.fixRange(0, prob.base-1, cc)
+		}
 		if min[j] == max[j] {
 			prob.fix(gen, cc, min[j])
 			return true
