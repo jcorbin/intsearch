@@ -95,9 +95,13 @@ func (lg *logGen) computeSummand(a, b, c byte) {
 }
 
 func (lg *logGen) chooseRange(col *column, c byte, i, min, max int) {
-	branches := max - min
-	lg.branches = append(lg.branches, branches)
-	lg.stepf("choose %v (branch by %v)\n", string(c), branches)
+	N := max - min
+	R := lg.base - len(lg.known)
+	if R < N {
+		N = R
+	}
+	lg.branches = append(lg.branches, N)
+	lg.stepf("choose %v (branch by %v)\n", string(c), N)
 }
 
 func (lg *logGen) checkColumn(col *column) {
