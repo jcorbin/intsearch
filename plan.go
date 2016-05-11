@@ -237,28 +237,28 @@ func (prob *planProblem) fixRange(min, max int) (int, int) {
 }
 
 func (prob *planProblem) chooseOne(gen solutionGen, col *column) bool {
-	var min, max, N int
+	var min, max, N [3]int
 
 	i := -1
 	for j, cc := range col.cx {
 		if cc == 0 || prob.known[cc] {
 			continue
 		}
-		cMin, cMax := prob.choiceRange(col, cc, j)
-		if cMin == cMax {
-			prob.fix(gen, cc, cMin)
+		min[j], max[j] = prob.choiceRange(col, cc, j)
+		if min[j] == max[j] {
+			prob.fix(gen, cc, min[j])
 			return true
 		}
-		M := cMax - cMin
-		if i < 0 || M < N {
-			i, min, max, N = j, cMin, cMax, M
+		N[j] = max[j] - min[j]
+		if i < 0 || N[j] < N[i] {
+			i = j
 		}
 	}
 	if i < 0 {
 		return false
 	}
 
-	gen.chooseRange(col, col.cx[i], i, min, max)
+	gen.chooseRange(col, col.cx[i], i, min[i], max[i])
 	prob.markKnown(col.cx[i])
 	return true
 }
