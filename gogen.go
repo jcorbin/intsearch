@@ -453,16 +453,16 @@ func (gg *goGen) verifySteps() []solutionStep {
 }
 
 func (gg *goGen) finish() {
-	if _, finished := gg.usedSymbols["finish"]; finished {
+	lastStep := gg.steps[len(gg.steps)-1]
+
+	if _, isFinish := lastStep.(finishStep); isFinish {
 		panic("double goGen.finish")
 	}
 
 	if gg.verified {
 		gg.verify()
 	}
-	gg.steps = append(gg.steps,
-		labelStep(gg.gensym("finish")),
-		exitStep{nil})
+	gg.steps = append(gg.steps, finishStep(gg.gensym("finish")))
 }
 
 func (gg *goGen) finalize() {
