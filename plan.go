@@ -21,6 +21,7 @@ type column struct {
 	have    int
 	known   int
 	unknown int
+	fixed   int
 	carry   carryValue
 }
 
@@ -192,7 +193,11 @@ func (prob *planProblem) solveColumn(gen solutionGen, col *column) {
 func (prob *planProblem) fix(gen solutionGen, c byte, v int) {
 	prob.fixedLetters[c] = v
 	prob.fixedValues[v] = true
+	// TODO: consider inlining markKnown and unifying the for range letCols loops
 	prob.markKnown(c)
+	for _, col := range prob.letCols[c] {
+		col.fixed++
+	}
 	gen.fix(c, v)
 }
 
