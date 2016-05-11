@@ -212,7 +212,7 @@ func (prob *planProblem) solveSingularColumn(gen solutionGen, col *column) bool 
 	return false
 }
 
-func (prob *planProblem) choose(gen solutionGen, col *column, c byte, i int) {
+func (prob *planProblem) choiceRange(col *column, c byte, i int) (int, int) {
 	min, max := 0, prob.base-1
 
 	if prob.fixedValues[0] ||
@@ -233,6 +233,12 @@ func (prob *planProblem) choose(gen solutionGen, col *column, c byte, i int) {
 	if min > max {
 		panic("no choices possible")
 	}
+
+	return min, max
+}
+
+func (prob *planProblem) choose(gen solutionGen, col *column, c byte, i int) {
+	min, max := prob.choiceRange(col, c, i)
 
 	if min == max {
 		prob.fix(gen, c, min)
