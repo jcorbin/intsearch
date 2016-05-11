@@ -238,11 +238,9 @@ func (prob *planProblem) choiceRange(col *column, c byte, i int) (int, int) {
 }
 
 func (prob *planProblem) chooseOne(gen solutionGen, col *column) bool {
-	var (
-		c              byte
-		i, min, max, N int
-	)
+	var min, max, N int
 
+	i := -1
 	for j, cc := range col.cx {
 		if cc == 0 || prob.known[cc] {
 			continue
@@ -254,22 +252,21 @@ func (prob *planProblem) chooseOne(gen solutionGen, col *column) bool {
 			return true
 		}
 
-		if c == 0 {
-			c, i, min, max, N = cc, j, cMin, cMax, cMax-cMin
+		if i < 0 {
+			i, min, max, N = j, cMin, cMax, cMax-cMin
 			continue
 		}
 
 		if M := cMax - cMin; M < N {
-			c, i, min, max, N = cc, j, cMin, cMax, M
+			i, min, max, N = j, cMin, cMax, M
 		}
 	}
-
-	if c == 0 {
+	if i < 0 {
 		return false
 	}
 
-	gen.chooseRange(col, c, i, min, max)
-	prob.markKnown(c)
+	gen.chooseRange(col, col.cx[i], i, min, max)
+	prob.markKnown(col.cx[i])
 	return true
 }
 
