@@ -135,11 +135,25 @@ func main() {
 	}
 
 	gg.planProblem.plan(gen)
+
+	if *dumpProg {
+		fmt.Println()
+		fmt.Printf("//// Final Program Dump\n")
+		for i, step := range gg.steps {
+			label := gg.labelFor(i)
+			if label == "" {
+				fmt.Printf("%v: %v\n", i, step)
+			} else {
+				fmt.Printf("%v: %v  // :%s\n", i, step, label)
+			}
+		}
+	}
+
 	gg.compile()
 
 	if *dumpProg {
 		fmt.Println()
-		fmt.Printf("//// Program Dump\n")
+		fmt.Printf("//// Compiled Program Dump\n")
 		for i, step := range gg.steps {
 			label := gg.labelFor(i)
 			if label == "" {
