@@ -189,8 +189,8 @@ func (prob *planProblem) solveColumn(gen solutionGen, col *column) {
 
 func (prob *planProblem) fix(gen solutionGen, c byte, v int) {
 	prob.fixedValues[v] = true
-	gen.fix(c, v)
 	prob.markKnown(c)
+	gen.fix(c, v)
 }
 
 func (prob *planProblem) solveSingularColumn(gen solutionGen, col *column) bool {
