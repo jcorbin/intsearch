@@ -213,17 +213,16 @@ func (prob *planProblem) solveSingularColumn(gen solutionGen, col *column) bool 
 }
 
 func (prob *planProblem) choiceRange(col *column, c byte, i int) (int, int) {
-	min, max := 0, prob.base-1
-	if prob.fixedValues[0] ||
-		c == prob.words[0][0] ||
-		c == prob.words[1][0] ||
-		c == prob.words[2][0] {
-		min = 1
-	}
-	return prob.fixRange(min, max)
+	return prob.fixRange(0, prob.base-1, c)
 }
 
-func (prob *planProblem) fixRange(min, max int) (int, int) {
+func (prob *planProblem) fixRange(min, max int, c byte) (int, int) {
+	if min == 0 && (prob.fixedValues[0] ||
+		c == prob.words[0][0] ||
+		c == prob.words[1][0] ||
+		c == prob.words[2][0]) {
+		min = 1
+	}
 	for max > 0 && prob.fixedValues[max] {
 		max--
 	}
