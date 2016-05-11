@@ -115,8 +115,11 @@ func resolveLabels(steps []solutionStep, labels map[string]int) ([]solutionStep,
 // eraseLabels erases all labeledSteps in steps, updating passed labels values
 // as appropriate.
 //
-// For each labeledStep, the step is replaced by the (maybe empty) list of
-// steps returned by step.eraseLabel().
+// For each labeledStep, step.eraseLabels(addr, parts, labels) is called; this
+// method may append zero or more new parts, and should add any labels
+// contained in those parts to the labels map.  The returned addr must be the
+// passed addr plus the total step length of all newly added parts.  The, maybe
+// modified, parts and labels must be returned.
 func eraseLabels(addr int, steps []solutionStep, parts [][]solutionStep, labels map[string]int) (int, [][]solutionStep, map[string]int) {
 	if parts == nil {
 		nl := len(labels)
