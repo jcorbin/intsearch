@@ -250,10 +250,10 @@ func (prob *planProblem) choose(gen solutionGen, col *column, c byte, i int) {
 }
 
 func (prob *planProblem) chooseOne(gen solutionGen, col *column) byte {
-	for x, c := range col.cx {
-		if c != 0 && !prob.known[c] {
-			prob.choose(gen, col, c, x)
-			return c
+	for j, cc := range col.cx {
+		if cc != 0 && !prob.known[cc] {
+			prob.choose(gen, col, cc, j)
+			return cc
 		}
 	}
 	return 0
