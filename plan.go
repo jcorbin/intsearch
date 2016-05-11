@@ -239,8 +239,8 @@ func (prob *planProblem) choiceRange(col *column, c byte, i int) (int, int) {
 
 func (prob *planProblem) chooseOne(gen solutionGen, col *column) byte {
 	var (
-		c           byte
-		i, min, max int
+		c              byte
+		i, min, max, N int
 	)
 
 	for j, cc := range col.cx {
@@ -254,8 +254,14 @@ func (prob *planProblem) chooseOne(gen solutionGen, col *column) byte {
 			return cc
 		}
 
-		c, i, min, max = cc, j, cMin, cMax
-		break
+		if c == 0 {
+			c, i, min, max, N = cc, j, cMin, cMax, cMax-cMin
+			continue
+		}
+
+		if M := cMax - cMin; M < N {
+			c, i, min, max, N = cc, j, cMin, cMax, M
+		}
 	}
 
 	if c == 0 {
