@@ -135,6 +135,7 @@ func main() {
 	}
 
 	gg.planProblem.plan(gen)
+	gg.compile()
 
 	if *dumpProg {
 		fmt.Println()

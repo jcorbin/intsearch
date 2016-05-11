@@ -458,7 +458,9 @@ func (gg *goGen) finish() {
 	gg.steps = append(gg.steps,
 		labelStep(gg.gensym("finish")),
 		exitStep{nil})
+}
 
+func (gg *goGen) compile() {
 	var parts [][]solutionStep
 	var addr int
 	addr, parts, gg.labels = eraseLabels(addr, gg.steps, nil, gg.labels)

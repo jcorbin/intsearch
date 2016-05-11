@@ -23,6 +23,7 @@ func TestGogenSendMoreMoney(t *testing.T) {
 	gg := newGoGen(newPlanProblem(&prob))
 	gg.verified = true
 	gg.planProblem.plan(gg)
+	gg.compile()
 
 	numGood := 0
 
@@ -55,6 +56,7 @@ func TestGogenSendMoreMoney(t *testing.T) {
 		gg := newGoGen(newPlanProblem(&prob))
 		gg.verified = true
 		gg.planProblem.plan(gg.loggedGen())
+		gg.compile()
 		srch.run(100000, gg.searchInit, resultFunc, watchers([]searchWatcher{
 			traces,
 			debugWatcher{},
@@ -70,6 +72,7 @@ func BenchmarkPlan(b *testing.B) {
 	for n := 0; n < b.N; n++ {
 		gg := newGoGen(newPlanProblem(&prob))
 		gg.planProblem.plan(gg)
+		gg.compile()
 	}
 }
 
@@ -81,6 +84,7 @@ func BenchmarkRun(b *testing.B) {
 
 	gg := newGoGen(newPlanProblem(&prob))
 	gg.planProblem.plan(gg)
+	gg.compile()
 
 	for n := 0; n < b.N; n++ {
 		var srch search
