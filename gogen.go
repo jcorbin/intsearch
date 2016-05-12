@@ -452,18 +452,27 @@ func (gg *goGen) verifySteps() []solutionStep {
 func (gg *goGen) finish() {
 	lastStep := gg.steps[len(gg.steps)-1]
 
-	if _, isFinish := lastStep.(finishStep); isFinish {
-		panic("double goGen.finish")
+	if gg.verified {
+		if _, isVerifyJmp := lastStep.(labelJmpStep); isVerifyJmp {
+			panic("double goGen.finish")
+		}
+		gg.steps = append(gg.steps, labelJmpStep("verify"))
+		return
 	}
 
-	if gg.verified {
-		gg.steps = append(gg.steps, labelStep(gg.gensym("verify")))
-		gg.steps = append(gg.steps, gg.verifySteps()...)
+	if _, isFinish := lastStep.(finishStep); isFinish {
+		panic("double goGen.finish")
 	}
 	gg.steps = append(gg.steps, finishStep(gg.gensym("finish")))
 }
 
 func (gg *goGen) finalize() {
+	if gg.verified {
+		gg.steps = append(gg.steps, labelStep("verify"))
+		gg.steps = append(gg.steps, gg.verifySteps()...)
+		gg.steps = append(gg.steps, finishStep(gg.gensym("finish")))
+	}
+
 	gg.compile()
 }
 
