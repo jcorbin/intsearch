@@ -52,6 +52,7 @@ func (gg *goGen) loggedGen() solutionGen {
 }
 
 func (gg *goGen) dumpLastSteps() {
+	// TODO: don't dump after finalize when we resurrect this
 	i := gg.lastLogDump
 	for ; i < len(gg.steps); i++ {
 		fmt.Printf("%v: %v\n", i, gg.steps[i])
@@ -462,6 +463,10 @@ func (gg *goGen) finish() {
 	gg.steps = append(gg.steps,
 		labelStep(gg.gensym("finish")),
 		exitStep{nil})
+}
+
+func (gg *goGen) finalize() {
+	gg.compile()
 }
 
 func (gg *goGen) compile() {

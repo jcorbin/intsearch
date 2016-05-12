@@ -23,7 +23,6 @@ func TestGogenSendMoreMoney(t *testing.T) {
 	gg := newGoGen(newPlanProblem(&prob))
 	gg.verified = true
 	gg.planProblem.plan(gg)
-	gg.compile()
 
 	numGood := 0
 
@@ -56,7 +55,6 @@ func TestGogenSendMoreMoney(t *testing.T) {
 		gg := newGoGen(newPlanProblem(&prob))
 		gg.verified = true
 		gg.planProblem.plan(gg.loggedGen())
-		gg.compile()
 		srch.run(100000, gg.searchInit, resultFunc, watchers([]searchWatcher{
 			traces,
 			debugWatcher{},

@@ -62,3 +62,9 @@ func (mg multiGen) finish() {
 		gen.finish()
 	}
 }
+
+func (mg multiGen) finalize() {
+	for _, gen := range mg {
+		gen.finalize()
+	}
+}

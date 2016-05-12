@@ -52,6 +52,7 @@ type solutionGen interface {
 	chooseRange(col *column, c byte, i, min, max int)
 	checkColumn(col *column)
 	finish()
+	finalize()
 }
 
 func newPlanProblem(p *problem) *planProblem {
@@ -114,6 +115,7 @@ func (prob *planProblem) markKnown(c byte) {
 func (prob *planProblem) plan(gen solutionGen) {
 	gen.init("top down ... bottom up")
 	prob.planTopDown(gen)
+	gen.finalize()
 }
 
 func (prob *planProblem) planTopDown(gen solutionGen) {

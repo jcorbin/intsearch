@@ -118,8 +118,10 @@ func (lg *logGen) checkColumn(col *column) {
 }
 
 func (lg *logGen) finish() {
-	lg.stepf("done\n")
+	lg.stepf("finish\n")
+}
 
+func (lg *logGen) finalize() {
 	branches := 1
 	for _, b := range lg.branches {
 		branches *= b
