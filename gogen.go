@@ -393,6 +393,10 @@ func (gg *goGen) checkColumn(col *column) {
 
 func (gg *goGen) verify() {
 	gg.steps = append(gg.steps, labelStep(gg.gensym("verify")))
+	gg.steps = append(gg.steps, gg.verifySteps()...)
+}
+
+func (gg *goGen) verifySteps() []solutionStep {
 	N := len(gg.letterSet)
 	C := gg.numColumns()
 	steps := make([]solutionStep, 0, N*N/2*4+N*4+1+C*9+2)
@@ -444,7 +448,7 @@ func (gg *goGen) verify() {
 		relJZStep(1),
 		exitStep{errVerifyFailed})
 
-	gg.steps = append(gg.steps, steps...)
+	return steps
 }
 
 func (gg *goGen) finish() {
