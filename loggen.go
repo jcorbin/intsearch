@@ -127,9 +127,5 @@ func (lg *logGen) finalize() {
 		branches *= b
 	}
 
-	if lg.prefix == "" {
-		fmt.Printf("// Total Branches: %v\n", branches)
-	} else {
-		fmt.Printf("// %s> Total Branches: %v\n", lg.prefix, branches)
-	}
+	fmt.Printf("// Total Branches: %v\n", branches)
 }
