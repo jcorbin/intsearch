@@ -125,8 +125,7 @@ func main() {
 		log.Fatalf("setup failed: %v", err)
 	}
 
-	gg = newGoGen(newPlanProblem(&prob))
-	gg.verified = *verify
+	gg = newGoGen(newPlanProblem(&prob), *verify)
 
 	if *dumpProg {
 		gen = gg.loggedGen()

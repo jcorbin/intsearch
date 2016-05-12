@@ -30,11 +30,12 @@ type goGen struct {
 	lastLogDump  int
 }
 
-func newGoGen(prob *planProblem) *goGen {
+func newGoGen(prob *planProblem, verified bool) *goGen {
 	return &goGen{
 		planProblem: prob,
 		carryFixed:  make(map[int]int, prob.numColumns()),
 		usedSymbols: make(map[string]struct{}, 3*len(prob.letterSet)),
+		verified:    verified,
 	}
 }
 
