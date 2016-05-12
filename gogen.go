@@ -394,11 +394,6 @@ func (gg *goGen) checkColumn(col *column) {
 	gg.steps = append(gg.steps, steps...)
 }
 
-func (gg *goGen) verify() {
-	gg.steps = append(gg.steps, labelStep(gg.gensym("verify")))
-	gg.steps = append(gg.steps, gg.verifySteps()...)
-}
-
 func (gg *goGen) verifySteps() []solutionStep {
 	N := len(gg.letterSet)
 	C := gg.numColumns()
@@ -462,7 +457,8 @@ func (gg *goGen) finish() {
 	}
 
 	if gg.verified {
-		gg.verify()
+		gg.steps = append(gg.steps, labelStep(gg.gensym("verify")))
+		gg.steps = append(gg.steps, gg.verifySteps()...)
 	}
 	gg.steps = append(gg.steps, finishStep(gg.gensym("finish")))
 }
