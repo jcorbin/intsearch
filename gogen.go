@@ -31,12 +31,13 @@ type goGen struct {
 }
 
 func newGoGen(prob *planProblem, verified bool) *goGen {
-	return &goGen{
+	gg := &goGen{
 		planProblem: prob,
 		carryFixed:  make(map[int]int, prob.numColumns()),
 		usedSymbols: make(map[string]struct{}, 3*len(prob.letterSet)),
 		verified:    verified,
 	}
+	return gg
 }
 
 func (gg *goGen) searchInit(emit emitFunc) {
