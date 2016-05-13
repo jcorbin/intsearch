@@ -52,8 +52,9 @@ func TestGogenSendMoreMoney(t *testing.T) {
 	}
 
 	if t.Failed() {
-		planProblem := newPlanProblem(&prob)
-		planProblem.plan(gg.loggedGen())
+		gg := newGoGen(newPlanProblem(&prob))
+		gg.verified = true
+		gg.planProblem.plan(gg.loggedGen())
 		srch.run(100000, gg.searchInit, resultFunc, watchers([]searchWatcher{
 			traces,
 			debugWatcher{},
