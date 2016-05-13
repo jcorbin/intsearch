@@ -13,10 +13,11 @@ var (
 	verify   = flag.Bool("verify", false, "generate code for extra verification")
 	debug    = flag.Bool("debug", false, "enable debug search watcher")
 
-	prob problem
-	srch search
-	gg   *goGen
-	gen  solutionGen
+	first bool
+	prob  problem
+	srch  search
+	gg    *goGen
+	gen   solutionGen
 )
 
 func logf(format string, args ...interface{}) {
@@ -29,15 +30,24 @@ func logf(format string, args ...interface{}) {
 }
 
 func dump(sol *solution) bool {
+	var mess string
 	if sol.err == nil {
-		logf("=== Solution: %v %s", sol, sol.letterMapping())
+		mess = "=== Solution"
 	} else if sol.err == errVerifyFailed {
-		logf("!!! Fail: %v %s", sol, sol.letterMapping())
+		mess = "!!! Fail"
 	} else if *debug {
-		logf("--- Dead end: %v %s", sol, sol.letterMapping())
-	} else {
+		mess = "--- Dead end"
+	}
+	if mess == "" {
 		return false
 	}
+
+	if first {
+		first = false
+	} else {
+		fmt.Println()
+	}
+	logf("%s: %v %s", mess, sol, sol.letterMapping())
 	for i, soli := range sol.trace {
 		logf("... [%v] %v %s", i, soli, soli.letterMapping())
 	}
@@ -50,6 +60,7 @@ func traceFailures() {
 		metrics,
 		newTraceWatcher(),
 	})
+	first = true
 	srch.run(100000, gg.searchInit, dump, watcher)
 	fmt.Printf("%+v\n", metrics)
 }
@@ -63,6 +74,7 @@ func debugRun() {
 			logf: logf,
 		},
 	})
+	first = true
 	srch.run(100000, gg.searchInit, dump, watcher)
 	fmt.Printf("%+v\n", metrics)
 }
@@ -80,6 +92,7 @@ func findOne() *solution {
 
 	failed := false
 	var theSol *solution
+	first = true
 	srch.run(
 		100000,
 		gg.searchInit,
