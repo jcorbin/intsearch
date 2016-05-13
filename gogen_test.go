@@ -65,7 +65,7 @@ func TestGogenSendMoreMoney(t *testing.T) {
 func BenchmarkPlan(b *testing.B) {
 	var prob problem
 	if err := prob.setup("send", "more", "money"); err != nil {
-		b.Fatalf("seutp failed: %v", err)
+		b.Fatalf("setup failed: %v", err)
 	}
 	for n := 0; n < b.N; n++ {
 		gg := newGoGen(newPlanProblem(&prob))
