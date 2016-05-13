@@ -26,7 +26,7 @@ type goGen struct {
 	carryValid   bool
 	usedSymbols  map[string]struct{}
 	labels       map[string]int
-	addrLabels   []string
+	addrLabels   [][]string
 	lastLogDump  int
 }
 
@@ -66,14 +66,18 @@ func (gg *goGen) dumpLastSteps() {
 }
 
 func (gg *goGen) labelFor(i int) string {
-	if i >= len(gg.addrLabels) {
+	labels := gg.labelsFor(i)
+	if len(labels) == 0 {
 		return ""
 	}
-	label := gg.addrLabels[i]
-	if len(label) == 0 {
-		return ""
+	return strings.Join(labels, ", ")
+}
+
+func (gg *goGen) labelsFor(i int) []string {
+	if gg.addrLabels == nil {
+		return nil
 	}
-	return label
+	return gg.addrLabels[i]
 }
 
 func (gg *goGen) decorate(args []interface{}) []string {
@@ -81,7 +85,9 @@ func (gg *goGen) decorate(args []interface{}) []string {
 	if gg.addrLabels != nil {
 		for _, arg := range args {
 			if sol, ok := arg.(*solution); ok {
-				dec = append(dec, gg.labelFor(sol.stepi))
+				if labels := gg.addrLabels[sol.stepi]; labels != nil {
+					dec = append(dec, labels...)
+				}
 			}
 		}
 	}
@@ -486,9 +492,9 @@ func (gg *goGen) compile() {
 	}
 	gg.steps, gg.labels = resolveLabels(steps, gg.labels)
 
-	gg.addrLabels = make([]string, len(gg.steps))
+	gg.addrLabels = make([][]string, len(gg.steps))
 	for label, addr := range gg.labels {
-		gg.addrLabels[addr] = label
+		gg.addrLabels[addr] = append(gg.addrLabels[addr], label)
 	}
 }
 
