@@ -48,10 +48,31 @@ func dump(sol *solution) bool {
 		fmt.Println()
 	}
 	logf("%s: %v %s", mess, sol, sol.letterMapping())
-	for i, soli := range sol.trace {
-		logf("... [%v] %v %s", i, soli, soli.letterMapping())
-	}
+	printTrace(sol)
 	return false
+}
+
+func printTrace(sol *solution) {
+	for i, soli := range sol.trace {
+		var step solutionStep
+		if soli.stepi < len(soli.steps) {
+			step = soli.steps[soli.stepi]
+		}
+
+		trail := "//"
+		if label := gg.labelFor(soli.stepi); len(label) > 0 {
+			trail = fmt.Sprintf("// %-40s %s", soli.letterMapping(), label)
+		} else if mapping := soli.letterMapping(); len(mapping) > 0 {
+			trail = fmt.Sprintf("// %s", mapping)
+		}
+
+		fmt.Printf("... %3v: ra:%-3v rb:%-3v rc:%-3v done:%v err:%v -- @%-3v %-20v  %s\n",
+			i,
+			soli.ra, soli.rb, soli.rc,
+			soli.done, soli.err,
+			soli.stepi, step,
+			trail)
+	}
 }
 
 func traceFailures() {
@@ -170,11 +191,7 @@ func main() {
 	if sol := findOne(); sol != nil {
 		logf("found: %v", sol.letterMapping())
 		sol.printCheck(logf)
-		if sol.trace != nil {
-			for i, soli := range sol.trace {
-				logf("... [%v] %v %s", i, soli, soli.letterMapping())
-			}
-		}
+		printTrace(sol)
 	} else {
 		traceFailures()
 	}
