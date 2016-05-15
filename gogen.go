@@ -250,8 +250,10 @@ func (gg *goGen) checkFixedCarry(col *column) {
 	if !fixed {
 		return
 	}
+	if !gg.restoreCarry(col) {
+		return
+	}
 
-	gg.ensureCarry(col)
 	label := gg.gensym("checkFixedCarry(%s)", charsLabel(col.cx[0], col.cx[1], col.cx[2]))
 	if carryOut == 0 {
 		gg.steps = append(gg.steps,
