@@ -83,7 +83,7 @@ func traceFailures() {
 	})
 	first = true
 	srch.run(100000, gg.searchInit, dump, watcher)
-	fmt.Printf("%+v\n", metrics)
+	fmt.Printf("\nsearch metrics: %+v\n", metrics)
 }
 
 func debugRun() {
@@ -97,7 +97,7 @@ func debugRun() {
 	})
 	first = true
 	srch.run(100000, gg.searchInit, dump, watcher)
-	fmt.Printf("%+v\n", metrics)
+	fmt.Printf("\nsearch metrics: %+v\n", metrics)
 }
 
 func findOne() *solution {
