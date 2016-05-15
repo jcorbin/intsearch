@@ -57,10 +57,6 @@ func (lg *logGen) fix(c byte, v int) {
 	lg.stepf("fix %v = %v\n", string(c), v)
 }
 
-func (lg *logGen) fixCarry(i, v int) {
-	lg.stepf("fixCarry col[%d] = %v\n", i, v)
-}
-
 func (lg *logGen) computeSum(col *column) {
 	a, b, c := col.cx[0], col.cx[1], col.cx[2]
 	if a != 0 && b != 0 {
