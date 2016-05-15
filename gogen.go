@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"log"
 	"strings"
 )
 
@@ -343,7 +344,16 @@ func (gg *goGen) ensureCarry(col *column) {
 		}
 	}
 
-	c1, c2 := col.cx[0], col.cx[1]
+	c1 := col.cx[0]
+	if c1 != 0 && !gg.known[c1] {
+		log.Fatalf("cannot compute carry from unknown c1 for column %v", col)
+	}
+
+	c2 := col.cx[1]
+	if c2 != 0 && !gg.known[c2] {
+		log.Fatalf("cannot compute carry from unknown c2 for column %v", col)
+	}
+
 	gg.ensureCarry(col.prior)
 	gg.steps = append(gg.steps,
 		labelStep(gg.gensym("ensureCarry(%d):compute(%s)", col.i, charsLabel(c1, c2))))
