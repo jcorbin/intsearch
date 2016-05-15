@@ -12,6 +12,8 @@ func TestGogenSendMoreMoney(t *testing.T) {
 		t.Fatalf("setup failed: %v", err)
 	}
 
+	var gg *goGen
+
 	decs := func(args ...interface{}) string {
 		dec := gg.decorate(args)
 		if len(dec) == 0 {
@@ -20,7 +22,7 @@ func TestGogenSendMoreMoney(t *testing.T) {
 		return fmt.Sprintf("  // %s", strings.Join(dec, ", "))
 	}
 
-	gg := newGoGen(newPlanProblem(&prob), true)
+	gg = newGoGen(newPlanProblem(&prob), true)
 	gg.planProblem.plan(gg)
 
 	numGood := 0
@@ -51,7 +53,7 @@ func TestGogenSendMoreMoney(t *testing.T) {
 	}
 
 	if t.Failed() {
-		gg := newGoGen(newPlanProblem(&prob), true)
+		gg = newGoGen(newPlanProblem(&prob), true)
 		gg.planProblem.plan(gg.loggedGen())
 		srch.run(100000, gg.searchInit, resultFunc, watchers([]searchWatcher{
 			traces,
