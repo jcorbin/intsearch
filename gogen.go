@@ -78,7 +78,10 @@ func (gg *goGen) labelsFor(i int) []string {
 	if gg.addrLabels == nil {
 		return nil
 	}
-	return gg.addrLabels[i]
+	if i < len(gg.addrLabels) {
+		return gg.addrLabels[i]
+	}
+	return []string{"INVALID"}
 }
 
 func (gg *goGen) decorate(args []interface{}) []string {
@@ -86,9 +89,7 @@ func (gg *goGen) decorate(args []interface{}) []string {
 	if gg.addrLabels != nil {
 		for _, arg := range args {
 			if sol, ok := arg.(*solution); ok {
-				if labels := gg.addrLabels[sol.stepi]; labels != nil {
-					dec = append(dec, labels...)
-				}
+				dec = append(dec, gg.labelsFor(sol.stepi)...)
 			}
 		}
 	}
