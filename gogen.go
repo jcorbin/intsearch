@@ -243,24 +243,25 @@ func (gg *goGen) checkInitialLetter(col *column, c byte) {
 }
 
 func (gg *goGen) checkFixedCarry(col *column) {
-	if col.i <= 0 {
-		return
-	}
-	carryOut, fixed := gg.carryFixed[col.i-1]
-	if !fixed {
-		return
-	}
-	if !gg.restoreCarry(col) {
+	switch col.carry {
+	case carryZero:
+		fallthrough
+	case carryOne:
+		if !gg.restoreCarry(col) {
+			return
+		}
+	default:
 		return
 	}
 
 	label := gg.gensym("checkFixedCarry(%s)", charsLabel(col.cx[0], col.cx[1], col.cx[2]))
-	if carryOut == 0 {
+	switch col.carry {
+	case carryZero:
 		gg.steps = append(gg.steps,
 			labelStep(label),
 			relJZStep(1),
 			exitStep{errCheckFailed})
-	} else {
+	case carryOne:
 		gg.steps = append(gg.steps,
 			labelStep(label),
 			relJNZStep(1),
