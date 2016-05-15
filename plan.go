@@ -1,6 +1,10 @@
 package main
 
-import "log"
+import (
+	"fmt"
+	"log"
+	"strings"
+)
 
 type carryValue int
 
@@ -23,6 +27,27 @@ type column struct {
 	unknown int
 	fixed   int
 	carry   carryValue
+}
+
+func (col *column) String() string {
+	parts := make([]string, 0, 7)
+	if col.prior != nil {
+		parts = append(parts, col.prior.carry.String())
+	}
+	for _, c := range col.cx[:2] {
+		if c != 0 {
+			if len(parts) > 0 {
+				parts = append(parts, "+", string(c))
+			} else {
+				parts = append(parts, string(c))
+			}
+		}
+	}
+	parts = append(parts, "=", string(col.cx[2]))
+	return fmt.Sprintf(
+		"[%d] %s carry=%s solved=%t have=%d known=%d unknown=%d fixed=%d",
+		col.i, strings.Join(parts, " "), col.carry,
+		col.solved, col.have, col.known, col.unknown, col.fixed)
 }
 
 func (col *column) priorCarry() carryValue {
