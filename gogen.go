@@ -323,7 +323,7 @@ func (gg *goGen) restoreCarry(col *column) bool {
 		return false
 	}
 	gg.steps = append(gg.steps,
-		labelStep(gg.gensym("ensureCarry(%d):restore", col.i)),
+		labelStep(gg.gensym("restoreCarry(%d)", col.i)),
 		setABStep{})
 	gg.carryValid = true
 	return true
