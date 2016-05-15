@@ -18,3 +18,4 @@ lint:
 .PHONY: test
 test: lint generate
 	go test
+	go test -bench .
