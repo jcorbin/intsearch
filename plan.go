@@ -162,18 +162,6 @@ func (prob *planProblem) procTopDown(gen solutionGen, col *column) {
 	prob.planBottomUp(gen)
 }
 
-func (prob *planProblem) fixCarryIn(gen solutionGen, col *column, carry carryValue) {
-	switch carry {
-	case carryZero:
-		fallthrough
-	case carryOne:
-		col.prior.carry = carry
-		gen.fixCarry(col.i, int(carry))
-	default:
-		panic("can only fix carry to a definite value")
-	}
-}
-
 func (prob *planProblem) planBottomUp(gen solutionGen) {
 	for i := prob.numColumns() - 1; i >= 0; i-- {
 		prob.solveColumn(gen, &prob.columns[i])
@@ -240,7 +228,8 @@ func (prob *planProblem) solveSingularColumn(gen solutionGen, col *column) bool 
 		}
 		prob.fix(gen, c, 1)
 		col.solved = true
-		prob.fixCarryIn(gen, col, carryOne)
+		col.prior.carry = carryOne
+		gen.fixCarry(col.i, int(carryOne))
 		return true
 	}
 
