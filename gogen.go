@@ -312,6 +312,21 @@ func (gg *goGen) chooseRange(col *column, c byte, i, min, max int) {
 	}
 }
 
+func (gg *goGen) restoreCarry(col *column) bool {
+	if col == gg.carryPrior {
+		if gg.carryValid {
+			return true
+		} else if gg.carrySaved {
+			gg.steps = append(gg.steps,
+			labelStep(gg.gensym("ensureCarry(%d):restore", col.i)),
+			setABStep{})
+			gg.carryValid = true
+			return true
+		}
+	}
+	return false
+}
+
 func (gg *goGen) ensureCarry(col *column) {
 	if col == nil {
 		gg.steps = append(gg.steps,
@@ -333,16 +348,8 @@ func (gg *goGen) ensureCarry(col *column) {
 		return
 	}
 
-	if col == gg.carryPrior {
-		if gg.carryValid {
-			return
-		} else if gg.carrySaved {
-			gg.steps = append(gg.steps,
-				labelStep(gg.gensym("ensureCarry(%d):restore", col.i)),
-				setABStep{})
-			gg.carryValid = true
-			return
-		}
+	if gg.restoreCarry(col) {
+		return
 	}
 
 	c1 := col.cx[0]
