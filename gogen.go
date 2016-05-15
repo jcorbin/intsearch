@@ -342,10 +342,13 @@ func (gg *goGen) ensureCarry(col *column) {
 		return
 	}
 
-	if value, ok := gg.carryFixed[col.i]; ok {
+	switch col.carry {
+	case carryZero:
+		fallthrough
+	case carryOne:
 		gg.steps = append(gg.steps,
 			labelStep(gg.gensym("ensureCarry(%d):fixed", col.i)),
-			setAStep(value))
+			setAStep(col.carry))
 		gg.carryPrior = col
 		gg.carrySaved = false
 		gg.carryValid = true
