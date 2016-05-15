@@ -229,7 +229,6 @@ func (prob *planProblem) solveSingularColumn(gen solutionGen, col *column) bool 
 		prob.fix(gen, c, 1)
 		col.solved = true
 		col.prior.carry = carryOne
-		gen.fixCarry(col.i, int(carryOne))
 		return true
 	}
 
