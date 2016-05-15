@@ -14,12 +14,12 @@ func TestGogenSendMoreMoney(t *testing.T) {
 
 	var gg *goGen
 
-	decs := func(args ...interface{}) string {
+	logf := func(format string, args ...interface{}) {
 		dec := gg.decorate(args)
-		if len(dec) == 0 {
-			return ""
+		if len(dec) > 0 {
+			format = fmt.Sprintf("%s  // %s", format, strings.Join(dec, ", "))
 		}
-		return fmt.Sprintf("  // %s", strings.Join(dec, ", "))
+		t.Logf(format, args...)
 	}
 
 	gg = newGoGen(newPlanProblem(&prob), true)
@@ -29,9 +29,9 @@ func TestGogenSendMoreMoney(t *testing.T) {
 
 	resultFunc := func(sol *solution) bool {
 		if sol.err == errVerifyFailed {
-			t.Logf("!!! invalid solution found: %v %s%s", sol, sol.letterMapping(), decs(sol))
+			logf("!!! invalid solution found: %v %s", sol, sol.letterMapping())
 			for i, soli := range sol.trace {
-				t.Logf("trace[%v]: %v %s%s", i, soli, soli.letterMapping(), decs(soli))
+				logf("trace[%v]: %v %s", i, soli, soli.letterMapping())
 			}
 			t.Fail()
 		} else if sol.err == nil {
@@ -57,7 +57,9 @@ func TestGogenSendMoreMoney(t *testing.T) {
 		gg.planProblem.plan(gg.loggedGen())
 		srch.run(100000, gg.searchInit, resultFunc, watchers([]searchWatcher{
 			traces,
-			debugWatcher{},
+			debugWatcher{
+				logf: logf,
+			},
 		}))
 	}
 }
