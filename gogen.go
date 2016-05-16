@@ -83,12 +83,13 @@ func (gg *goGen) labelsFor(i int) []string {
 }
 
 func (gg *goGen) decorate(args []interface{}) []string {
+	if gg.addrLabels == nil {
+		return nil
+	}
 	var dec []string
-	if gg.addrLabels != nil {
-		for _, arg := range args {
-			if sol, ok := arg.(*solution); ok {
-				dec = append(dec, gg.labelsFor(sol.stepi)...)
-			}
+	for _, arg := range args {
+		if sol, ok := arg.(*solution); ok {
+			dec = append(dec, gg.labelsFor(sol.stepi)...)
 		}
 	}
 	return dec
