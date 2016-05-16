@@ -193,6 +193,7 @@ func main() {
 		sol.printCheck(logf)
 		printTrace(sol)
 	} else {
+		logf("found no solutions, re-running with trace")
 		traceFailures()
 	}
 }
