@@ -235,7 +235,8 @@ func (step labelJNZStep) resolveLabels(labels map[string]int) solutionStep {
 
 type forkLabelStep string
 
-func (step forkLabelStep) String() string { return fmt.Sprintf("fork to :%s", string(step)) }
+func (step forkLabelStep) String() string   { return fmt.Sprintf("fork to :%s", string(step)) }
+func (step forkLabelStep) annotate() string { return fmt.Sprintf("*-> :%s", string(step)) }
 func (step forkLabelStep) run(sol *solution) {
 	sol.exit(fmt.Errorf("unresolved label jump :%s", string(step)))
 }
