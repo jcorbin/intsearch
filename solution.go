@@ -44,6 +44,10 @@ type labeledStep interface {
 	) (int, [][]solutionStep, map[string]int)
 }
 
+type annotatedStep interface {
+	annotate() string
+}
+
 type resolvableStep interface {
 	resolveLabels(labels map[string]int) solutionStep
 }
@@ -160,6 +164,9 @@ func eraseLabels(
 			addr, parts, labels = ls.eraseLabel(addr, parts, labels, annotate)
 			prior = i + 1
 		} else {
+			if as, ok := step.(annotatedStep); ok {
+				annotate(addr, as.annotate())
+			}
 			addr++
 		}
 	}
