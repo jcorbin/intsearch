@@ -26,7 +26,7 @@ type goGen struct {
 	carryValid   bool
 	usedSymbols  map[string]struct{}
 	labels       map[string]int
-	addrLabels   [][]string
+	addrAnnos    map[int][]string
 	lastLogDump  int
 }
 
@@ -65,31 +65,34 @@ func (gg *goGen) dumpLastSteps() {
 }
 
 func (gg *goGen) labelFor(i int) string {
-	labels := gg.labelsFor(i)
+	labels := gg.annosFor(i)
 	if len(labels) == 0 {
 		return ""
 	}
 	return strings.Join(labels, ", ")
 }
 
-func (gg *goGen) labelsFor(i int) []string {
-	if gg.addrLabels == nil {
+func (gg *goGen) annosFor(addr int) []string {
+	if gg.addrAnnos == nil {
 		return nil
 	}
-	if i < len(gg.addrLabels) {
-		return gg.addrLabels[i]
+	if addr > len(gg.steps) {
+		return []string{"INVALID"}
 	}
-	return []string{"INVALID"}
+	if annos, ok := gg.addrAnnos[addr]; ok {
+		return annos
+	}
+	return nil
 }
 
 func (gg *goGen) decorate(args []interface{}) []string {
-	if gg.addrLabels == nil {
+	if gg.addrAnnos == nil {
 		return nil
 	}
 	var dec []string
 	for _, arg := range args {
 		if sol, ok := arg.(*solution); ok {
-			dec = append(dec, gg.labelsFor(sol.stepi)...)
+			dec = append(dec, gg.annosFor(sol.stepi)...)
 		}
 	}
 	return dec
@@ -503,11 +506,11 @@ func (gg *goGen) finalize() {
 	gg.compile()
 }
 
-func (gg *goGen) takeAnnotation(addr int, label string) {
-	if gg.addrLabels == nil {
-		gg.addrLabels = make([][]string, len(gg.steps))
+func (gg *goGen) takeAnnotation(addr int, anno string) {
+	if gg.addrAnnos == nil {
+		gg.addrAnnos = make(map[int][]string)
 	}
-	gg.addrLabels[addr] = append(gg.addrLabels[addr], label)
+	gg.addrAnnos[addr] = append(gg.addrAnnos[addr], anno)
 }
 
 func (gg *goGen) compile() {
