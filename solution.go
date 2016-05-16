@@ -36,7 +36,11 @@ type solutionStep interface {
 
 type labeledStep interface {
 	labelName() string
-	eraseLabel(addr int, parts [][]solutionStep, labels map[string]int) (int, [][]solutionStep, map[string]int)
+	eraseLabel(
+		addr int,
+		parts [][]solutionStep,
+		labels map[string]int,
+	) (int, [][]solutionStep, map[string]int)
 }
 
 type resolvableStep interface {
@@ -49,7 +53,11 @@ func (l labelStep) labelName() string {
 	return string(l)
 }
 
-func (l labelStep) eraseLabel(addr int, parts [][]solutionStep, labels map[string]int) (int, [][]solutionStep, map[string]int) {
+func (l labelStep) eraseLabel(
+	addr int,
+	parts [][]solutionStep,
+	labels map[string]int,
+) (int, [][]solutionStep, map[string]int) {
 	return addr, parts, labels
 }
 
@@ -120,7 +128,12 @@ func resolveLabels(steps []solutionStep, labels map[string]int) ([]solutionStep,
 // contained in those parts to the labels map.  The returned addr must be the
 // passed addr plus the total step length of all newly added parts.  The, maybe
 // modified, parts and labels must be returned.
-func eraseLabels(addr int, steps []solutionStep, parts [][]solutionStep, labels map[string]int) (int, [][]solutionStep, map[string]int) {
+func eraseLabels(
+	addr int,
+	steps []solutionStep,
+	parts [][]solutionStep,
+	labels map[string]int,
+) (int, [][]solutionStep, map[string]int) {
 	if parts == nil {
 		nl := len(labels)
 		if labels == nil {
