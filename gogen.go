@@ -506,11 +506,11 @@ func (gg *goGen) finalize() {
 	gg.compile()
 }
 
-func (gg *goGen) takeAnnotation(addr int, anno string) {
+func (gg *goGen) takeAnnotation(addr int, annos ...string) {
 	if gg.addrAnnos == nil {
 		gg.addrAnnos = make(map[int][]string)
 	}
-	gg.addrAnnos[addr] = append(gg.addrAnnos[addr], anno)
+	gg.addrAnnos[addr] = append(gg.addrAnnos[addr], annos...)
 }
 
 func (gg *goGen) compile() {
