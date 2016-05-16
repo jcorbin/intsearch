@@ -200,6 +200,10 @@ func (step labelJmpStep) String() string { return fmt.Sprintf("jmp(:%s)", string
 func (step labelJZStep) String() string  { return fmt.Sprintf("jz(:%s)", string(step)) }
 func (step labelJNZStep) String() string { return fmt.Sprintf("jnz(:%s)", string(step)) }
 
+func (step labelJZStep) annotate() string  { return fmt.Sprintf("?-> :%s", string(step)) }
+func (step labelJNZStep) annotate() string { return fmt.Sprintf("?-> :%s", string(step)) }
+func (step labelJmpStep) annotate() string { return fmt.Sprintf("-> :%s", string(step)) }
+
 func (step labelJmpStep) run(sol *solution) {
 	sol.exit(fmt.Errorf("unresolved label jump :%s", string(step)))
 }
