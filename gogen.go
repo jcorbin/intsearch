@@ -502,6 +502,13 @@ func (gg *goGen) finalize() {
 	gg.compile()
 }
 
+func (gg *goGen) takeAnnotation(addr int, label string) {
+	if gg.addrLabels == nil {
+		gg.addrLabels = make([][]string, len(gg.steps))
+	}
+	gg.addrLabels[addr] = append(gg.addrLabels[addr], label)
+}
+
 func (gg *goGen) compile() {
 	var parts [][]solutionStep
 	var addr int
@@ -511,10 +518,8 @@ func (gg *goGen) compile() {
 		steps = append(steps, part...)
 	}
 	gg.steps, gg.labels = resolveLabels(steps, gg.labels)
-
-	gg.addrLabels = make([][]string, len(gg.steps))
 	for label, addr := range gg.labels {
-		gg.addrLabels[addr] = append(gg.addrLabels[addr], label)
+		gg.takeAnnotation(addr, label)
 	}
 }
 
