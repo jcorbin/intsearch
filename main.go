@@ -177,7 +177,7 @@ func main() {
 			if label == "" {
 				fmt.Printf("%v: %v\n", i, step)
 			} else {
-				fmt.Printf("%v: %v  // :%s\n", i, step, label)
+				fmt.Printf("%v: %v  // %s\n", i, step, label)
 			}
 		}
 		fmt.Println()
