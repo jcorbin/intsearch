@@ -60,6 +60,7 @@ func (l labelStep) eraseLabel(
 	labels map[string]int,
 	annotate func(addr int, annos ...string),
 ) (int, [][]solutionStep, map[string]int) {
+	annotate(addr, l.String())
 	return addr, parts, labels
 }
 

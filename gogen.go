@@ -522,9 +522,6 @@ func (gg *goGen) compile() {
 		steps = append(steps, part...)
 	}
 	gg.steps, gg.labels = resolveLabels(steps, gg.labels)
-	for label, addr := range gg.labels {
-		gg.takeAnnotation(addr, label)
-	}
 }
 
 func (gg *goGen) gensym(format string, args ...interface{}) string {

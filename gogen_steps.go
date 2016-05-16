@@ -284,5 +284,6 @@ func (step finishStep) eraseLabel(
 	labels map[string]int,
 	annotate func(addr int, annos ...string),
 ) (int, [][]solutionStep, map[string]int) {
+	annotate(addr, fmt.Sprintf(":%s", string(step)))
 	return addr + 1, append(parts, []solutionStep{exitStep{nil}}), labels
 }
