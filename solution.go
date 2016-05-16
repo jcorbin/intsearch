@@ -40,6 +40,7 @@ type labeledStep interface {
 		addr int,
 		parts [][]solutionStep,
 		labels map[string]int,
+		annotate func(addr int, annos ...string),
 	) (int, [][]solutionStep, map[string]int)
 }
 
@@ -57,6 +58,7 @@ func (l labelStep) eraseLabel(
 	addr int,
 	parts [][]solutionStep,
 	labels map[string]int,
+	annotate func(addr int, annos ...string),
 ) (int, [][]solutionStep, map[string]int) {
 	return addr, parts, labels
 }
@@ -133,6 +135,7 @@ func eraseLabels(
 	steps []solutionStep,
 	parts [][]solutionStep,
 	labels map[string]int,
+	annotate func(addr int, annos ...string),
 ) (int, [][]solutionStep, map[string]int) {
 	if parts == nil {
 		nl := len(labels)
@@ -153,7 +156,7 @@ func eraseLabels(
 			if head := steps[prior:i]; len(head) > 0 {
 				parts = append(parts, head)
 			}
-			addr, parts, labels = ls.eraseLabel(addr, parts, labels)
+			addr, parts, labels = ls.eraseLabel(addr, parts, labels, annotate)
 			prior = i + 1
 		} else {
 			addr++

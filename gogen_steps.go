@@ -282,6 +282,7 @@ func (step finishStep) eraseLabel(
 	addr int,
 	parts [][]solutionStep,
 	labels map[string]int,
+	annotate func(addr int, annos ...string),
 ) (int, [][]solutionStep, map[string]int) {
 	return addr + 1, append(parts, []solutionStep{exitStep{nil}}), labels
 }
