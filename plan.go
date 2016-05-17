@@ -30,6 +30,13 @@ type column struct {
 }
 
 func (col *column) String() string {
+	return fmt.Sprintf(
+		"[%d] %s carry=%s solved=%t have=%d known=%d unknown=%d fixed=%d",
+		col.i, col.expr(), col.carry,
+		col.solved, col.have, col.known, col.unknown, col.fixed)
+}
+
+func (col *column) expr() string {
 	parts := make([]string, 0, 7)
 	if col.prior != nil {
 		parts = append(parts, col.prior.carry.String())
@@ -44,10 +51,7 @@ func (col *column) String() string {
 		}
 	}
 	parts = append(parts, "=", string(col.cx[2]))
-	return fmt.Sprintf(
-		"[%d] %s carry=%s solved=%t have=%d known=%d unknown=%d fixed=%d",
-		col.i, strings.Join(parts, " "), col.carry,
-		col.solved, col.have, col.known, col.unknown, col.fixed)
+	return strings.Join(parts, " ")
 }
 
 func (col *column) priorCarry() carryValue {
