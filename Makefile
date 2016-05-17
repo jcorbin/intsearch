@@ -11,11 +11,11 @@ clean:
 	git clean -f -X
 
 .PHONY: lint
-lint:
+lint: generate
 	golint
 	go vet
 
 .PHONY: test
-test: lint generate
+test: lint
 	go test
 	go test -bench .
