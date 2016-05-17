@@ -17,6 +17,21 @@ const (
 
 //go:generate stringer -type=carryValue
 
+func (cv carryValue) expr() string {
+	switch cv {
+	case carryUnknown:
+		return "?"
+	case carryZero:
+		return "0"
+	case carryOne:
+		return "1"
+	case carryComputed:
+		return "C"
+	default:
+		return "!"
+	}
+}
+
 type column struct {
 	i       int
 	prior   *column
@@ -37,13 +52,13 @@ func (col *column) String() string {
 }
 
 func (col *column) label() string {
-	return fmt.Sprintf("[%d] %s carry=%s", col.i, col.expr(), col.carry)
+	return fmt.Sprintf("[%d] %s carry=%s", col.i, col.expr(), col.carry.expr())
 }
 
 func (col *column) expr() string {
 	parts := make([]string, 0, 7)
 	if col.prior != nil {
-		parts = append(parts, col.prior.carry.String())
+		parts = append(parts, col.prior.carry.expr())
 	}
 	for _, c := range col.cx[:2] {
 		if c != 0 {
