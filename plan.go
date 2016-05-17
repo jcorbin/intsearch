@@ -31,9 +31,13 @@ type column struct {
 
 func (col *column) String() string {
 	return fmt.Sprintf(
-		"[%d] %s carry=%s solved=%t have=%d known=%d unknown=%d fixed=%d",
-		col.i, col.expr(), col.carry,
+		"%s solved=%t have=%d known=%d unknown=%d fixed=%d",
+		col.label(),
 		col.solved, col.have, col.known, col.unknown, col.fixed)
+}
+
+func (col *column) label() string {
+	return fmt.Sprintf("[%d] %s carry=%s", col.i, col.expr(), col.carry)
 }
 
 func (col *column) expr() string {
