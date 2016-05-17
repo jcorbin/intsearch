@@ -14,7 +14,7 @@ clean:
 
 .PHONY: lint
 lint: generate
-	find $(PACKAGES) -type f -name '*.go' | xargs golint
+	find $(PACKAGES) -type f -name '*.go' -not -name '*_string.go' | xargs golint
 	go vet $(PACKAGES)
 
 .PHONY: test
