@@ -9,6 +9,7 @@ import (
 
 var (
 	dumpProg = flag.Bool("dumpProg", false, "dump the generated search program")
+	dumpAll  = flag.Bool("dumpAll", false, "dump all solutions")
 	trace    = flag.Bool("trace", false, "trace results")
 	verify   = flag.Bool("verify", false, "generate code for extra verification")
 	debug    = flag.Bool("debug", false, "enable debug search watcher")
@@ -35,7 +36,7 @@ func dump(sol *solution) bool {
 		mess = "=== Solution"
 	} else if sol.err == errVerifyFailed {
 		mess = "!!! Fail"
-	} else if *debug {
+	} else if *debug || *dumpAll {
 		mess = "--- Dead end"
 	}
 	if mess == "" {
