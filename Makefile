@@ -1,3 +1,5 @@
+PACKAGES=.
+
 .PHONY: generate
 generate:
 	go generate
@@ -12,9 +14,9 @@ clean:
 
 .PHONY: lint
 lint: generate
-	golint
-	go vet
+	find $(PACKAGES) -type f -name '*.go' | xargs golint
+	go vet $(PACKAGES)
 
 .PHONY: test
 test: lint
-	go test -v -bench . -run .
+	go test -v -bench . -run . $(PACKAGES)
