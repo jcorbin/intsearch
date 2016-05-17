@@ -153,7 +153,7 @@ func (gg *goGen) computeSum(col *column) {
 
 	steps := make([]solutionStep, 0, 8)
 	steps = append(steps,
-		labelStep(gg.gensym("computeSum(%s)", charsLabel(a, b, c))))
+		labelStep(gg.gensym("computeSum(%s)", col.label())))
 	if a != 0 {
 		steps = append(steps, addValueStep(a))
 	}
@@ -193,7 +193,7 @@ func (gg *goGen) computeSummand(col *column, a, b, c byte) {
 
 	steps := make([]solutionStep, 0, 9)
 	steps = append(steps,
-		labelStep(gg.gensym("computeSummand(%s)", charsLabel(a, b, c))),
+		labelStep(gg.gensym("computeSummand(%s)", col.label())),
 		negateStep{})
 	if c != 0 {
 		steps = append(steps, addValueStep(c))
@@ -252,7 +252,7 @@ func (gg *goGen) checkFixedCarry(col *column) {
 		return
 	}
 
-	label := gg.gensym("checkFixedCarry(%s)", charsLabel(col.cx[0], col.cx[1], col.cx[2]))
+	label := gg.gensym("checkFixedCarry(%s)", col.label())
 	switch col.carry {
 	case carryZero:
 		gg.steps = append(gg.steps,
@@ -370,7 +370,7 @@ func (gg *goGen) ensureCarry(col *column) {
 
 	gg.ensureCarry(col.prior)
 	gg.steps = append(gg.steps,
-		labelStep(gg.gensym("ensureCarry(%d):compute(%s)", col.i, charsLabel(c1, c2))))
+		labelStep(gg.gensym("computeCarry(%d)", col.label())))
 	steps := make([]solutionStep, 0, 3)
 	if c1 != 0 {
 		steps = append(steps, addValueStep(c1))
@@ -390,7 +390,7 @@ func (gg *goGen) checkColumn(col *column) {
 	a, b, c := col.cx[0], col.cx[1], col.cx[2]
 	gg.ensureCarry(col.prior)
 	gg.steps = append(gg.steps,
-		labelStep(gg.gensym("checkColumn(%s)", charsLabel(a, b, c))))
+		labelStep(gg.gensym("checkColumn(%s)", col.label())))
 	steps := make([]solutionStep, 0, 9)
 
 	n := 0
@@ -541,24 +541,6 @@ func (gg *goGen) gensym(format string, args ...interface{}) string {
 		}
 		i++
 	}
-}
-
-func charsLabel(cs ...byte) string {
-	if len(cs) == 1 {
-		return charLabel(cs[0])
-	}
-	ss := make([]string, len(cs))
-	for i, c := range cs {
-		ss[i] = charsLabel(c)
-	}
-	return strings.Join(ss, ", ")
-}
-
-func charLabel(c byte) string {
-	if c == 0 {
-		return "nil"
-	}
-	return string(c)
 }
 
 func printLastKSteps(k int, steps []solutionStep) {
