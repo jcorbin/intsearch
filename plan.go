@@ -272,6 +272,40 @@ func (prob *planProblem) procTopDown(gen solutionGen, col *column, verified bool
 	return true
 }
 
+func (prob *planProblem) assumeCarrySolveColumn(
+	gen solutionGen, col *column,
+	andThen func(*planProblem, solutionGen, *column) bool,
+) bool {
+	label := col.label()
+	gen.logf("assumeCarrySolveColumn: %s", label)
+	label = fmt.Sprintf("assumeCarry(%s)", label)
+
+	altProb := prob.copy()
+	altCol := &altProb.columns[col.i]
+
+	altCol.prior.carry = carryZero
+	col.prior.carry = carryOne
+	altLabel := fmt.Sprintf("assumeCarry(%s)", altCol.label())
+	contLabel := fmt.Sprintf("assumeCarry(%s)", col.label())
+	altGen := gen.fork(altProb, label, altLabel, contLabel)
+
+	altProb.solveColumn(altGen, altCol)
+	if !andThen(altProb, altGen, altCol.prior) {
+		// TODO: needs to be able to cancel the fork, leaving only the cont
+		// path below
+		panic("alt pruning unimplemented")
+	}
+
+	prob.solveColumn(gen, col)
+	if !andThen(prob, gen, col.prior) {
+		// TODO: needs to be able replace the fork with just the generated alt
+		// steps, or return false if the alt failed as well
+		panic("alt swapping unimplemented")
+	}
+
+	return true
+}
+
 func (prob *planProblem) procBottomUp(gen solutionGen, verified bool) {
 	for i := len(prob.columns) - 1; i >= 0; i-- {
 		prob.solveColumn(gen, &prob.columns[i])
@@ -420,8 +454,7 @@ func (prob *planProblem) chooseRange(gen solutionGen, c byte, min, max int) {
 
 func (prob *planProblem) solveColumnFromPrior(gen solutionGen, col *column) bool {
 	if col.priorCarry() == carryUnknown {
-		// unknown prior carry not yet support; i.e. solveColumn must be called
-		// in bottom-up/right-to-left/decreasing-index order
+		// unknown prior carry is a case for assumeCarrySolveColumn
 		return false
 	}
 
