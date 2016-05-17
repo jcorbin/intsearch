@@ -343,6 +343,8 @@ func (prob *planProblem) solveColumnFromPrior(gen solutionGen, col *column) bool
 		return false
 	}
 
+	gen.logf("solveFromPrior: %s", col.label())
+
 	for u := col.unknown; u > 1; u = col.unknown {
 		if !prob.chooseOne(gen, col) {
 			break
