@@ -46,7 +46,7 @@ func planPrunedBrute(prob *planProblem, gen solutionGen, verified bool) {
 }
 
 func planTopDown(prob *planProblem, gen solutionGen, verified bool) {
-	gen.init("top down ... bottom up")
+	gen.init("top down")
 	if !prob.procTopDown(gen, &prob.columns[0], verified) {
 		panic("unable to plan top down")
 	}
@@ -268,8 +268,11 @@ func (prob *planProblem) procTopDown(gen solutionGen, col *column, verified bool
 		return prob.procTopDown(gen, col.prior, verified)
 	}
 
-	prob.procBottomUp(gen, verified)
-	return true
+	return prob.assumeCarrySolveColumn(
+		gen, col,
+		func(subProb *planProblem, subGen solutionGen, subCol *column) bool {
+			return subProb.procTopDown(subGen, subCol, verified)
+		})
 }
 
 func (prob *planProblem) assumeCarrySolveColumn(
