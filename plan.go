@@ -47,7 +47,9 @@ func planPrunedBrute(prob *planProblem, gen solutionGen, verified bool) {
 
 func planTopDown(prob *planProblem, gen solutionGen, verified bool) {
 	gen.init("top down ... bottom up")
-	prob.procTopDown(gen, &prob.columns[0], verified)
+	if !prob.procTopDown(gen, &prob.columns[0], verified) {
+		panic("unable to plan top down")
+	}
 	gen.finalize()
 }
 
@@ -210,22 +212,22 @@ func (prob *planProblem) markKnown(c byte) {
 	}
 }
 
-func (prob *planProblem) procTopDown(gen solutionGen, col *column, verified bool) {
+func (prob *planProblem) procTopDown(gen solutionGen, col *column, verified bool) bool {
 	if col.prior == nil {
 		prob.solveColumn(gen, col)
 		if verified {
 			gen.verify()
 		}
 		gen.finish()
-		return
+		return true
 	}
 
 	if prob.maySolveColumn(gen, col) {
-		prob.procTopDown(gen, col.prior, verified)
-		return
+		return prob.procTopDown(gen, col.prior, verified)
 	}
 
 	prob.procBottomUp(gen, verified)
+	return true
 }
 
 func (prob *planProblem) procBottomUp(gen solutionGen, verified bool) {
