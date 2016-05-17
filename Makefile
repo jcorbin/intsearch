@@ -17,5 +17,4 @@ lint: generate
 
 .PHONY: test
 test: lint
-	go test
-	go test -bench .
+	go test -v -bench . -run .
