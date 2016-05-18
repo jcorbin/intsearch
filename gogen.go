@@ -438,6 +438,9 @@ func (gg *goGen) verifySteps() []solutionStep {
 	// verify columns from bottom up
 	for i := C - 1; i >= 0; i-- {
 		col := &gg.columns[i]
+		if col.unknown > 0 {
+			return steps
+		}
 		steps = append(steps, gg.verifyColumnSteps(col)...)
 	}
 	// final carry must be 0
