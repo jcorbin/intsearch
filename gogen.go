@@ -434,25 +434,11 @@ func (sb sortBytes) Swap(i, j int)      { sb[i], sb[j] = sb[j], sb[i] }
 func (gg *goGen) verifySteps() []solutionStep {
 	steps := gg.verifyKnownLettersSteps()
 
-	// verify columns from bottom up; initial carry = 0
 	C := gg.numColumns()
-	steps = append(steps, setAStep(0))
+	// verify columns from bottom up
 	for i := C - 1; i >= 0; i-- {
 		col := &gg.columns[i]
-		if col.cx[0] != 0 {
-			steps = append(steps, addValueStep(col.cx[0]))
-		}
-		if col.cx[1] != 0 {
-			steps = append(steps, addValueStep(col.cx[1]))
-		}
-		steps = append(steps,
-			setBAStep{},
-			modStep(gg.base),
-			subValueStep(col.cx[2]),
-			relJZStep(1),
-			exitStep{errVerifyFailed},
-			setABStep{},
-			divStep(gg.base))
+		steps = append(steps, gg.verifyColumnSteps(col)...)
 	}
 	// final carry must be 0
 	steps = append(steps,
@@ -503,6 +489,28 @@ func (gg *goGen) verifyKnownLettersSteps() []solutionStep {
 			exitStep{errNegativeValue})
 	}
 
+	return steps
+}
+
+func (gg *goGen) verifyColumnSteps(col *column) []solutionStep {
+	steps := make([]solutionStep, 0, 10)
+	if col.prior == nil {
+		steps = append(steps, setAStep(0))
+	}
+	if col.cx[0] != 0 {
+		steps = append(steps, addValueStep(col.cx[0]))
+	}
+	if col.cx[1] != 0 {
+		steps = append(steps, addValueStep(col.cx[1]))
+	}
+	steps = append(steps,
+		setBAStep{},
+		modStep(gg.base),
+		subValueStep(col.cx[2]),
+		relJZStep(1),
+		exitStep{errVerifyFailed},
+		setABStep{},
+		divStep(gg.base))
 	return steps
 }
 
