@@ -22,10 +22,8 @@ func newLogGen(prob *planProblem) *logGen {
 
 func (lg *logGen) logf(format string, args ...interface{}) error {
 	format = fmt.Sprintf("// %s> %s\n", lg.prefix, format)
-	if _, err := fmt.Printf(format, args...); err != nil {
-		return err
-	}
-	return nil
+	_, err := fmt.Printf(format, args...)
+	return err
 }
 
 func (lg *logGen) stepf(format string, args ...interface{}) {
