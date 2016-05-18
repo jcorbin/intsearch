@@ -15,15 +15,13 @@ type logGen struct {
 func newLogGen(prob *planProblem) *logGen {
 	return &logGen{
 		planProblem: prob,
-		prefix:      "// ",
+		prefix:      "",
 		branches:    make([]int, 0, len(prob.letterSet)),
 	}
 }
 
 func (lg *logGen) logf(format string, args ...interface{}) error {
-	if _, err := fmt.Print(lg.prefix); err != nil {
-		return err
-	}
+	format = fmt.Sprintf("// %s> %s\n", lg.prefix, format)
 	if _, err := fmt.Printf(format, args...); err != nil {
 		return err
 	}
@@ -54,19 +52,19 @@ func (lg *logGen) init(desc string) {
 }
 
 func (lg *logGen) fix(c byte, v int) {
-	lg.stepf("fix %v = %v\n", string(c), v)
+	lg.stepf("fix %v = %v", string(c), v)
 }
 
 func (lg *logGen) computeSum(col *column) {
 	a, b, c := col.cx[0], col.cx[1], col.cx[2]
 	if a != 0 && b != 0 {
-		lg.stepf("compute %v = %v + %v + carry (mod %v)\n", string(c), string(a), string(b), lg.base)
+		lg.stepf("compute %v = %v + %v + carry (mod %v)", string(c), string(a), string(b), lg.base)
 	} else if a != 0 {
-		lg.stepf("compute %v = %v + carry (mod %v)\n", string(c), string(a), lg.base)
+		lg.stepf("compute %v = %v + carry (mod %v)", string(c), string(a), lg.base)
 	} else if b != 0 {
-		lg.stepf("compute %v = %v + carry (mod %v)\n", string(c), string(b), lg.base)
+		lg.stepf("compute %v = %v + carry (mod %v)", string(c), string(b), lg.base)
 	} else {
-		lg.stepf("compute %v = carry (mod %v)\n", string(c), lg.base)
+		lg.stepf("compute %v = carry (mod %v)", string(c), lg.base)
 	}
 }
 
@@ -80,13 +78,13 @@ func (lg *logGen) computeSecondSummand(col *column) {
 
 func (lg *logGen) computeSummand(a, b, c byte) {
 	if b != 0 && c != 0 {
-		lg.stepf("compute %v = %v - %v - carry (mod %v)\n", string(a), string(b), string(c), lg.base)
+		lg.stepf("compute %v = %v - %v - carry (mod %v)", string(a), string(b), string(c), lg.base)
 	} else if b != 0 {
-		lg.stepf("compute %v = %v - carry (mod %v)\n", string(a), string(b), lg.base)
+		lg.stepf("compute %v = %v - carry (mod %v)", string(a), string(b), lg.base)
 	} else if c != 0 {
-		lg.stepf("compute %v = %v - carry (mod %v)\n", string(a), string(c), lg.base)
+		lg.stepf("compute %v = %v - carry (mod %v)", string(a), string(c), lg.base)
 	} else {
-		lg.stepf("compute %v = - carry (mod %v)\n", string(a), lg.base)
+		lg.stepf("compute %v = - carry (mod %v)", string(a), lg.base)
 	}
 }
 
@@ -97,24 +95,24 @@ func (lg *logGen) chooseRange(col *column, c byte, i, min, max int) {
 		N = R
 	}
 	lg.branches = append(lg.branches, N)
-	lg.stepf("choose %v (branch by %v)\n", string(c), N)
+	lg.stepf("choose %v (branch by %v)", string(c), N)
 }
 
 func (lg *logGen) checkColumn(col *column) {
 	a, b, c := col.cx[0], col.cx[1], col.cx[2]
 	if a != 0 && b != 0 {
-		lg.stepf("check column carry + %v + %v = %v\n", string(a), string(b), string(c))
+		lg.stepf("check column carry + %v + %v = %v", string(a), string(b), string(c))
 	} else if a != 0 {
-		lg.stepf("check column carry + %v = %v\n", string(a), string(c))
+		lg.stepf("check column carry + %v = %v", string(a), string(c))
 	} else if b != 0 {
-		lg.stepf("check column carry + %v = %v\n", string(b), string(c))
+		lg.stepf("check column carry + %v = %v", string(b), string(c))
 	} else {
-		lg.stepf("check column carry = %v\n", string(c))
+		lg.stepf("check column carry = %v", string(c))
 	}
 }
 
 func (lg *logGen) finish() {
-	lg.stepf("finish\n")
+	lg.stepf("finish")
 }
 
 func (lg *logGen) finalize() {
