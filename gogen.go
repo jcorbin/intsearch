@@ -438,17 +438,17 @@ func (gg *goGen) verifySteps() []solutionStep {
 	C := gg.numColumns()
 	steps = append(steps, setAStep(0))
 	for i := C - 1; i >= 0; i-- {
-		cx := gg.getColumn(i)
-		if cx[0] != 0 {
-			steps = append(steps, addValueStep(cx[0]))
+		col := &gg.columns[i]
+		if col.cx[0] != 0 {
+			steps = append(steps, addValueStep(col.cx[0]))
 		}
-		if cx[1] != 0 {
-			steps = append(steps, addValueStep(cx[1]))
+		if col.cx[1] != 0 {
+			steps = append(steps, addValueStep(col.cx[1]))
 		}
 		steps = append(steps,
 			setBAStep{},
 			modStep(gg.base),
-			subValueStep(cx[2]),
+			subValueStep(col.cx[2]),
 			relJZStep(1),
 			exitStep{errVerifyFailed},
 			setABStep{},
