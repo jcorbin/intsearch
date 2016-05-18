@@ -21,7 +21,11 @@ func newLogGen(prob *planProblem) *logGen {
 }
 
 func (lg *logGen) logf(format string, args ...interface{}) error {
-	format = fmt.Sprintf("// %s> %s\n", lg.prefix, format)
+	if len(lg.prefix) == 0 {
+		format = fmt.Sprintf("// %s\n", format)
+	} else {
+		format = fmt.Sprintf("// %s> %s\n", lg.prefix, format)
+	}
 	_, err := fmt.Printf(format, args...)
 	return err
 }
