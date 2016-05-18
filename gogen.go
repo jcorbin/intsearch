@@ -432,11 +432,13 @@ func (sb sortBytes) Less(i, j int) bool { return sb[i] < sb[j] }
 func (sb sortBytes) Swap(i, j int)      { sb[i], sb[j] = sb[j], sb[i] }
 
 func (gg *goGen) verifySteps() []solutionStep {
-	N := len(gg.letterSet)
-	C := gg.numColumns()
-	steps := make([]solutionStep, 0, N*N/2*4+N*4+1+C*9+2)
+	var (
+		N       = len(gg.letterSet)
+		C       = gg.numColumns()
+		steps   = make([]solutionStep, 0, N*N/2*4+N*4+1+C*9+2)
+		letters = make([]byte, 0, N)
+	)
 
-	letters := make([]byte, 0, N)
 	for c := range gg.letterSet {
 		letters = append(letters, c)
 	}
