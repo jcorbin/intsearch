@@ -43,14 +43,14 @@ func (lg *logGen) init(desc string) {
 			w = len(word)
 		}
 	}
-	fmt.Printf("# Problem:\n")
-	fmt.Printf("#   %s%v\n", strings.Repeat(" ", w-len(lg.words[0])), string(lg.words[0]))
-	fmt.Printf("# + %s%v\n", strings.Repeat(" ", w-len(lg.words[1])), string(lg.words[1]))
-	fmt.Printf("# = %s%v\n", strings.Repeat(" ", w-len(lg.words[2])), string(lg.words[2]))
-	fmt.Printf("# base: %v\n", lg.base)
-	fmt.Printf("# letters: %v\n", lg.sortedLetters())
-	fmt.Printf("# method: %s\n", desc)
-	fmt.Printf("\n")
+	lg.logf("Problem:")
+	lg.logf("  %s%v", strings.Repeat(" ", w-len(lg.words[0])), string(lg.words[0]))
+	lg.logf("+ %s%v", strings.Repeat(" ", w-len(lg.words[1])), string(lg.words[1]))
+	lg.logf("= %s%v", strings.Repeat(" ", w-len(lg.words[2])), string(lg.words[2]))
+	lg.logf("base: %v", lg.base)
+	lg.logf("letters: %v", lg.sortedLetters())
+	lg.logf("method: %s", desc)
+	lg.logf("")
 }
 
 func (lg *logGen) fix(c byte, v int) {
@@ -123,5 +123,5 @@ func (lg *logGen) finalize() {
 		branches *= b
 	}
 
-	fmt.Printf("// Total Branches: %v\n", branches)
+	lg.logf("Total Branches: %v", branches)
 }
