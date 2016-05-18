@@ -432,7 +432,7 @@ func (sb sortBytes) Less(i, j int) bool { return sb[i] < sb[j] }
 func (sb sortBytes) Swap(i, j int)      { sb[i], sb[j] = sb[j], sb[i] }
 
 func (gg *goGen) verifySteps() []solutionStep {
-	steps := gg.verifyLettersSteps()
+	steps := gg.verifyKnownLettersSteps()
 
 	// verify columns from bottom up; initial carry = 0
 	C := gg.numColumns()
@@ -462,7 +462,7 @@ func (gg *goGen) verifySteps() []solutionStep {
 	return steps
 }
 
-func (gg *goGen) verifyLettersSteps() []solutionStep {
+func (gg *goGen) verifyKnownLettersSteps() []solutionStep {
 	var (
 		N       = len(gg.letterSet)
 		steps   = make([]solutionStep, 0, N*N/2*4+N*4)
@@ -475,7 +475,13 @@ func (gg *goGen) verifyLettersSteps() []solutionStep {
 	sort.Sort(sortBytes(letters))
 
 	for i, c := range letters {
+		if !gg.known[c] {
+			continue
+		}
 		for j, d := range letters {
+			if !gg.known[d] {
+				continue
+			}
 			if j > i {
 				steps = append(steps,
 					loadStep(c),
@@ -487,6 +493,9 @@ func (gg *goGen) verifyLettersSteps() []solutionStep {
 	}
 
 	for _, c := range letters {
+		if !gg.known[c] {
+			continue
+		}
 		steps = append(steps,
 			loadStep(c),
 			ltStep(0),
