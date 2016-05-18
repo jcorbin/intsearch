@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"sort"
 	"strings"
 )
 
@@ -424,6 +425,12 @@ func (gg *goGen) checkColumn(col *column) {
 	gg.steps = append(gg.steps, steps...)
 }
 
+type sortBytes []byte
+
+func (sb sortBytes) Len() int           { return len(sb) }
+func (sb sortBytes) Less(i, j int) bool { return sb[i] < sb[j] }
+func (sb sortBytes) Swap(i, j int)      { sb[i], sb[j] = sb[j], sb[i] }
+
 func (gg *goGen) verifySteps() []solutionStep {
 	N := len(gg.letterSet)
 	C := gg.numColumns()
@@ -433,6 +440,7 @@ func (gg *goGen) verifySteps() []solutionStep {
 	for c := range gg.letterSet {
 		letters = append(letters, c)
 	}
+	sort.Sort(sortBytes(letters))
 
 	for i, c := range letters {
 		for j, d := range letters {
