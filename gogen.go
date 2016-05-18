@@ -432,9 +432,13 @@ func (sb sortBytes) Less(i, j int) bool { return sb[i] < sb[j] }
 func (sb sortBytes) Swap(i, j int)      { sb[i], sb[j] = sb[j], sb[i] }
 
 func (gg *goGen) verifySteps() []solutionStep {
-	steps := gg.verifyKnownLettersSteps()
+	return append(gg.verifyKnownLettersSteps(), gg.verifyColumnsSteps()...)
+}
 
+func (gg *goGen) verifyColumnsSteps() []solutionStep {
 	C := gg.numColumns()
+	steps := make([]solutionStep, 0, 10*C+2)
+
 	// verify columns from bottom up
 	for i := C - 1; i >= 0; i-- {
 		col := &gg.columns[i]
@@ -443,12 +447,11 @@ func (gg *goGen) verifySteps() []solutionStep {
 		}
 		steps = append(steps, gg.verifyColumnSteps(col)...)
 	}
+
 	// final carry must be 0
-	steps = append(steps,
+	return append(steps,
 		relJZStep(1),
 		exitStep{errVerifyFailed})
-
-	return steps
 }
 
 func (gg *goGen) verifyKnownLettersSteps() []solutionStep {
