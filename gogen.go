@@ -432,14 +432,14 @@ func (sb sortBytes) Less(i, j int) bool { return sb[i] < sb[j] }
 func (sb sortBytes) Swap(i, j int)      { sb[i], sb[j] = sb[j], sb[i] }
 
 func (gg *goGen) verify() {
-	gg.steps = append(gg.steps, labelStep("verify"))
-	gg.steps = append(gg.steps, gg.verifySteps()...)
+	gg.steps = append(gg.steps, gg.verifySteps("verify")...)
 }
 
-func (gg *goGen) verifySteps() []solutionStep {
+func (gg *goGen) verifySteps(label string) []solutionStep {
 	letterSteps := gg.verifyKnownLettersSteps()
 	colSteps := gg.verifyColumnsSteps()
-	steps := make([]solutionStep, 0, len(letterSteps)+len(colSteps))
+	steps := make([]solutionStep, 1, 1+len(letterSteps)+len(colSteps))
+	steps[0] = labelStep(label)
 	steps = append(steps, letterSteps...)
 	steps = append(steps, colSteps...)
 	return steps
