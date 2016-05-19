@@ -113,6 +113,10 @@ func (lg *logGen) checkColumn(col *column) {
 	}
 }
 
+func (lg *logGen) verify() {
+	lg.stepf("verify")
+}
+
 func (lg *logGen) finish() {
 	lg.stepf("finish")
 }

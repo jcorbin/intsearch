@@ -99,6 +99,7 @@ type solutionGen interface {
 	chooseRange(col *column, c byte, i, min, max int)
 	checkColumn(col *column)
 	finish()
+	verify()
 	finalize()
 }
 

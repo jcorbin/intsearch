@@ -34,6 +34,10 @@ func (ag afterGen) checkColumn(col *column) {
 	ag()
 }
 
+func (ag afterGen) verify() {
+	ag()
+}
+
 func (ag afterGen) finish() {
 	ag()
 }

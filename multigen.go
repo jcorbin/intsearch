@@ -51,6 +51,12 @@ func (mg multiGen) checkColumn(col *column) {
 	}
 }
 
+func (mg multiGen) verify() {
+	for _, gen := range mg {
+		gen.verify()
+	}
+}
+
 func (mg multiGen) finish() {
 	for _, gen := range mg {
 		gen.finish()
