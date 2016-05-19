@@ -20,7 +20,6 @@ var (
 type goGen struct {
 	*planProblem
 	steps        []solutionStep
-	verified     bool
 	useForkUntil bool
 	carryPrior   *column
 	carrySaved   bool
@@ -31,11 +30,10 @@ type goGen struct {
 	lastLogDump  int
 }
 
-func newGoGen(prob *planProblem, verified bool) *goGen {
+func newGoGen(prob *planProblem) *goGen {
 	gg := &goGen{
 		planProblem: prob,
 		usedSymbols: make(map[string]struct{}, 3*len(prob.letterSet)),
-		verified:    verified,
 	}
 	return gg
 }
@@ -530,15 +528,6 @@ func (gg *goGen) verifyColumnSteps(col *column) []solutionStep {
 
 func (gg *goGen) finish() {
 	lastStep := gg.steps[len(gg.steps)-1]
-
-	if gg.verified {
-		if _, isVerifyJmp := lastStep.(labelJmpStep); isVerifyJmp {
-			panic("double goGen.finish")
-		}
-		gg.steps = append(gg.steps, labelJmpStep("verify"))
-		return
-	}
-
 	if _, isFinish := lastStep.(finishStep); isFinish {
 		panic("double goGen.finish")
 	}
@@ -546,10 +535,6 @@ func (gg *goGen) finish() {
 }
 
 func (gg *goGen) finalize() {
-	if gg.verified {
-		gg.verify()
-		gg.steps = append(gg.steps, finishStep(gg.gensym("finish")))
-	}
 	gg.compile()
 }
 

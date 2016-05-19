@@ -160,7 +160,7 @@ func main() {
 		log.Fatalf("setup failed: %v", err)
 	}
 
-	gg = newGoGen(newPlanProblem(&prob), *verify)
+	gg = newGoGen(newPlanProblem(&prob))
 
 	if *dumpProg {
 		gen = gg.loggedGen()
@@ -168,7 +168,7 @@ func main() {
 		gen = gg
 	}
 
-	gg.planProblem.plan(gen)
+	gg.planProblem.plan(gen, *verify)
 
 	if *dumpProg {
 		fmt.Println()

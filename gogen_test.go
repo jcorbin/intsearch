@@ -22,8 +22,8 @@ func TestGogenSendMoreMoney(t *testing.T) {
 		t.Logf(format, args...)
 	}
 
-	gg = newGoGen(newPlanProblem(&prob), true)
-	gg.planProblem.plan(gg)
+	gg = newGoGen(newPlanProblem(&prob))
+	gg.planProblem.plan(gg, true)
 
 	numGood := 0
 
@@ -53,8 +53,8 @@ func TestGogenSendMoreMoney(t *testing.T) {
 	}
 
 	if t.Failed() {
-		gg = newGoGen(newPlanProblem(&prob), true)
-		gg.planProblem.plan(gg.loggedGen())
+		gg = newGoGen(newPlanProblem(&prob))
+		gg.planProblem.plan(gg.loggedGen(), true)
 		srch.run(100000, gg.searchInit, resultFunc, watchers([]searchWatcher{
 			traces,
 			debugWatcher{
@@ -70,8 +70,8 @@ func BenchmarkPlan(b *testing.B) {
 		b.Fatalf("setup failed: %v", err)
 	}
 	for n := 0; n < b.N; n++ {
-		gg := newGoGen(newPlanProblem(&prob), false)
-		gg.planProblem.plan(gg)
+		gg := newGoGen(newPlanProblem(&prob))
+		gg.planProblem.plan(gg, false)
 		gg.compile()
 	}
 }
@@ -82,8 +82,8 @@ func BenchmarkRun(b *testing.B) {
 		b.Fatalf("setup failed: %v", err)
 	}
 
-	gg := newGoGen(newPlanProblem(&prob), false)
-	gg.planProblem.plan(gg)
+	gg := newGoGen(newPlanProblem(&prob))
+	gg.planProblem.plan(gg, false)
 	gg.compile()
 
 	for n := 0; n < b.N; n++ {

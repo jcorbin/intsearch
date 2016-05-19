@@ -160,34 +160,40 @@ func (prob *planProblem) markKnown(c byte) {
 	}
 }
 
-func (prob *planProblem) plan(gen solutionGen) {
+func (prob *planProblem) plan(gen solutionGen, verified bool) {
 	gen.init("top down ... bottom up")
-	prob.planTopDown(gen)
+	prob.planTopDown(gen, verified)
 	gen.finalize()
 }
 
-func (prob *planProblem) planTopDown(gen solutionGen) {
-	prob.procTopDown(gen, &prob.columns[0])
+func (prob *planProblem) planTopDown(gen solutionGen, verified bool) {
+	prob.procTopDown(gen, &prob.columns[0], verified)
 }
 
-func (prob *planProblem) procTopDown(gen solutionGen, col *column) {
+func (prob *planProblem) procTopDown(gen solutionGen, col *column, verified bool) {
 	if col.prior == nil {
 		prob.solveColumn(gen, col)
+		if verified {
+			gen.verify()
+		}
 		gen.finish()
 		return
 	}
 
 	if prob.maySolveColumn(gen, col) {
-		prob.procTopDown(gen, col.prior)
+		prob.procTopDown(gen, col.prior, verified)
 		return
 	}
 
-	prob.planBottomUp(gen)
+	prob.planBottomUp(gen, verified)
 }
 
-func (prob *planProblem) planBottomUp(gen solutionGen) {
+func (prob *planProblem) planBottomUp(gen solutionGen, verified bool) {
 	for i := prob.numColumns() - 1; i >= 0; i-- {
 		prob.solveColumn(gen, &prob.columns[i])
+	}
+	if verified {
+		gen.verify()
 	}
 	gen.finish()
 }
