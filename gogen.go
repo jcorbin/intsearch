@@ -437,7 +437,12 @@ func (gg *goGen) verify() {
 }
 
 func (gg *goGen) verifySteps() []solutionStep {
-	return append(gg.verifyKnownLettersSteps(), gg.verifyColumnsSteps()...)
+	letterSteps := gg.verifyKnownLettersSteps()
+	colSteps := gg.verifyColumnsSteps()
+	steps := make([]solutionStep, 0, len(letterSteps)+len(colSteps))
+	steps = append(steps, letterSteps...)
+	steps = append(steps, colSteps...)
+	return steps
 }
 
 func (gg *goGen) verifyColumnsSteps() []solutionStep {
