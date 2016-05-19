@@ -431,6 +431,11 @@ func (sb sortBytes) Len() int           { return len(sb) }
 func (sb sortBytes) Less(i, j int) bool { return sb[i] < sb[j] }
 func (sb sortBytes) Swap(i, j int)      { sb[i], sb[j] = sb[j], sb[i] }
 
+func (gg *goGen) verify() {
+	gg.steps = append(gg.steps, labelStep("verify"))
+	gg.steps = append(gg.steps, gg.verifySteps()...)
+}
+
 func (gg *goGen) verifySteps() []solutionStep {
 	return append(gg.verifyKnownLettersSteps(), gg.verifyColumnsSteps()...)
 }
@@ -539,11 +544,9 @@ func (gg *goGen) finish() {
 
 func (gg *goGen) finalize() {
 	if gg.verified {
-		gg.steps = append(gg.steps, labelStep("verify"))
-		gg.steps = append(gg.steps, gg.verifySteps()...)
+		gg.verify()
 		gg.steps = append(gg.steps, finishStep(gg.gensym("finish")))
 	}
-
 	gg.compile()
 }
 
