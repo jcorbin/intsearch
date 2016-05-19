@@ -441,16 +441,14 @@ func (gg *goGen) verifySteps() []solutionStep {
 }
 
 func (gg *goGen) verifyColumnsSteps() []solutionStep {
-	C := gg.numColumns()
-	steps := make([]solutionStep, 0, 10*C+2)
+	steps := make([]solutionStep, 0, 10*len(gg.columns)+2)
 
 	// verify columns from bottom up
-	for i := C - 1; i >= 0; i-- {
-		col := &gg.columns[i]
-		if col.unknown > 0 {
+	for i := len(gg.columns) - 1; i >= 0; i-- {
+		if gg.columns[i].unknown > 0 {
 			return steps
 		}
-		steps = append(steps, gg.verifyColumnSteps(col)...)
+		steps = append(steps, gg.verifyColumnSteps(&gg.columns[i])...)
 	}
 
 	// final carry must be 0
