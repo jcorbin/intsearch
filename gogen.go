@@ -384,7 +384,11 @@ func (gg *goGen) ensureCarry(col *column) {
 	gg.carryValid = true
 }
 
-func (gg *goGen) checkColumn(col *column) {
+func (gg *goGen) checkColumn(col *column, err error) {
+	if err == nil {
+		err = errCheckFailed
+	}
+
 	a, b, c := col.cx[0], col.cx[1], col.cx[2]
 	gg.ensureCarry(col.prior)
 	gg.steps = append(gg.steps,
@@ -408,7 +412,7 @@ func (gg *goGen) checkColumn(col *column) {
 	steps = append(steps,
 		subValueStep(c),
 		relJZStep(1),
-		exitStep{errCheckFailed})
+		exitStep{err})
 	if n > 0 {
 		steps = append(steps,
 			setACStep{},

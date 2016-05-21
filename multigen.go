@@ -45,9 +45,9 @@ func (mg multiGen) chooseRange(col *column, c byte, i, min, max int) {
 	}
 }
 
-func (mg multiGen) checkColumn(col *column) {
+func (mg multiGen) checkColumn(col *column, err error) {
 	for _, gen := range mg {
-		gen.checkColumn(col)
+		gen.checkColumn(col, err)
 	}
 }
 

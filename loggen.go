@@ -104,7 +104,7 @@ func (lg *logGen) chooseRange(col *column, c byte, i, min, max int) {
 	lg.stepf("choose %v (branch by %v)", string(c), N)
 }
 
-func (lg *logGen) checkColumn(col *column) {
+func (lg *logGen) checkColumn(col *column, err error) {
 	lg.stepf("check column: %s", col.label())
 }
 

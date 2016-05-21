@@ -111,7 +111,7 @@ type solutionGen interface {
 	computeFirstSummand(col *column)
 	computeSecondSummand(col *column)
 	chooseRange(col *column, c byte, i, min, max int)
-	checkColumn(col *column)
+	checkColumn(col *column, err error)
 	finish()
 	verify()
 	finalize()
@@ -208,7 +208,7 @@ func (prob *planProblem) procBottomUp(gen solutionGen, verified bool) {
 
 func (prob *planProblem) checkColumn(gen solutionGen, col *column) bool {
 	if !col.solved {
-		gen.checkColumn(col)
+		gen.checkColumn(col, nil)
 		col.solved = true
 		col.carry = carryComputed
 	}
