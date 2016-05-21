@@ -437,22 +437,20 @@ func (gg *goGen) checkColumn(col *column, err error) {
 func (gg *goGen) verify() {
 	gg.steps = append(gg.steps, labelStep("verify"))
 	gg.verifyKnownLetters()
-	gg.steps = append(gg.steps, gg.verifyColumnsSteps()...)
+	gg.verifyColumns()
 }
 
-func (gg *goGen) verifyColumnsSteps() []solutionStep {
-	steps := make([]solutionStep, 0, 10*len(gg.columns)+2)
-
+func (gg *goGen) verifyColumns() {
 	// verify columns from bottom up
 	for i := len(gg.columns) - 1; i >= 0; i-- {
 		if gg.columns[i].unknown > 0 {
-			return steps
+			return
 		}
-		steps = append(steps, gg.verifyColumnSteps(&gg.columns[i])...)
+		gg.steps = append(gg.steps, gg.verifyColumnSteps(&gg.columns[i])...)
 	}
 
 	// final carry must be 0
-	return append(steps,
+	gg.steps = append(gg.steps,
 		relJZStep(1),
 		exitStep{verifyError("final carry must be 0")})
 }
