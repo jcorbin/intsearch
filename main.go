@@ -52,8 +52,8 @@ func dump(sol *solution) bool {
 	var mess string
 	if sol.err == nil {
 		mess = "=== Solution"
-	} else if sol.err == errVerifyFailed {
-		mess = "!!! Fail"
+	} else if isVerifyError(sol.err) {
+		mess = fmt.Sprintf("!!! %s", sol.err)
 	} else if *debug || *dumpAll {
 		mess = "--- Dead end"
 	}
@@ -137,7 +137,7 @@ func findOne() *solution {
 		100000,
 		gg.searchInit,
 		func(sol *solution) bool {
-			if sol.err == errVerifyFailed {
+			if isVerifyError(sol.err) {
 				failed = true
 				return false
 			}

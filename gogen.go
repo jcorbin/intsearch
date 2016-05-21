@@ -8,13 +8,21 @@ import (
 )
 
 var (
-	errAlreadyUsed    = errors.New("value already used")
-	errCheckFailed    = errors.New("check failed")
-	errNegativeValue  = errors.New("negative valued character")
-	errDuplicateValue = errors.New("duplicate valued character")
-	errVerifyFailed   = errors.New("verify failed")
-	errNoChoices      = errors.New("no choices left")
+	errAlreadyUsed = errors.New("value already used")
+	errCheckFailed = errors.New("check failed")
+	errNoChoices   = errors.New("no choices left")
 )
+
+type verifyError string
+
+func isVerifyError(err error) bool {
+	_, is := err.(verifyError)
+	return is
+}
+
+func (ve verifyError) Error() string {
+	return fmt.Sprintf("verify failed: %s", string(ve))
+}
 
 type goGen struct {
 	*planProblem
@@ -454,7 +462,7 @@ func (gg *goGen) verifyColumnsSteps() []solutionStep {
 	// final carry must be 0
 	return append(steps,
 		relJZStep(1),
-		exitStep{errVerifyFailed})
+		exitStep{verifyError("final carry must be 0")})
 }
 
 func (gg *goGen) verifyKnownLettersSteps() []solutionStep {
@@ -477,7 +485,7 @@ func (gg *goGen) verifyKnownLettersSteps() []solutionStep {
 					loadStep(c),
 					subValueStep(d),
 					relJNZStep(1),
-					exitStep{errDuplicateValue})
+					exitStep{verifyError("duplicate valued character")})
 			}
 		}
 	}
@@ -490,7 +498,7 @@ func (gg *goGen) verifyKnownLettersSteps() []solutionStep {
 			loadStep(c),
 			ltStep(0),
 			relJZStep(1),
-			exitStep{errNegativeValue})
+			exitStep{verifyError("negative valued character")})
 	}
 
 	return steps
@@ -512,7 +520,7 @@ func (gg *goGen) verifyColumnSteps(col *column) []solutionStep {
 		modStep(gg.base),
 		subValueStep(col.cx[2]),
 		relJZStep(1),
-		exitStep{errVerifyFailed},
+		exitStep{verifyError(col.label())},
 		setABStep{},
 		divStep(gg.base))
 	return steps

@@ -52,7 +52,7 @@ func runGogenTest(t *testing.T, planf planFunc, w1, w2, w3 string) {
 	numGood := 0
 
 	resultFunc := func(sol *solution) bool {
-		if sol.err == errVerifyFailed {
+		if isVerifyError(sol.err) {
 			logf("!!! invalid solution found: %v %s", sol, sol.letterMapping())
 			for i, soli := range sol.trace {
 				logf("trace[%v]: %v %s", i, soli, soli.letterMapping())
