@@ -435,17 +435,9 @@ func (gg *goGen) checkColumn(col *column, err error) {
 }
 
 func (gg *goGen) verify() {
-	gg.steps = append(gg.steps, gg.verifySteps("verify")...)
-}
-
-func (gg *goGen) verifySteps(label string) []solutionStep {
-	letterSteps := gg.verifyKnownLettersSteps()
-	colSteps := gg.verifyColumnsSteps()
-	steps := make([]solutionStep, 1, 1+len(letterSteps)+len(colSteps))
-	steps[0] = labelStep(label)
-	steps = append(steps, letterSteps...)
-	steps = append(steps, colSteps...)
-	return steps
+	gg.steps = append(gg.steps, labelStep("verify"))
+	gg.steps = append(gg.steps, gg.verifyKnownLettersSteps()...)
+	gg.steps = append(gg.steps, gg.verifyColumnsSteps()...)
 }
 
 func (gg *goGen) verifyColumnsSteps() []solutionStep {
