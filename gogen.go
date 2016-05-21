@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"sort"
 	"strings"
 )
 
@@ -423,12 +422,6 @@ func (gg *goGen) checkColumn(col *column) {
 	gg.steps = append(gg.steps, steps...)
 }
 
-type sortBytes []byte
-
-func (sb sortBytes) Len() int           { return len(sb) }
-func (sb sortBytes) Less(i, j int) bool { return sb[i] < sb[j] }
-func (sb sortBytes) Swap(i, j int)      { sb[i], sb[j] = sb[j], sb[i] }
-
 func (gg *goGen) verify() {
 	gg.steps = append(gg.steps, gg.verifySteps("verify")...)
 }
@@ -462,16 +455,11 @@ func (gg *goGen) verifyColumnsSteps() []solutionStep {
 
 func (gg *goGen) verifyKnownLettersSteps() []solutionStep {
 	var (
-		N       = len(gg.letterSet)
-		steps   = make([]solutionStep, 0, N*N/2*4+N*4)
-		letters = make([]byte, 0, N)
+		N     = len(gg.letterSet)
+		steps = make([]solutionStep, 0, N*N/2*4+N*4)
 	)
 
-	for c := range gg.letterSet {
-		letters = append(letters, c)
-	}
-	sort.Sort(sortBytes(letters))
-
+	letters := gg.sortedLetters()
 	for i, c := range letters {
 		if !gg.known[c] {
 			continue
