@@ -4,8 +4,23 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"sort"
 	"strings"
 )
+
+var planStrategies = map[string]planFunc{
+	"bottomUp": planBottomUp,
+	"topDown":  planTopDown,
+}
+
+func planStrategyNames() []string {
+	var names []string
+	for name := range planStrategies {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	return names
+}
 
 var (
 	dumpProg = flag.Bool("dumpProg", false, "dump the generated search program")
@@ -13,6 +28,9 @@ var (
 	trace    = flag.Bool("trace", false, "trace results")
 	verify   = flag.Bool("verify", false, "generate code for extra verification")
 	debug    = flag.Bool("debug", false, "enable debug search watcher")
+	plan     = flag.String("plan", "bottomUp", fmt.Sprintf(
+		"which plan strategy to use (%s)",
+		strings.Join(planStrategyNames(), ", ")))
 
 	first bool
 	prob  problem
@@ -156,6 +174,13 @@ func main() {
 		log.Fatalf("missing word3 argument")
 	}
 
+	planf, ok := planStrategies[*plan]
+	if !ok {
+		log.Fatalf(
+			"invalid plan strategy %q, valid choices: %s",
+			plan, strings.Join(planStrategyNames(), ", "))
+	}
+
 	if err := prob.setup(word1, word2, word3); err != nil {
 		log.Fatalf("setup failed: %v", err)
 	}
@@ -168,7 +193,7 @@ func main() {
 		gen = gg
 	}
 
-	gg.planProblem.plan(gen, *verify)
+	planf(gg.planProblem, gen, *verify)
 
 	if *dumpProg {
 		fmt.Println()
