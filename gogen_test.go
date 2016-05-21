@@ -6,19 +6,19 @@ import (
 	"testing"
 )
 
-func TestGogen(t *testing.T) {
-	runGogenTest(t, "send", "more", "money")
+func TestGogen_topDown(t *testing.T) {
+	runGogenTest(t, planTopDown, "send", "more", "money")
 }
 
-func BenchmarkGogenPlan(b *testing.B) {
-	benchGogenPlan(b, "send", "more", "money")
+func BenchmarkGogenPlan_topDown(b *testing.B) {
+	benchGogenPlan(b, planTopDown, "send", "more", "money")
 }
 
-func BenchmarkGogenRun(b *testing.B) {
-	benchGogenRun(b, "send", "more", "money")
+func BenchmarkGogenRun_topDown(b *testing.B) {
+	benchGogenRun(b, planTopDown, "send", "more", "money")
 }
 
-func runGogenTest(t *testing.T, w1, w2, w3 string) {
+func runGogenTest(t *testing.T, planf planFunc, w1, w2, w3 string) {
 	var prob problem
 	if err := prob.setup(w1, w2, w3); err != nil {
 		t.Fatalf("setup failed: %v", err)
@@ -35,7 +35,7 @@ func runGogenTest(t *testing.T, w1, w2, w3 string) {
 	}
 
 	gg = newGoGen(newPlanProblem(&prob))
-	gg.planProblem.plan(gg, true)
+	planf(gg.planProblem, gg, true)
 
 	numGood := 0
 
@@ -66,7 +66,7 @@ func runGogenTest(t *testing.T, w1, w2, w3 string) {
 
 	if t.Failed() {
 		gg = newGoGen(newPlanProblem(&prob))
-		gg.planProblem.plan(gg.loggedGen(), true)
+		planf(gg.planProblem, gg.loggedGen(), true)
 		srch.run(100000, gg.searchInit, resultFunc, watchers([]searchWatcher{
 			traces,
 			debugWatcher{
@@ -76,26 +76,26 @@ func runGogenTest(t *testing.T, w1, w2, w3 string) {
 	}
 }
 
-func benchGogenPlan(b *testing.B, w1, w2, w3 string) {
+func benchGogenPlan(b *testing.B, planf planFunc, w1, w2, w3 string) {
 	var prob problem
 	if err := prob.setup(w1, w2, w3); err != nil {
 		b.Fatalf("setup failed: %v", err)
 	}
 	for n := 0; n < b.N; n++ {
 		gg := newGoGen(newPlanProblem(&prob))
-		gg.planProblem.plan(gg, false)
+		planf(gg.planProblem, gg, false)
 		gg.compile()
 	}
 }
 
-func benchGogenRun(b *testing.B, w1, w2, w3 string) {
+func benchGogenRun(b *testing.B, planf planFunc, w1, w2, w3 string) {
 	var prob problem
 	if err := prob.setup(w1, w2, w3); err != nil {
 		b.Fatalf("setup failed: %v", err)
 	}
 
 	gg := newGoGen(newPlanProblem(&prob))
-	gg.planProblem.plan(gg, false)
+	planf(gg.planProblem, gg, false)
 	gg.compile()
 
 	for n := 0; n < b.N; n++ {
