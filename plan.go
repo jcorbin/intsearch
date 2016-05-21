@@ -170,6 +170,10 @@ func (prob *planProblem) planTopDown(gen solutionGen, verified bool) {
 	prob.procTopDown(gen, &prob.columns[0], verified)
 }
 
+func (prob *planProblem) planBottomUp(gen solutionGen, verified bool) {
+	prob.procBottomUp(gen, verified)
+}
+
 func (prob *planProblem) procTopDown(gen solutionGen, col *column, verified bool) {
 	if col.prior == nil {
 		prob.solveColumn(gen, col)
@@ -185,10 +189,10 @@ func (prob *planProblem) procTopDown(gen solutionGen, col *column, verified bool
 		return
 	}
 
-	prob.planBottomUp(gen, verified)
+	prob.procBottomUp(gen, verified)
 }
 
-func (prob *planProblem) planBottomUp(gen solutionGen, verified bool) {
+func (prob *planProblem) procBottomUp(gen solutionGen, verified bool) {
 	for i := prob.numColumns() - 1; i >= 0; i-- {
 		prob.solveColumn(gen, &prob.columns[i])
 	}
