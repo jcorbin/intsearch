@@ -273,8 +273,8 @@ func (gg *goGen) checkFixedCarry(col *column) {
 	}
 }
 
+func (gg *goGen) chooseRange(c byte, min, max int) {
 	gg.stashCarry(gg.carryPrior)
-func (gg *goGen) chooseRange(col *column, c byte, i, min, max int) {
 	gg.carryValid = false
 
 	label := gg.gensym("choose(%s, %d, %d)", string(c), min, max)

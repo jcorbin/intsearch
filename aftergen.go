@@ -26,7 +26,7 @@ func (ag afterGen) computeSecondSummand(col *column) {
 	ag()
 }
 
-func (ag afterGen) chooseRange(col *column, c byte, i, min, max int) {
+func (ag afterGen) chooseRange(c byte, min, max int) {
 	ag()
 }
 

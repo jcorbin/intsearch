@@ -94,7 +94,7 @@ func (lg *logGen) computeSummand(a, b, c byte) {
 	}
 }
 
-func (lg *logGen) chooseRange(col *column, c byte, i, min, max int) {
+func (lg *logGen) chooseRange(c byte, min, max int) {
 	N := max - min
 	R := lg.base - len(lg.known)
 	if R < N {

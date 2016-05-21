@@ -110,7 +110,7 @@ type solutionGen interface {
 	computeSum(col *column)
 	computeFirstSummand(col *column)
 	computeSecondSummand(col *column)
-	chooseRange(col *column, c byte, i, min, max int)
+	chooseRange(c byte, min, max int)
 	checkColumn(col *column, err error)
 	finish()
 	verify()
@@ -341,7 +341,7 @@ func (prob *planProblem) chooseOne(gen solutionGen, col *column) bool {
 		return false
 	}
 
-	gen.chooseRange(col, col.cx[i], i, min[i], max[i])
+	gen.chooseRange(col.cx[i], min[i], max[i])
 	prob.markKnown(col.cx[i])
 	return true
 }
