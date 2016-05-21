@@ -341,9 +341,13 @@ func (prob *planProblem) chooseOne(gen solutionGen, col *column) bool {
 		return false
 	}
 
-	gen.chooseRange(col.cx[i], min[i], max[i])
-	prob.markKnown(col.cx[i])
+	prob.chooseRange(gen, col.cx[i], min[i], max[i])
 	return true
+}
+
+func (prob *planProblem) chooseRange(gen solutionGen, c byte, min, max int) {
+	gen.chooseRange(c, min, max)
+	prob.markKnown(c)
 }
 
 func (prob *planProblem) solveColumnFromPrior(gen solutionGen, col *column) bool {
