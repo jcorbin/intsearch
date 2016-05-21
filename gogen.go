@@ -119,7 +119,7 @@ func (gg *goGen) fix(c byte, v int) {
 }
 
 func (gg *goGen) stashCarry(col *column) {
-	if gg.carryPrior == col && gg.carrySaved {
+	if gg.carryPrior == col && (col == nil || gg.carrySaved) {
 		return
 	}
 
@@ -273,8 +273,8 @@ func (gg *goGen) checkFixedCarry(col *column) {
 	}
 }
 
+	gg.stashCarry(gg.carryPrior)
 func (gg *goGen) chooseRange(col *column, c byte, i, min, max int) {
-	gg.stashCarry(col.prior)
 	gg.carryValid = false
 
 	label := gg.gensym("choose(%s, %d, %d)", string(c), min, max)
