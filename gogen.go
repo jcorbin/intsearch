@@ -450,6 +450,14 @@ func (gg *goGen) verifyColumns() {
 		gg.checkColumn(col, verifyError(col.label()))
 	}
 
+	// final carry may be constant by construction
+	if step, ok := gg.steps[len(gg.steps)-1].(setAStep); ok {
+		if int(step) != 0 {
+			panic("broken final carry")
+		}
+		return
+	}
+
 	// final carry must be 0
 	gg.steps = append(gg.steps,
 		relJZStep(1),
