@@ -6,6 +6,18 @@ import (
 	"testing"
 )
 
+func TestGogen_bottomUp(t *testing.T) {
+	runGogenTest(t, planBottomUp, "send", "more", "money")
+}
+
+func BenchmarkGogenPlan_bottomUp(b *testing.B) {
+	benchGogenPlan(b, planBottomUp, "send", "more", "money")
+}
+
+func BenchmarkGogenRun_bottomUp(b *testing.B) {
+	benchGogenRun(b, planBottomUp, "send", "more", "money")
+}
+
 func TestGogen_topDown(t *testing.T) {
 	runGogenTest(t, planTopDown, "send", "more", "money")
 }
