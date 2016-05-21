@@ -6,9 +6,21 @@ import (
 	"testing"
 )
 
-func TestGogenSendMoreMoney(t *testing.T) {
+func TestGogen(t *testing.T) {
+	runGogenTest(t, "send", "more", "money")
+}
+
+func BenchmarkGogenPlan(b *testing.B) {
+	benchGogenPlan(b, "send", "more", "money")
+}
+
+func BenchmarkGogenRun(b *testing.B) {
+	benchGogenRun(b, "send", "more", "money")
+}
+
+func runGogenTest(t *testing.T, w1, w2, w3 string) {
 	var prob problem
-	if err := prob.setup("send", "more", "money"); err != nil {
+	if err := prob.setup(w1, w2, w3); err != nil {
 		t.Fatalf("setup failed: %v", err)
 	}
 
@@ -64,9 +76,9 @@ func TestGogenSendMoreMoney(t *testing.T) {
 	}
 }
 
-func BenchmarkPlan(b *testing.B) {
+func benchGogenPlan(b *testing.B, w1, w2, w3 string) {
 	var prob problem
-	if err := prob.setup("send", "more", "money"); err != nil {
+	if err := prob.setup(w1, w2, w3); err != nil {
 		b.Fatalf("setup failed: %v", err)
 	}
 	for n := 0; n < b.N; n++ {
@@ -76,9 +88,9 @@ func BenchmarkPlan(b *testing.B) {
 	}
 }
 
-func BenchmarkRun(b *testing.B) {
+func benchGogenRun(b *testing.B, w1, w2, w3 string) {
 	var prob problem
-	if err := prob.setup("send", "more", "money"); err != nil {
+	if err := prob.setup(w1, w2, w3); err != nil {
 		b.Fatalf("setup failed: %v", err)
 	}
 
