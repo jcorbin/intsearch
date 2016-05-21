@@ -197,7 +197,7 @@ func (prob *planProblem) procTopDown(gen solutionGen, col *column, verified bool
 }
 
 func (prob *planProblem) procBottomUp(gen solutionGen, verified bool) {
-	for i := prob.numColumns() - 1; i >= 0; i-- {
+	for i := len(prob.columns) - 1; i >= 0; i-- {
 		prob.solveColumn(gen, &prob.columns[i])
 	}
 	if verified {
