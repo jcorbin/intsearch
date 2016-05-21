@@ -8,6 +8,8 @@ import (
 
 type carryValue int
 
+type planFunc func(*planProblem, solutionGen, bool)
+
 func planTopDown(prob *planProblem, gen solutionGen, verified bool) {
 	gen.init("top down ... bottom up")
 	prob.procTopDown(gen, &prob.columns[0], verified)
