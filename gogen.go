@@ -446,7 +446,8 @@ func (gg *goGen) verifyColumns() {
 		if gg.columns[i].unknown > 0 {
 			return
 		}
-		gg.verifyColumn(&gg.columns[i])
+		col := &gg.columns[i]
+		gg.checkColumn(col, verifyError(col.label()))
 	}
 
 	// final carry must be 0
@@ -485,26 +486,6 @@ func (gg *goGen) verifyKnownLetters() {
 			relJZStep(1),
 			exitStep{verifyError("negative valued character")})
 	}
-}
-
-func (gg *goGen) verifyColumn(col *column) {
-	if col.prior == nil {
-		gg.steps = append(gg.steps, setAStep(0))
-	}
-	if col.cx[0] != 0 {
-		gg.steps = append(gg.steps, addValueStep(col.cx[0]))
-	}
-	if col.cx[1] != 0 {
-		gg.steps = append(gg.steps, addValueStep(col.cx[1]))
-	}
-	gg.steps = append(gg.steps,
-		setBAStep{},
-		modStep(gg.base),
-		subValueStep(col.cx[2]),
-		relJZStep(1),
-		exitStep{verifyError(col.label())},
-		setABStep{},
-		divStep(gg.base))
 }
 
 func (gg *goGen) finish() {
