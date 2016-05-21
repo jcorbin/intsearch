@@ -10,6 +10,28 @@ type carryValue int
 
 type planFunc func(*planProblem, solutionGen, bool)
 
+func planPrunedBrute(prob *planProblem, gen solutionGen, verified bool) {
+	gen.init("pruned brute force")
+	var mins [256]int
+	for _, word := range prob.words {
+		mins[word[0]] = 1
+	}
+	for i := len(prob.columns) - 1; i >= 0; i-- {
+		col := &prob.columns[i]
+		for _, c := range col.cx {
+			if c != 0 && !prob.known[c] {
+				prob.chooseRange(gen, c, mins[c], prob.base-1)
+			}
+		}
+		prob.checkColumn(gen, col)
+	}
+	if verified {
+		gen.verify()
+	}
+	gen.finish()
+	gen.finalize()
+}
+
 func planTopDown(prob *planProblem, gen solutionGen, verified bool) {
 	gen.init("top down ... bottom up")
 	prob.procTopDown(gen, &prob.columns[0], verified)

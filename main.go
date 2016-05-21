@@ -9,8 +9,9 @@ import (
 )
 
 var planStrategies = map[string]planFunc{
-	"bottomUp": planBottomUp,
-	"topDown":  planTopDown,
+	"prunedBrute": planPrunedBrute,
+	"bottomUp":    planBottomUp,
+	"topDown":     planTopDown,
 }
 
 func planStrategyNames() []string {

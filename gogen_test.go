@@ -6,6 +6,18 @@ import (
 	"testing"
 )
 
+func TestGogen_prunedBrute(t *testing.T) {
+	runGogenTest(t, planPrunedBrute, "send", "more", "money")
+}
+
+func BenchmarkGogenPlan_prunedBrute(b *testing.B) {
+	benchGogenPlan(b, planPrunedBrute, "send", "more", "money")
+}
+
+func BenchmarkGogenRun_prunedBrute(b *testing.B) {
+	benchGogenRun(b, planPrunedBrute, "send", "more", "money")
+}
+
 func TestGogen_bottomUp(t *testing.T) {
 	runGogenTest(t, planBottomUp, "send", "more", "money")
 }
