@@ -246,11 +246,10 @@ func (sol *solution) numbers() [3]int {
 
 func (sol *solution) letterMapping() string {
 	parts := make([]string, 0, len(sol.prob.letterSet))
-	for _, l := range sol.prob.sortedLetters() {
-		c := l[0]
+	for _, c := range sol.prob.sortedLetters() {
 		v := sol.values[c]
 		if v >= 0 && sol.used[v] {
-			parts = append(parts, fmt.Sprintf("%v:%v", l, v))
+			parts = append(parts, fmt.Sprintf("%s:%v", string(c), v))
 		}
 	}
 	return strings.Join(parts, " ")

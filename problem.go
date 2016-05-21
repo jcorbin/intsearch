@@ -8,6 +8,12 @@ import (
 
 var errInvalidResultWidth = errors.New("invalid result width, must be equal to or only one greater than the widest argument")
 
+type sortBytes []byte
+
+func (sb sortBytes) Len() int           { return len(sb) }
+func (sb sortBytes) Less(i, j int) bool { return sb[i] < sb[j] }
+func (sb sortBytes) Swap(i, j int)      { sb[i], sb[j] = sb[j], sb[i] }
+
 type problem struct {
 	words     [3][]byte
 	letterSet map[byte]bool
@@ -46,12 +52,12 @@ func (prob *problem) setup(word1, word2, word3 string) error {
 	return nil
 }
 
-func (prob *problem) sortedLetters() []string {
-	letters := make([]string, 0, len(prob.letterSet))
+func (prob *problem) sortedLetters() []byte {
+	letters := make([]byte, 0, len(prob.letterSet))
 	for c := range prob.letterSet {
-		letters = append(letters, string(c))
+		letters = append(letters, c)
 	}
-	sort.Strings(letters)
+	sort.Sort(sortBytes(letters))
 	return letters
 }
 
