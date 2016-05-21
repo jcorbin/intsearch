@@ -66,7 +66,7 @@ func runGogenTest(t *testing.T, planf planFunc, w1, w2, w3 string) {
 
 	var srch search
 	traces := newTraceWatcher()
-	srch.run(100000, gg.searchInit, resultFunc, traces)
+	srch.run(gg.searchInit, resultFunc, traces)
 
 	if numGood == 0 {
 		t.Logf("didn't find any solution")
@@ -79,7 +79,7 @@ func runGogenTest(t *testing.T, planf planFunc, w1, w2, w3 string) {
 	if t.Failed() {
 		gg = newGoGen(newPlanProblem(&prob))
 		planf(gg.planProblem, gg.loggedGen(), true)
-		srch.run(100000, gg.searchInit, resultFunc, watchers([]searchWatcher{
+		srch.run(gg.searchInit, resultFunc, watchers([]searchWatcher{
 			traces,
 			debugWatcher{
 				logf: logf,
@@ -114,7 +114,6 @@ func benchGogenRun(b *testing.B, planf planFunc, w1, w2, w3 string) {
 		var srch search
 		numGood := 0
 		srch.run(
-			100000,
 			gg.searchInit,
 			func(sol *solution) bool {
 				if sol.err == nil {

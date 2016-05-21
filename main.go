@@ -101,7 +101,7 @@ func traceFailures() {
 		newTraceWatcher(),
 	})
 	first = true
-	srch.run(100000, gg.searchInit, dump, watcher)
+	srch.run(gg.searchInit, dump, watcher)
 	fmt.Printf("\nsearch metrics: %+v\n", metrics)
 }
 
@@ -115,7 +115,7 @@ func debugRun() {
 		},
 	})
 	first = true
-	srch.run(100000, gg.searchInit, dump, watcher)
+	srch.run(gg.searchInit, dump, watcher)
 	fmt.Printf("\nsearch metrics: %+v\n", metrics)
 }
 
@@ -134,7 +134,6 @@ func findOne() *solution {
 	var theSol *solution
 	first = true
 	srch.run(
-		100000,
 		gg.searchInit,
 		func(sol *solution) bool {
 			if isVerifyError(sol.err) {

@@ -45,8 +45,9 @@ func newGoGen(prob *planProblem) *goGen {
 	return gg
 }
 
-func (gg *goGen) searchInit(emit emitFunc) {
+func (gg *goGen) searchInit(emit emitFunc) int {
 	emit(newSolution(&gg.planProblem.problem, gg.steps, emit))
+	return 100000
 }
 
 func (gg *goGen) loggedGen() solutionGen {

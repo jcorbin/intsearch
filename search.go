@@ -2,13 +2,13 @@ package main
 
 type emitFunc func(*solution)
 type resultFunc func(*solution) bool
-type initFunc func(emitFunc)
+type initFunc func(emitFunc) int
 
 type searcher interface {
 	frontierSize() int
 	current() *solution
 	expand(*solution)
-	run(maxSteps int, init initFunc, result resultFunc, watcher searchWatcher) bool
+	run(init initFunc, result resultFunc, watcher searchWatcher) bool
 }
 
 type search struct {
@@ -30,13 +30,12 @@ func (srch *search) expand(sol *solution) {
 	srch.frontier = append(srch.frontier, sol)
 }
 
-func (srch *search) run(maxSteps int, init initFunc, result resultFunc, watcher searchWatcher) bool {
+func (srch *search) run(init initFunc, result resultFunc, watcher searchWatcher) bool {
 	run := searchRun{
-		search:   *srch,
-		init:     init,
-		result:   result,
-		maxSteps: maxSteps,
-		counter:  0,
+		search: *srch,
+		init:   init,
+		result: result,
+		counter: 0,
 	}
 
 	if watcher == nil {
@@ -60,7 +59,7 @@ type searchRun struct {
 }
 
 func (srch *searchRun) run() bool {
-	srch.init(srch.expand)
+	srch.maxSteps = srch.init(srch.expand)
 	for sol := srch.current(); sol != nil; sol = srch.current() {
 		for sol.step() {
 			srch.counter++
@@ -87,7 +86,7 @@ func (srch *searchRunWatch) expand(sol *solution) {
 }
 
 func (srch *searchRunWatch) run() bool {
-	srch.init(srch.expand)
+	srch.maxSteps = srch.init(srch.expand)
 	for sol := srch.current(); sol != nil; sol = srch.current() {
 		srch.watcher.beforeStep(&srch.search, sol)
 		if !sol.step() {
