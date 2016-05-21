@@ -161,17 +161,19 @@ func (prob *planProblem) markKnown(c byte) {
 }
 
 func (prob *planProblem) plan(gen solutionGen, verified bool) {
-	gen.init("top down ... bottom up")
 	prob.planTopDown(gen, verified)
-	gen.finalize()
 }
 
 func (prob *planProblem) planTopDown(gen solutionGen, verified bool) {
+	gen.init("top down ... bottom up")
 	prob.procTopDown(gen, &prob.columns[0], verified)
+	gen.finalize()
 }
 
 func (prob *planProblem) planBottomUp(gen solutionGen, verified bool) {
+	gen.init("bottom up")
 	prob.procBottomUp(gen, verified)
+	gen.finalize()
 }
 
 func (prob *planProblem) procTopDown(gen solutionGen, col *column, verified bool) {
