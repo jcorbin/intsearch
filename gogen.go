@@ -446,7 +446,7 @@ func (gg *goGen) verifyColumns() {
 		if gg.columns[i].unknown > 0 {
 			return
 		}
-		gg.steps = append(gg.steps, gg.verifyColumnSteps(&gg.columns[i])...)
+		gg.verifyColumn(&gg.columns[i])
 	}
 
 	// final carry must be 0
@@ -487,18 +487,17 @@ func (gg *goGen) verifyKnownLetters() {
 	}
 }
 
-func (gg *goGen) verifyColumnSteps(col *column) []solutionStep {
-	steps := make([]solutionStep, 0, 10)
+func (gg *goGen) verifyColumn(col *column) {
 	if col.prior == nil {
-		steps = append(steps, setAStep(0))
+		gg.steps = append(gg.steps, setAStep(0))
 	}
 	if col.cx[0] != 0 {
-		steps = append(steps, addValueStep(col.cx[0]))
+		gg.steps = append(gg.steps, addValueStep(col.cx[0]))
 	}
 	if col.cx[1] != 0 {
-		steps = append(steps, addValueStep(col.cx[1]))
+		gg.steps = append(gg.steps, addValueStep(col.cx[1]))
 	}
-	steps = append(steps,
+	gg.steps = append(gg.steps,
 		setBAStep{},
 		modStep(gg.base),
 		subValueStep(col.cx[2]),
@@ -506,7 +505,6 @@ func (gg *goGen) verifyColumnSteps(col *column) []solutionStep {
 		exitStep{verifyError(col.label())},
 		setABStep{},
 		divStep(gg.base))
-	return steps
 }
 
 func (gg *goGen) finish() {
