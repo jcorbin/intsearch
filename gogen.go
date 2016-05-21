@@ -436,7 +436,7 @@ func (gg *goGen) checkColumn(col *column, err error) {
 
 func (gg *goGen) verify() {
 	gg.steps = append(gg.steps, labelStep("verify"))
-	gg.steps = append(gg.steps, gg.verifyKnownLettersSteps()...)
+	gg.verifyKnownLetters()
 	gg.steps = append(gg.steps, gg.verifyColumnsSteps()...)
 }
 
@@ -457,12 +457,7 @@ func (gg *goGen) verifyColumnsSteps() []solutionStep {
 		exitStep{verifyError("final carry must be 0")})
 }
 
-func (gg *goGen) verifyKnownLettersSteps() []solutionStep {
-	var (
-		N     = len(gg.letterSet)
-		steps = make([]solutionStep, 0, N*N/2*4+N*4)
-	)
-
+func (gg *goGen) verifyKnownLetters() {
 	letters := gg.sortedLetters()
 	for i, c := range letters {
 		if !gg.known[c] {
@@ -473,7 +468,7 @@ func (gg *goGen) verifyKnownLettersSteps() []solutionStep {
 				continue
 			}
 			if j > i {
-				steps = append(steps,
+				gg.steps = append(gg.steps,
 					loadStep(c),
 					subValueStep(d),
 					relJNZStep(1),
@@ -486,14 +481,12 @@ func (gg *goGen) verifyKnownLettersSteps() []solutionStep {
 		if !gg.known[c] {
 			continue
 		}
-		steps = append(steps,
+		gg.steps = append(gg.steps,
 			loadStep(c),
 			ltStep(0),
 			relJZStep(1),
 			exitStep{verifyError("negative valued character")})
 	}
-
-	return steps
 }
 
 func (gg *goGen) verifyColumnSteps(col *column) []solutionStep {
