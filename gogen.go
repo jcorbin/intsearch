@@ -45,9 +45,21 @@ func newGoGen(prob *planProblem) *goGen {
 	return gg
 }
 
+func fallFact(x, y int) int {
+	z := 1
+	for y > 0 {
+		z *= x
+		x--
+		y--
+	}
+	return z
+}
+
 func (gg *goGen) searchInit(emit emitFunc) int {
 	emit(newSolution(&gg.planProblem.problem, gg.steps, emit))
-	return 100000
+	// worst case, we have to run every step for every possible brute force solution
+	numBrute := fallFact(gg.base, len(gg.letterSet))
+	return numBrute * len(gg.steps)
 }
 
 func (gg *goGen) loggedGen() solutionGen {
