@@ -480,6 +480,7 @@ func (gg *goGen) verifyColumns() {
 }
 
 func (gg *goGen) verifyInitialLetters() {
+	gg.steps = append(gg.steps, labelStep("verify:initialLetters"))
 	for _, word := range gg.words {
 		gg.steps = append(gg.steps,
 			loadStep(word[0]),
@@ -489,6 +490,7 @@ func (gg *goGen) verifyInitialLetters() {
 }
 
 func (gg *goGen) verifyDuplicateLetters() {
+	gg.steps = append(gg.steps, labelStep("verify:duplicateLetters"))
 	letters := gg.sortedLetters()
 	for i, c := range letters {
 		if !gg.known[c] {
@@ -510,6 +512,7 @@ func (gg *goGen) verifyDuplicateLetters() {
 }
 
 func (gg *goGen) verifyLettersNonNegative() {
+	gg.steps = append(gg.steps, labelStep("verify:allLettersNonNegative"))
 	for _, c := range gg.sortedLetters() {
 		if !gg.known[c] {
 			continue
