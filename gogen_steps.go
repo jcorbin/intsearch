@@ -272,7 +272,7 @@ func (step finishStep) expandStep(
 	addr int,
 	parts [][]solutionStep,
 	labels map[string]int,
-	annotate func(addr int, annos ...string),
+	annotate annoFunc,
 ) (int, [][]solutionStep, map[string]int) {
 	annotate(addr,
 		fmt.Sprintf(":%s", string(step)),

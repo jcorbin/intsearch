@@ -43,7 +43,7 @@ type expandableStep interface {
 		addr int,
 		parts [][]solutionStep,
 		labels map[string]int,
-		annotate func(addr int, annos ...string),
+		annotate annoFunc,
 	) (int, [][]solutionStep, map[string]int)
 }
 
@@ -65,7 +65,7 @@ func (l labelStep) expandStep(
 	addr int,
 	parts [][]solutionStep,
 	labels map[string]int,
-	annotate func(addr int, annos ...string),
+	annotate annoFunc,
 ) (int, [][]solutionStep, map[string]int) {
 	annotate(addr, l.String())
 	return addr, parts, labels
@@ -130,6 +130,8 @@ func resolveLabels(steps []solutionStep, labels map[string]int) ([]solutionStep,
 	return steps, labels
 }
 
+type annoFunc func(addr int, annos ...string)
+
 // expandSteps expands all expandableSteps.
 //
 // For each expandableStep, step.expandStep(addr, parts, labels) is called;
@@ -145,7 +147,7 @@ func expandSteps(
 	steps []solutionStep,
 	parts [][]solutionStep,
 	labels map[string]int,
-	annotate func(addr int, annos ...string),
+	annotate annoFunc,
 ) (int, [][]solutionStep, map[string]int) {
 	if parts == nil {
 		nl := len(labels)
