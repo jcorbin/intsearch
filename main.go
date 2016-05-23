@@ -9,6 +9,7 @@ import (
 )
 
 var planStrategies = map[string]planFunc{
+	"naiveBrute":  planNaiveBrute,
 	"prunedBrute": planPrunedBrute,
 	"bottomUp":    planBottomUp,
 	"topDown":     planTopDown,

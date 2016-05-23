@@ -10,6 +10,19 @@ type carryValue int
 
 type planFunc func(*planProblem, solutionGen, bool)
 
+func planNaiveBrute(prob *planProblem, gen solutionGen, verified bool) {
+	gen.init("naive brute force")
+	for _, c := range prob.sortedLetters() {
+		prob.chooseRange(gen, c, 0, prob.base-1)
+	}
+	gen.check(errCheckFailed)
+	if verified {
+		gen.verify()
+	}
+	gen.finish()
+	gen.finalize()
+}
+
 func planPrunedBrute(prob *planProblem, gen solutionGen, verified bool) {
 	gen.init("pruned brute force")
 	var mins [256]int
