@@ -160,6 +160,44 @@ func expandSteps(
 	return actuallyExpandSteps(addr, steps, parts, labels, annotate, nil)
 }
 
+func debugExpandSteps(
+	addr int,
+	steps []solutionStep,
+	parts [][]solutionStep,
+	labels map[string]int,
+	annotate annoFunc,
+) (int, [][]solutionStep, map[string]int) {
+	fmt.Println()
+	fmt.Printf("// expanding steps @%d\n", addr)
+	for i, step := range steps {
+		fmt.Printf("%d: %v\n", addr+i, step)
+	}
+
+	startAddr := addr
+	startPartsLen := len(parts)
+
+	addr, parts, labels = actuallyExpandSteps(
+		addr, steps, parts, labels, annotate,
+		mustExpandStepSanely)
+
+	fmt.Println()
+	fmt.Printf("// expanded parts @%d\n", addr)
+	for i, part := range parts[startPartsLen:] {
+		fmt.Printf("// part %d\n", i)
+		for _, step := range part {
+			if rs, ok := step.(resolvableStep); ok {
+				os := rs.resolveLabels(labels)
+				fmt.Printf("%d: %v // %v\n", startAddr, step, os)
+			} else {
+				fmt.Printf("%d: %v\n", startAddr, step)
+			}
+			startAddr++
+		}
+	}
+
+	return addr, parts, labels
+}
+
 func actuallyExpandSteps(
 	addr int,
 	steps []solutionStep,
@@ -207,6 +245,30 @@ func actuallyExpandSteps(
 		addr += len(tail)
 	}
 	return addr, parts, labels
+}
+
+func mustExpandStepSanely(
+	es expandableStep,
+	addr int,
+	parts [][]solutionStep,
+	labels map[string]int,
+	annotate annoFunc,
+) (
+	newAddr int,
+	newParts [][]solutionStep,
+	newLabels map[string]int,
+) {
+	newAddr, newParts, newLabels = es.expandStep(addr, parts, labels, annotate)
+	diff := newAddr - addr
+	for _, part := range newParts[len(parts):] {
+		diff -= len(part)
+	}
+	if diff != 0 {
+		panic(fmt.Sprintf(
+			"failed to correctly expand steps @%d: expanded addr(%d) is off by %d",
+			addr, newAddr, diff))
+	}
+	return
 }
 
 type solution struct {
