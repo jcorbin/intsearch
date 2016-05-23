@@ -287,6 +287,9 @@ type rangeStep struct {
 	min, max int
 }
 
+func (step rangeStep) labelName() string {
+	return step.label
+}
 func (step rangeStep) String() string {
 	return fmt.Sprintf(":%s range [%d, %d]", step.label, step.min, step.max)
 }
