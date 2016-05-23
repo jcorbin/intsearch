@@ -57,6 +57,12 @@ func (mg multiGen) verify() {
 	}
 }
 
+func (mg multiGen) check(err error) {
+	for _, gen := range mg {
+		gen.check(err)
+	}
+}
+
 func (mg multiGen) finish() {
 	for _, gen := range mg {
 		gen.finish()

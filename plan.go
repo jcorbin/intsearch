@@ -134,6 +134,7 @@ type solutionGen interface {
 	computeSecondSummand(col *column)
 	chooseRange(c byte, min, max int)
 	checkColumn(col *column, err error)
+	check(err error)
 	finish()
 	verify()
 	finalize()

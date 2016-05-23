@@ -405,6 +405,10 @@ func (gg *goGen) ensureCarry(col *column) {
 	gg.carryValid = true
 }
 
+func (gg *goGen) check(err error) {
+	gg.doVerify("check", err)
+}
+
 func (gg *goGen) checkColumn(col *column, err error) {
 	if err == nil {
 		err = errCheckFailed
@@ -448,8 +452,11 @@ func (gg *goGen) checkColumn(col *column, err error) {
 }
 
 func (gg *goGen) verify() {
-	name = gg.gensym("verify")
-	err = error(nil)
+	gg.doVerify("verify", nil)
+}
+
+func (gg *goGen) doVerify(name string, err error) {
+	name = gg.gensym(name)
 	gg.steps = append(gg.steps, labelStep(name))
 	gg.verifyInitialLetters(name, err)
 	gg.verifyDuplicateLetters(name, err)

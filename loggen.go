@@ -112,6 +112,10 @@ func (lg *logGen) verify() {
 	lg.stepf("verify")
 }
 
+func (lg *logGen) check(err error) {
+	lg.stepf("check")
+}
+
 func (lg *logGen) finish() {
 	lg.stepf("finish")
 }

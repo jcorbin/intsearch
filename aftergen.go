@@ -38,6 +38,10 @@ func (ag afterGen) verify() {
 	ag()
 }
 
+func (ag afterGen) check(err error) {
+	ag()
+}
+
 func (ag afterGen) finish() {
 	ag()
 }
