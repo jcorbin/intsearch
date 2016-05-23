@@ -58,7 +58,7 @@ func runGogenTest(t *testing.T, planf planFunc, w1, w2, w3 string) {
 		t.Logf(format, args...)
 	}
 
-	gg = newGoGen(newPlanProblem(&prob), true)
+	gg = newGoGen(newPlanProblem(&prob), false)
 	planf(gg.planProblem, gg, true)
 
 	numGood := 0
@@ -106,7 +106,7 @@ func benchGogenPlan(b *testing.B, planf planFunc, w1, w2, w3 string) {
 		b.Fatalf("setup failed: %v", err)
 	}
 	for n := 0; n < b.N; n++ {
-		gg := newGoGen(newPlanProblem(&prob), true)
+		gg := newGoGen(newPlanProblem(&prob), false)
 		planf(gg.planProblem, gg, false)
 		gg.compile()
 	}
@@ -118,7 +118,7 @@ func benchGogenRun(b *testing.B, planf planFunc, w1, w2, w3 string) {
 		b.Fatalf("setup failed: %v", err)
 	}
 
-	gg := newGoGen(newPlanProblem(&prob), true)
+	gg := newGoGen(newPlanProblem(&prob), false)
 	planf(gg.planProblem, gg, false)
 	gg.compile()
 
