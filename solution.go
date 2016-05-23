@@ -132,6 +132,14 @@ func resolveLabels(steps []solutionStep, labels map[string]int) ([]solutionStep,
 
 type annoFunc func(addr int, annos ...string)
 
+type stepExpander func(
+	es expandableStep,
+	addr int,
+	parts [][]solutionStep,
+	labels map[string]int,
+	annotate annoFunc,
+) (int, [][]solutionStep, map[string]int)
+
 // expandSteps expands all expandableSteps.
 //
 // For each expandableStep, step.expandStep(addr, parts, labels) is called;
@@ -148,6 +156,17 @@ func expandSteps(
 	parts [][]solutionStep,
 	labels map[string]int,
 	annotate annoFunc,
+) (int, [][]solutionStep, map[string]int) {
+	return actuallyExpandSteps(addr, steps, parts, labels, annotate, nil)
+}
+
+func actuallyExpandSteps(
+	addr int,
+	steps []solutionStep,
+	parts [][]solutionStep,
+	labels map[string]int,
+	annotate annoFunc,
+	expand stepExpander,
 ) (int, [][]solutionStep, map[string]int) {
 	if parts == nil {
 		nl := len(labels)
@@ -170,7 +189,11 @@ func expandSteps(
 			if head := steps[prior:i]; len(head) > 0 {
 				parts = append(parts, head)
 			}
-			addr, parts, labels = es.expandStep(addr, parts, labels, annotate)
+			if expand != nil {
+				addr, parts, labels = expand(es, addr, parts, labels, annotate)
+			} else {
+				addr, parts, labels = es.expandStep(addr, parts, labels, annotate)
+			}
 			prior = i + 1
 			continue
 		}
