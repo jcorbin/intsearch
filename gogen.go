@@ -562,7 +562,7 @@ func (gg *goGen) takeAnnotation(addr int, annos ...string) {
 func (gg *goGen) compile() {
 	var parts [][]solutionStep
 	var addr int
-	addr, parts, gg.labels = eraseLabels(addr, gg.steps, nil, gg.labels, gg.takeAnnotation)
+	addr, parts, gg.labels = expandSteps(addr, gg.steps, nil, gg.labels, gg.takeAnnotation)
 	steps := make([]solutionStep, 0, addr)
 	for _, part := range parts {
 		steps = append(steps, part...)

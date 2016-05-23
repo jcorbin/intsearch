@@ -268,7 +268,7 @@ type finishStep string
 func (step finishStep) String() string    { return fmt.Sprintf("HALT :%s", string(step)) }
 func (step finishStep) run(sol *solution) { sol.exit(nil) }
 func (step finishStep) labelName() string { return string(step) }
-func (step finishStep) eraseLabel(
+func (step finishStep) expandStep(
 	addr int,
 	parts [][]solutionStep,
 	labels map[string]int,

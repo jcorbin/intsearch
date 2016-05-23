@@ -36,7 +36,10 @@ type solutionStep interface {
 
 type labeledStep interface {
 	labelName() string
-	eraseLabel(
+}
+
+type expandableStep interface {
+	expandStep(
 		addr int,
 		parts [][]solutionStep,
 		labels map[string]int,
@@ -58,7 +61,7 @@ func (l labelStep) labelName() string {
 	return string(l)
 }
 
-func (l labelStep) eraseLabel(
+func (l labelStep) expandStep(
 	addr int,
 	parts [][]solutionStep,
 	labels map[string]int,
@@ -127,15 +130,17 @@ func resolveLabels(steps []solutionStep, labels map[string]int) ([]solutionStep,
 	return steps, labels
 }
 
-// eraseLabels erases all labeledSteps in steps, updating passed labels values
-// as appropriate.
+// expandSteps expands all expandableSteps.
 //
-// For each labeledStep, step.eraseLabels(addr, parts, labels) is called; this
-// method may append zero or more new parts, and should add any labels
+// For each expandableStep, step.expandStep(addr, parts, labels) is called;
+// this method may append zero or more new parts, and should add any labels
 // contained in those parts to the labels map.  The returned addr must be the
 // passed addr plus the total step length of all newly added parts.  The, maybe
 // modified, parts and labels must be returned.
-func eraseLabels(
+//
+// Implementations are expected to call expandSteps on any newly added parts
+// that need it; recursive step expansion is not provided by expandSteps.
+func expandSteps(
 	addr int,
 	steps []solutionStep,
 	parts [][]solutionStep,
@@ -158,10 +163,12 @@ func eraseLabels(
 	for i, step := range steps {
 		if ls, ok := step.(labeledStep); ok {
 			labels[ls.labelName()] = addr
+		}
+		if es, ok := step.(expandableStep); ok {
 			if head := steps[prior:i]; len(head) > 0 {
 				parts = append(parts, head)
 			}
-			addr, parts, labels = ls.eraseLabel(addr, parts, labels, annotate)
+			addr, parts, labels = es.expandStep(addr, parts, labels, annotate)
 			prior = i + 1
 		} else {
 			if as, ok := step.(annotatedStep); ok {
