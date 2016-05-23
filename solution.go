@@ -67,7 +67,9 @@ func (l labelStep) expandStep(
 	labels map[string]int,
 	annotate annoFunc,
 ) (int, [][]solutionStep, map[string]int) {
-	annotate(addr, l.String())
+	if annotate != nil {
+		annotate(addr, l.String())
+	}
 	return addr, parts, labels
 }
 
@@ -235,8 +237,10 @@ func actuallyExpandSteps(
 			prior = i + 1
 			continue
 		}
-		if as, ok := step.(annotatedStep); ok {
-			annotate(addr, as.annotate())
+		if annotate != nil {
+			if as, ok := step.(annotatedStep); ok {
+				annotate(addr, as.annotate())
+			}
 		}
 		addr++
 	}

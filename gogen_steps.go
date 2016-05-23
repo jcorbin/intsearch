@@ -274,8 +274,10 @@ func (step finishStep) expandStep(
 	labels map[string]int,
 	annotate annoFunc,
 ) (int, [][]solutionStep, map[string]int) {
-	annotate(addr,
-		fmt.Sprintf(":%s", string(step)),
-		"Normal Exit")
+	if annotate != nil {
+		annotate(addr,
+			fmt.Sprintf(":%s", string(step)),
+			"Normal Exit")
+	}
 	return addr + 1, append(parts, []solutionStep{exitStep{nil}}), labels
 }
