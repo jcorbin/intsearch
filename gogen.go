@@ -291,35 +291,9 @@ func (gg *goGen) checkFixedCarry(col *column) {
 func (gg *goGen) chooseRange(c byte, min, max int) {
 	gg.stashCarry(gg.carryPrior)
 	gg.carryValid = false
-	label := gg.gensym("choose(%s, %d, %d)", string(c), min, max)
-	var (
-		loopSym     = gg.gensym("choose(%s):loop", string(c))
-		nextLoopSym = gg.gensym("choose(%s):nextLoop", string(c))
-		contSym     = gg.gensym("choose(%s):cont", string(c))
-	)
+	label := gg.gensym("choose(%s)", string(c))
 	gg.steps = append(gg.steps,
-		labelStep(label),           // :choose($c)
-		setAStep(min),              // ra = $min
-		setCAStep{},                // rc = ra
-		labelStep(loopSym),         // :loop
-		setACStep{},                // ra = rc
-		isUsedStep{},               // used?
-		labelJNZStep(nextLoopSym),  // jnz :next_loop
-		forkLabelStep(nextLoopSym), // fork :next_loop
-		setACStep{},                // ra = rc
-		labelJmpStep(contSym),      // jmp :cont
-		labelStep(nextLoopSym),     // :nextLoop
-		setACStep{},                // ra = rc
-		addStep(1),                 // add 1
-		setCAStep{},                // rc = ra
-		ltStep(max),                // lt $max
-		labelJNZStep(loopSym),      // jnz :loop
-		setACStep{},                // ra = rc
-		isUsedStep{},               // used?
-		labelJZStep(contSym),       // jz :cont
-		exitStep{errAlreadyUsed},   // exit errAlreadyUsed
-		labelStep(contSym),         // :cont
-		setACStep{},                // ra = rc
+		rangeStep{label, min, max}, // range [$min, $max]
 		storeStep(c),               // store $c
 	)
 }
