@@ -449,6 +449,7 @@ func (gg *goGen) checkColumn(col *column, err error) {
 
 func (gg *goGen) verify() {
 	gg.steps = append(gg.steps, labelStep("verify"))
+	gg.verifyDuplicateLetters()
 	gg.verifyKnownLetters()
 	gg.verifyColumns()
 }
@@ -477,7 +478,7 @@ func (gg *goGen) verifyColumns() {
 		exitStep{verifyError("final carry must be 0")})
 }
 
-func (gg *goGen) verifyKnownLetters() {
+func (gg *goGen) verifyDuplicateLetters() {
 	letters := gg.sortedLetters()
 	for i, c := range letters {
 		if !gg.known[c] {
@@ -496,8 +497,10 @@ func (gg *goGen) verifyKnownLetters() {
 			}
 		}
 	}
+}
 
-	for _, c := range letters {
+func (gg *goGen) verifyKnownLetters() {
+	for _, c := range gg.sortedLetters() {
 		if !gg.known[c] {
 			continue
 		}
