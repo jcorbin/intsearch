@@ -242,7 +242,6 @@ func actuallyExpandSteps(
 	}
 	if tail := steps[prior:]; len(tail) > 0 {
 		parts = append(parts, tail)
-		addr += len(tail)
 	}
 	return addr, parts, labels
 }
