@@ -170,12 +170,12 @@ func expandSteps(
 			}
 			addr, parts, labels = es.expandStep(addr, parts, labels, annotate)
 			prior = i + 1
-		} else {
-			if as, ok := step.(annotatedStep); ok {
-				annotate(addr, as.annotate())
-			}
-			addr++
+			continue
 		}
+		if as, ok := step.(annotatedStep); ok {
+			annotate(addr, as.annotate())
+		}
+		addr++
 	}
 	if tail := steps[prior:]; len(tail) > 0 {
 		parts = append(parts, tail)
