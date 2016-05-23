@@ -186,7 +186,11 @@ func main() {
 		log.Fatalf("setup failed: %v", err)
 	}
 
-	gg = newGoGen(newPlanProblem(&prob), true)
+	annotated := *dumpProg || *trace || *debug
+	// - dumping program benefits from annotations
+	// - as do program traces
+	// - the debug watcher always traces
+	gg = newGoGen(newPlanProblem(&prob), annotated)
 
 	if *dumpProg {
 		gen = gg.loggedGen()
