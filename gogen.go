@@ -450,13 +450,13 @@ func (gg *goGen) checkColumn(col *column, err error) {
 func (gg *goGen) verify() {
 	name = gg.gensym("verify")
 	gg.steps = append(gg.steps, labelStep(name))
-	gg.verifyInitialLetters()
-	gg.verifyDuplicateLetters()
-	gg.verifyLettersNonNegative()
-	gg.verifyColumns()
+	gg.verifyInitialLetters(name)
+	gg.verifyDuplicateLetters(name)
+	gg.verifyLettersNonNegative(name)
+	gg.verifyColumns(name)
 }
 
-func (gg *goGen) verifyColumns() {
+func (gg *goGen) verifyColumns(name string) {
 	// verify columns from bottom up
 	for i := len(gg.columns) - 1; i >= 0; i-- {
 		if gg.columns[i].unknown > 0 {
@@ -480,8 +480,8 @@ func (gg *goGen) verifyColumns() {
 		exitStep{verifyError("final carry must be 0")})
 }
 
-func (gg *goGen) verifyInitialLetters() {
-	gg.steps = append(gg.steps, labelStep("verify:initialLetters"))
+func (gg *goGen) verifyInitialLetters(name string) {
+	gg.steps = append(gg.steps, labelStep(gg.gensym("%s:initialLetters", name)))
 	for _, word := range gg.words {
 		gg.steps = append(gg.steps,
 			loadStep(word[0]),
@@ -490,8 +490,8 @@ func (gg *goGen) verifyInitialLetters() {
 	}
 }
 
-func (gg *goGen) verifyDuplicateLetters() {
-	gg.steps = append(gg.steps, labelStep("verify:duplicateLetters"))
+func (gg *goGen) verifyDuplicateLetters(name string) {
+	gg.steps = append(gg.steps, labelStep(gg.gensym("%s:duplicateLetters", name)))
 	letters := gg.sortedLetters()
 	for i, c := range letters {
 		if !gg.known[c] {
@@ -512,8 +512,8 @@ func (gg *goGen) verifyDuplicateLetters() {
 	}
 }
 
-func (gg *goGen) verifyLettersNonNegative() {
-	gg.steps = append(gg.steps, labelStep("verify:allLettersNonNegative"))
+func (gg *goGen) verifyLettersNonNegative(name string) {
+	gg.steps = append(gg.steps, labelStep(gg.gensym("%s:allLettersNonNegative", name)))
 	for _, c := range gg.sortedLetters() {
 		if !gg.known[c] {
 			continue
