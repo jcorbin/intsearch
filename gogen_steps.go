@@ -303,19 +303,26 @@ func (step rangeStep) expandStep(
 	bodySym := fmt.Sprintf("%s:body", step.label)
 	nextSym := fmt.Sprintf("%s:next", step.label)
 	contSym := fmt.Sprintf("%s:cont", step.label)
+	labels[step.label] = addr
+	labels[bodySym] = addr + 2
+	labels[nextSym] = addr + 8
+	labels[contSym] = addr + 17
+	if annotate != nil {
+		annotate(addr, labelStep(step.label).String())
+		annotate(addr+2, labelStep(bodySym).String())
+		annotate(addr+8, labelStep(nextSym).String())
+		annotate(addr+17, labelStep(contSym).String())
+	}
 	return expandSteps(addr, []solutionStep{
-		labelStep(step.label),    //  0: :LABEL
-		setAStep(step.min),       //  0: ra = $min
+		setAStep(step.min),       //  0: :LABEL ra = $min
 		setCAStep{},              //  1: rc = ra
-		labelStep(bodySym),       //  2: :LABEL:body
-		setACStep{},              //  2: ra = rc
+		setACStep{},              //  2: :LABEL:body ra = rc
 		isUsedStep{},             //  3: used?
 		labelJNZStep(nextSym),    //  4: jnz :next
 		forkLabelStep(nextSym),   //  5: fork :next
 		setACStep{},              //  6: ra = rc
 		labelJmpStep(contSym),    //  7: jmp :cont
-		labelStep(nextSym),       //  8: :LABEL:next
-		setACStep{},              //  8: ra = rc
+		setACStep{},              //  8: :LABEL:next ra = rc
 		addStep(1),               //  9: add 1
 		setCAStep{},              // 10: rc = ra
 		ltStep(step.max),         // 11: lt $max
@@ -324,7 +331,6 @@ func (step rangeStep) expandStep(
 		isUsedStep{},             // 14: used?
 		labelJZStep(contSym),     // 15: jz :cont
 		exitStep{errAlreadyUsed}, // 16: exit errAlreadyUsed
-		labelStep(contSym),       // 17: :LABEL:cont
-		setACStep{},              // 17: ra = rc
+		setACStep{},              // 17: :LABEL:cont ra = rc
 	}, parts, labels, annotate)
 }
