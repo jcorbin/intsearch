@@ -450,7 +450,7 @@ func (gg *goGen) checkColumn(col *column, err error) {
 func (gg *goGen) verify() {
 	gg.steps = append(gg.steps, labelStep("verify"))
 	gg.verifyDuplicateLetters()
-	gg.verifyKnownLetters()
+	gg.verifyLettersNonNegative()
 	gg.verifyColumns()
 }
 
@@ -499,7 +499,7 @@ func (gg *goGen) verifyDuplicateLetters() {
 	}
 }
 
-func (gg *goGen) verifyKnownLetters() {
+func (gg *goGen) verifyLettersNonNegative() {
 	for _, c := range gg.sortedLetters() {
 		if !gg.known[c] {
 			continue
