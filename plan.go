@@ -210,10 +210,6 @@ func (prob *planProblem) markKnown(c byte) {
 	}
 }
 
-func (prob *planProblem) plan(gen solutionGen, verified bool) {
-	planTopDown(prob, gen, verified)
-}
-
 func (prob *planProblem) procTopDown(gen solutionGen, col *column, verified bool) {
 	if col.prior == nil {
 		prob.solveColumn(gen, col)
