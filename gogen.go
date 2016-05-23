@@ -40,6 +40,7 @@ func newGoGen(prob *planProblem) *goGen {
 	gg := &goGen{
 		planProblem: prob,
 		usedSymbols: make(map[string]struct{}, 3*len(prob.letterSet)),
+		addrAnnos: make(map[int][]string),
 	}
 	return gg
 }
@@ -553,16 +554,17 @@ func (gg *goGen) finalize() {
 }
 
 func (gg *goGen) takeAnnotation(addr int, annos ...string) {
-	if gg.addrAnnos == nil {
-		gg.addrAnnos = make(map[int][]string)
-	}
 	gg.addrAnnos[addr] = append(gg.addrAnnos[addr], annos...)
 }
 
 func (gg *goGen) compile() {
 	var parts [][]solutionStep
 	var addr int
-	addr, parts, gg.labels = expandSteps(addr, gg.steps, nil, gg.labels, gg.takeAnnotation)
+	var annotate annoFunc
+	if gg.addrAnnos != nil {
+		annotate = gg.takeAnnotation
+	}
+	addr, parts, gg.labels = expandSteps(addr, gg.steps, nil, gg.labels, annotate)
 	steps := make([]solutionStep, 0, addr)
 	for _, part := range parts {
 		steps = append(steps, part...)
