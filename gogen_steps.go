@@ -304,27 +304,27 @@ func (step rangeStep) expandStep(
 	nextSym := fmt.Sprintf("%s:next", step.label)
 	contSym := fmt.Sprintf("%s:cont", step.label)
 	return expandSteps(addr, []solutionStep{
-		labelStep(step.label),    // :LABEL
-		setAStep(step.min),       // ra = $min
-		setCAStep{},              // rc = ra
-		labelStep(bodySym),       // :LABEL:body
-		setACStep{},              // ra = rc
-		isUsedStep{},             // used?
-		labelJNZStep(nextSym),    // jnz :next
-		forkLabelStep(nextSym),   // fork :next
-		setACStep{},              // ra = rc
-		labelJmpStep(contSym),    // jmp :cont
-		labelStep(nextSym),       // :LABEL:next
-		setACStep{},              // ra = rc
-		addStep(1),               // add 1
-		setCAStep{},              // rc = ra
-		ltStep(step.max),         // lt $max
-		labelJNZStep(bodySym),    // jnz :body
-		setACStep{},              // ra = rc
-		isUsedStep{},             // used?
-		labelJZStep(contSym),     // jz :cont
-		exitStep{errAlreadyUsed}, // exit errAlreadyUsed
-		labelStep(contSym),       // :LABEL:cont
-		setACStep{},              // ra = rc
+		labelStep(step.label),    //  0: :LABEL
+		setAStep(step.min),       //  0: ra = $min
+		setCAStep{},              //  1: rc = ra
+		labelStep(bodySym),       //  2: :LABEL:body
+		setACStep{},              //  2: ra = rc
+		isUsedStep{},             //  3: used?
+		labelJNZStep(nextSym),    //  4: jnz :next
+		forkLabelStep(nextSym),   //  5: fork :next
+		setACStep{},              //  6: ra = rc
+		labelJmpStep(contSym),    //  7: jmp :cont
+		labelStep(nextSym),       //  8: :LABEL:next
+		setACStep{},              //  8: ra = rc
+		addStep(1),               //  9: add 1
+		setCAStep{},              // 10: rc = ra
+		ltStep(step.max),         // 11: lt $max
+		labelJNZStep(bodySym),    // 12: jnz :body
+		setACStep{},              // 13: ra = rc
+		isUsedStep{},             // 14: used?
+		labelJZStep(contSym),     // 15: jz :cont
+		exitStep{errAlreadyUsed}, // 16: exit errAlreadyUsed
+		labelStep(contSym),       // 17: :LABEL:cont
+		setACStep{},              // 17: ra = rc
 	}, parts, labels, annotate)
 }
