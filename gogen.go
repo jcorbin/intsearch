@@ -449,6 +449,7 @@ func (gg *goGen) checkColumn(col *column, err error) {
 
 func (gg *goGen) verify() {
 	gg.steps = append(gg.steps, labelStep("verify"))
+	gg.verifyInitialLetters()
 	gg.verifyDuplicateLetters()
 	gg.verifyLettersNonNegative()
 	gg.verifyColumns()
@@ -476,6 +477,15 @@ func (gg *goGen) verifyColumns() {
 	gg.steps = append(gg.steps,
 		relJZStep(1),
 		exitStep{verifyError("final carry must be 0")})
+}
+
+func (gg *goGen) verifyInitialLetters() {
+	for _, word := range gg.words {
+		gg.steps = append(gg.steps,
+			loadStep(word[0]),
+			relJNZStep(1),
+			exitStep{verifyError("initial letter cannot be zero")})
+	}
 }
 
 func (gg *goGen) verifyDuplicateLetters() {
