@@ -36,11 +36,13 @@ type goGen struct {
 	lastLogDump int
 }
 
-func newGoGen(prob *planProblem) *goGen {
+func newGoGen(prob *planProblem, annotated bool) *goGen {
 	gg := &goGen{
 		planProblem: prob,
 		usedSymbols: make(map[string]struct{}, 3*len(prob.letterSet)),
-		addrAnnos: make(map[int][]string),
+	}
+	if annotated {
+		gg.addrAnnos = make(map[int][]string)
 	}
 	return gg
 }
