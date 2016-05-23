@@ -300,11 +300,9 @@ func (step rangeStep) expandStep(
 	labels map[string]int,
 	annotate annoFunc,
 ) (int, [][]solutionStep, map[string]int) {
-	var (
-		bodySym = fmt.Sprintf("%s:body", step.label)
-		nextSym = fmt.Sprintf("%s:next", step.label)
-		contSym = fmt.Sprintf("%s:cont", step.label)
-	)
+	bodySym := fmt.Sprintf("%s:body", step.label)
+	nextSym := fmt.Sprintf("%s:next", step.label)
+	contSym := fmt.Sprintf("%s:cont", step.label)
 	return expandSteps(addr, []solutionStep{
 		labelStep(step.label),    // :LABEL
 		setAStep(step.min),       // ra = $min
