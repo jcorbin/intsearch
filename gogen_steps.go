@@ -312,24 +312,29 @@ func (step rangeStep) expandStep(
 		annotate(addr+2, labelStep(bodySym).String())
 		annotate(addr+8, labelStep(nextSym).String())
 		annotate(addr+17, labelStep(contSym).String())
+		annotate(addr+4, labelJNZStep(nextSym).annotate())
+		annotate(addr+5, forkLabelStep(nextSym).annotate())
+		annotate(addr+7, labelJmpStep(contSym).annotate())
+		annotate(addr+12, labelJNZStep(bodySym).annotate())
+		annotate(addr+15, labelJZStep(contSym).annotate())
 	}
 	return addr + 18, append(parts, []solutionStep{
 		setAStep(step.min),       //  0: :LABEL ra = $min
 		setCAStep{},              //  1: rc = ra
 		setACStep{},              //  2: :LABEL:body ra = rc
 		isUsedStep{},             //  3: used?
-		labelJNZStep(nextSym),    //  4: jnz :next
-		forkLabelStep(nextSym),   //  5: fork :next
+		jnzStep(addr + 8),        //  4: jnz :next
+		forkStep(addr + 8),       //  5: fork :next
 		setACStep{},              //  6: ra = rc
-		labelJmpStep(contSym),    //  7: jmp :cont
+		jmpStep(addr + 17),       //  7: jmp :cont
 		setACStep{},              //  8: :LABEL:next ra = rc
 		addStep(1),               //  9: add 1
 		setCAStep{},              // 10: rc = ra
 		ltStep(step.max),         // 11: lt $max
-		labelJNZStep(bodySym),    // 12: jnz :body
+		jnzStep(addr + 2),        // 12: jnz :body
 		setACStep{},              // 13: ra = rc
 		isUsedStep{},             // 14: used?
-		labelJZStep(contSym),     // 15: jz :cont
+		jzStep(addr + 17),        // 15: jz :cont
 		exitStep{errAlreadyUsed}, // 16: exit errAlreadyUsed
 		setACStep{},              // 17: :LABEL:cont ra = rc
 	}), labels
