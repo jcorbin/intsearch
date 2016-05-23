@@ -313,7 +313,7 @@ func (step rangeStep) expandStep(
 		annotate(addr+8, labelStep(nextSym).String())
 		annotate(addr+17, labelStep(contSym).String())
 	}
-	return expandSteps(addr, []solutionStep{
+	return addr + 18, append(parts, []solutionStep{
 		setAStep(step.min),       //  0: :LABEL ra = $min
 		setCAStep{},              //  1: rc = ra
 		setACStep{},              //  2: :LABEL:body ra = rc
@@ -332,5 +332,5 @@ func (step rangeStep) expandStep(
 		labelJZStep(contSym),     // 15: jz :cont
 		exitStep{errAlreadyUsed}, // 16: exit errAlreadyUsed
 		setACStep{},              // 17: :LABEL:cont ra = rc
-	}, parts, labels, annotate)
+	}), labels
 }
