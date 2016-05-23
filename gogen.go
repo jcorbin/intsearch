@@ -26,15 +26,14 @@ func (ve verifyError) Error() string {
 
 type goGen struct {
 	*planProblem
-	steps        []solutionStep
-	useForkUntil bool
-	carryPrior   *column
-	carrySaved   bool
-	carryValid   bool
-	usedSymbols  map[string]struct{}
-	labels       map[string]int
-	addrAnnos    map[int][]string
-	lastLogDump  int
+	steps       []solutionStep
+	carryPrior  *column
+	carrySaved  bool
+	carryValid  bool
+	usedSymbols map[string]struct{}
+	labels      map[string]int
+	addrAnnos   map[int][]string
+	lastLogDump int
 }
 
 func newGoGen(prob *planProblem) *goGen {
@@ -289,47 +288,37 @@ func (gg *goGen) checkFixedCarry(col *column) {
 func (gg *goGen) chooseRange(c byte, min, max int) {
 	gg.stashCarry(gg.carryPrior)
 	gg.carryValid = false
-
 	label := gg.gensym("choose(%s, %d, %d)", string(c), min, max)
-	if gg.useForkUntil {
-		gg.steps = append(gg.steps,
-			labelStep(label),   // :choose($c)
-			setAStep(min),      // ra = $min
-			forkUntilStep(max), // forUntil $max
-			storeStep(c),       // store $c
-		)
-	} else {
-		var (
-			loopSym     = gg.gensym("choose(%s):loop", string(c))
-			nextLoopSym = gg.gensym("choose(%s):nextLoop", string(c))
-			contSym     = gg.gensym("choose(%s):cont", string(c))
-		)
-		gg.steps = append(gg.steps,
-			labelStep(label),           // :choose($c)
-			setAStep(min),              // ra = $min
-			setCAStep{},                // rc = ra
-			labelStep(loopSym),         // :loop
-			setACStep{},                // ra = rc
-			isUsedStep{},               // used?
-			labelJNZStep(nextLoopSym),  // jnz :next_loop
-			forkLabelStep(nextLoopSym), // fork :next_loop
-			setACStep{},                // ra = rc
-			labelJmpStep(contSym),      // jmp :cont
-			labelStep(nextLoopSym),     // :nextLoop
-			setACStep{},                // ra = rc
-			addStep(1),                 // add 1
-			setCAStep{},                // rc = ra
-			ltStep(max),                // lt $max
-			labelJNZStep(loopSym),      // jnz :loop
-			setACStep{},                // ra = rc
-			isUsedStep{},               // used?
-			labelJZStep(contSym),       // jz :cont
-			exitStep{errAlreadyUsed},   // exit errAlreadyUsed
-			labelStep(contSym),         // :cont
-			setACStep{},                // ra = rc
-			storeStep(c),               // store $c
-		)
-	}
+	var (
+		loopSym     = gg.gensym("choose(%s):loop", string(c))
+		nextLoopSym = gg.gensym("choose(%s):nextLoop", string(c))
+		contSym     = gg.gensym("choose(%s):cont", string(c))
+	)
+	gg.steps = append(gg.steps,
+		labelStep(label),           // :choose($c)
+		setAStep(min),              // ra = $min
+		setCAStep{},                // rc = ra
+		labelStep(loopSym),         // :loop
+		setACStep{},                // ra = rc
+		isUsedStep{},               // used?
+		labelJNZStep(nextLoopSym),  // jnz :next_loop
+		forkLabelStep(nextLoopSym), // fork :next_loop
+		setACStep{},                // ra = rc
+		labelJmpStep(contSym),      // jmp :cont
+		labelStep(nextLoopSym),     // :nextLoop
+		setACStep{},                // ra = rc
+		addStep(1),                 // add 1
+		setCAStep{},                // rc = ra
+		ltStep(max),                // lt $max
+		labelJNZStep(loopSym),      // jnz :loop
+		setACStep{},                // ra = rc
+		isUsedStep{},               // used?
+		labelJZStep(contSym),       // jz :cont
+		exitStep{errAlreadyUsed},   // exit errAlreadyUsed
+		labelStep(contSym),         // :cont
+		setACStep{},                // ra = rc
+		storeStep(c),               // store $c
+	)
 }
 
 func (gg *goGen) restoreCarry(col *column) bool {

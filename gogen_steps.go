@@ -256,22 +256,7 @@ func (step forkStep) run(sol *solution) {
 	sol.emit(child)
 }
 
-type forkUntilStep int
-
-func (step forkUntilStep) String() string { return fmt.Sprintf("forkUntil(%v)", int(step)) }
-func (step forkUntilStep) run(sol *solution) {
-	if sol.ra < int(step) {
-		child := sol.copy()
-		child.stepi = sol.stepi - 1
-		child.ra = sol.ra + 1
-		sol.emit(child)
-	}
-}
-
 func isForkStep(step solutionStep) bool {
-	if _, ok := step.(forkUntilStep); ok {
-		return true
-	}
 	if _, ok := step.(forkStep); ok {
 		return true
 	}
