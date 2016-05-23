@@ -567,6 +567,11 @@ func (gg *goGen) compile() {
 	for _, part := range parts {
 		steps = append(steps, part...)
 	}
+	if len(steps) != addr {
+		panic(fmt.Sprintf(
+			"compiled final addr %d mismatches final step length %d by %d",
+			addr, len(steps), addr-len(steps)))
+	}
 	gg.steps, gg.labels = resolveLabels(steps, gg.labels)
 }
 
