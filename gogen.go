@@ -448,7 +448,8 @@ func (gg *goGen) checkColumn(col *column, err error) {
 }
 
 func (gg *goGen) verify() {
-	gg.steps = append(gg.steps, labelStep("verify"))
+	name = gg.gensym("verify")
+	gg.steps = append(gg.steps, labelStep(name))
 	gg.verifyInitialLetters()
 	gg.verifyDuplicateLetters()
 	gg.verifyLettersNonNegative()
