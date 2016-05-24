@@ -160,6 +160,7 @@ func (c loadStep) run(sol *solution) {
 type jmpStep int
 type jzStep int
 type jnzStep int
+type relJMPStep int
 type relJZStep int
 type relJNZStep int
 type labelJmpStep string
@@ -172,6 +173,7 @@ type labelForkStep string
 func (step jmpStep) String() string       { return fmt.Sprintf("jmp @%d", int(step)) }
 func (step jzStep) String() string        { return fmt.Sprintf("jz @%d", int(step)) }
 func (step jnzStep) String() string       { return fmt.Sprintf("jnz @%d", int(step)) }
+func (step relJMPStep) String() string    { return fmt.Sprintf("jmp %+d", int(step)) }
 func (step relJZStep) String() string     { return fmt.Sprintf("jz %+d", int(step)) }
 func (step relJNZStep) String() string    { return fmt.Sprintf("jnz %+d", int(step)) }
 func (step labelJmpStep) String() string  { return fmt.Sprintf("jmp :%s", string(step)) }
@@ -200,6 +202,9 @@ func (step jnzStep) run(sol *solution) {
 	}
 }
 
+func (step relJMPStep) run(sol *solution) {
+	sol.stepi += int(step)
+}
 func (step relJZStep) run(sol *solution) {
 	if sol.ra == 0 {
 		sol.stepi += int(step)
