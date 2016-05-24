@@ -308,6 +308,7 @@ func (step rangeStep) expandStep(
 		nextSym := fmt.Sprintf("%s:next", step.label)
 		contSym := fmt.Sprintf("%s:cont", step.label)
 		annotate(addr, labelStep(step.label).String())
+		annotate(addr, fmt.Sprintf("range:[%d, %d]", step.min, step.max))
 		annotate(addr+2, labelStep(bodySym).String())
 		annotate(addr+8, labelStep(nextSym).String())
 		annotate(addr+17, labelStep(contSym).String())
