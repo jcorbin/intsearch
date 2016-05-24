@@ -148,11 +148,30 @@ type exitStep struct{ err error }
 func (step exitStep) String() string    { return fmt.Sprintf("exit(%v)", step.err) }
 func (step exitStep) run(sol *solution) { sol.exit(step.err) }
 
-type isUsedStep struct{}
+type usedAStep struct{}
+type usedBStep struct{}
+type usedCStep struct{}
 
-func (step isUsedStep) String() string { return fmt.Sprintf("used?") }
-func (step isUsedStep) run(sol *solution) {
+func (step usedAStep) String() string { return fmt.Sprintf("used? ra") }
+func (step usedBStep) String() string { return fmt.Sprintf("used? rb") }
+func (step usedCStep) String() string { return fmt.Sprintf("used? rc") }
+
+func (step usedAStep) run(sol *solution) {
 	if sol.used[sol.ra] {
+		sol.ra = 1
+	} else {
+		sol.ra = 0
+	}
+}
+func (step usedBStep) run(sol *solution) {
+	if sol.used[sol.rb] {
+		sol.ra = 1
+	} else {
+		sol.ra = 0
+	}
+}
+func (step usedCStep) run(sol *solution) {
+	if sol.used[sol.rc] {
 		sol.ra = 1
 	} else {
 		sol.ra = 0
@@ -165,7 +184,8 @@ type loadStep byte
 func (c storeStep) String() string { return fmt.Sprintf("store(%s)", string(c)) }
 func (c loadStep) String() string  { return fmt.Sprintf("load(%s)", string(c)) }
 func (c storeStep) run(sol *solution) {
-	// TODO: drop guard, program can now use isUsedStep to guarantee this never happens
+	// TODO: drop guard, program can now use used checks to guarantee this
+	// never happens
 	if sol.used[sol.ra] {
 		sol.exit(errAlreadyUsed)
 	}
@@ -356,7 +376,7 @@ func (step rangeStep) expandStep(
 		setAStep(step.min),       //  0: :LABEL ra = $min
 		setCAStep{},              //  1: rc = ra
 		setACStep{},              //  2: :LABEL:body ra = rc
-		isUsedStep{},             //  3: used?
+		usedAStep{},              //  3: used?
 		jnzStep(addr + 8),        //  4: jnz :next
 		forkStep(addr + 8),       //  5: fork :next
 		setACStep{},              //  6: ra = rc
@@ -367,7 +387,7 @@ func (step rangeStep) expandStep(
 		ltStep(step.max),         // 11: lt $max
 		jnzStep(addr + 2),        // 12: jnz :body
 		setACStep{},              // 13: ra = rc
-		isUsedStep{},             // 14: used?
+		usedAStep{},              // 14: used?
 		jzStep(addr + 17),        // 15: jz :cont
 		exitStep{errAlreadyUsed}, // 16: exit errAlreadyUsed
 		setACStep{},              // 17: :LABEL:cont ra = rc
