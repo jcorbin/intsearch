@@ -166,7 +166,7 @@ type labelJmpStep string
 type labelJZStep string
 type labelJNZStep string
 type forkStep int
-type forkLabelStep string
+type labelForkStep string
 
 func (step jmpStep) String() string       { return fmt.Sprintf("jmp @%d", int(step)) }
 func (step jzStep) String() string        { return fmt.Sprintf("jz @%d", int(step)) }
@@ -177,12 +177,12 @@ func (step labelJmpStep) String() string  { return fmt.Sprintf("jmp :%s", string
 func (step labelJZStep) String() string   { return fmt.Sprintf("jz :%s", string(step)) }
 func (step labelJNZStep) String() string  { return fmt.Sprintf("jnz :%s", string(step)) }
 func (step forkStep) String() string      { return fmt.Sprintf("fork @%d", int(step)) }
-func (step forkLabelStep) String() string { return fmt.Sprintf("fork :%s", string(step)) }
+func (step labelForkStep) String() string { return fmt.Sprintf("fork :%s", string(step)) }
 
 func (step labelJmpStep) annotate() string  { return fmt.Sprintf("-> :%s", string(step)) }
 func (step labelJZStep) annotate() string   { return fmt.Sprintf("?-> :%s", string(step)) }
 func (step labelJNZStep) annotate() string  { return fmt.Sprintf("?-> :%s", string(step)) }
-func (step forkLabelStep) annotate() string { return fmt.Sprintf("*-> :%s", string(step)) }
+func (step labelForkStep) annotate() string { return fmt.Sprintf("*-> :%s", string(step)) }
 
 func (step jmpStep) run(sol *solution) {
 	sol.stepi = int(step)
@@ -224,7 +224,7 @@ func (step forkStep) run(sol *solution) {
 	child.stepi = int(step)
 	sol.emit(child)
 }
-func (step forkLabelStep) run(sol *solution) {
+func (step labelForkStep) run(sol *solution) {
 	sol.exit(fmt.Errorf("unresolved label jump :%s", string(step)))
 }
 
@@ -246,7 +246,7 @@ func (step labelJNZStep) resolveLabels(labels map[string]int) solutionStep {
 	}
 	return nil
 }
-func (step forkLabelStep) resolveLabels(labels map[string]int) solutionStep {
+func (step labelForkStep) resolveLabels(labels map[string]int) solutionStep {
 	if addr, ok := labels[string(step)]; ok {
 		return forkStep(addr)
 	}
@@ -310,7 +310,7 @@ func (step rangeStep) expandStep(
 		annotate(addr+8, labelStep(nextSym).String())
 		annotate(addr+17, labelStep(contSym).String())
 		annotate(addr+4, labelJNZStep(nextSym).annotate())
-		annotate(addr+5, forkLabelStep(nextSym).annotate())
+		annotate(addr+5, labelForkStep(nextSym).annotate())
 		annotate(addr+7, labelJmpStep(contSym).annotate())
 		annotate(addr+12, labelJNZStep(bodySym).annotate())
 		annotate(addr+15, labelJZStep(contSym).annotate())
