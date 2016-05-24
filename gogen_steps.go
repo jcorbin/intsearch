@@ -82,7 +82,7 @@ func (step gtStep) run(sol *solution) {
 	}
 }
 
-type negateAStep struct{}
+type negAStep struct{}
 type addARegBStep struct{}
 type addARegCStep struct{}
 type subARegBStep struct{}
@@ -94,7 +94,7 @@ type subAStep int
 type modAStep int
 type divAStep int
 
-func (step negateAStep) String() string   { return fmt.Sprintf("negate ra") }
+func (step negAStep) String() string      { return fmt.Sprintf("negate ra") }
 func (step addARegBStep) String() string  { return "add ra, rb" }
 func (step addARegCStep) String() string  { return "add ra, rc" }
 func (step subARegBStep) String() string  { return "sub ra, rb" }
@@ -106,7 +106,7 @@ func (step subAStep) String() string      { return fmt.Sprintf("sub ra, %+d", in
 func (step modAStep) String() string      { return fmt.Sprintf("mod ra, %v", int(step)) }
 func (step divAStep) String() string      { return fmt.Sprintf("div ra, %v", int(step)) }
 
-func (step negateAStep) run(sol *solution)   { sol.ra = -sol.ra }
+func (step negAStep) run(sol *solution)      { sol.ra = -sol.ra }
 func (step addARegBStep) run(sol *solution)  { sol.ra += sol.rb }
 func (step addARegCStep) run(sol *solution)  { sol.ra += sol.rc }
 func (step subARegBStep) run(sol *solution)  { sol.ra -= sol.rb }

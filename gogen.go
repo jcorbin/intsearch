@@ -215,7 +215,7 @@ func (gg *goGen) computeSummand(col *column, a, b, c byte) {
 	steps := make([]solutionStep, 0, 9)
 	steps = append(steps,
 		labelStep(gg.gensym("computeSummand(%s)", col.label())),
-		negateAStep{})
+		negAStep{})
 	if c != 0 {
 		steps = append(steps, addAValueStep(c))
 	}
