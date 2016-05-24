@@ -34,6 +34,13 @@ func (step setAStep) run(sol *solution) { sol.ra = int(step) }
 func (step setBStep) run(sol *solution) { sol.rb = int(step) }
 func (step setCStep) run(sol *solution) { sol.rc = int(step) }
 
+func boolInt(b bool) int {
+	if b {
+		return 1
+	}
+	return 0
+}
+
 type ltStep int
 type lteStep int
 type eqStep int
@@ -46,41 +53,11 @@ func (step eqStep) String() string  { return fmt.Sprintf("eq(%v)", int(step)) }
 func (step gteStep) String() string { return fmt.Sprintf("gte(%v)", int(step)) }
 func (step gtStep) String() string  { return fmt.Sprintf("gt(%v)", int(step)) }
 
-func (step ltStep) run(sol *solution) {
-	if sol.ra < int(step) {
-		sol.ra = 1
-	} else {
-		sol.ra = 0
-	}
-}
-func (step lteStep) run(sol *solution) {
-	if sol.ra <= int(step) {
-		sol.ra = 1
-	} else {
-		sol.ra = 0
-	}
-}
-func (step eqStep) run(sol *solution) {
-	if sol.ra <= int(step) {
-		sol.ra = 1
-	} else {
-		sol.ra = 0
-	}
-}
-func (step gteStep) run(sol *solution) {
-	if sol.ra >= int(step) {
-		sol.ra = 1
-	} else {
-		sol.ra = 0
-	}
-}
-func (step gtStep) run(sol *solution) {
-	if sol.ra > int(step) {
-		sol.ra = 1
-	} else {
-		sol.ra = 0
-	}
-}
+func (step ltStep) run(sol *solution)  { sol.ra = boolInt(sol.ra < int(step)) }
+func (step lteStep) run(sol *solution) { sol.ra = boolInt(sol.ra <= int(step)) }
+func (step eqStep) run(sol *solution)  { sol.ra = boolInt(sol.ra == int(step)) }
+func (step gteStep) run(sol *solution) { sol.ra = boolInt(sol.ra >= int(step)) }
+func (step gtStep) run(sol *solution)  { sol.ra = boolInt(sol.ra > int(step)) }
 
 type negAStep struct{}
 type addARegBStep struct{}
