@@ -124,6 +124,48 @@ func (step divAStep) run(sol *solution) {
 	}
 }
 
+type negBStep struct{}
+type addBRegAStep struct{}
+type addBRegCStep struct{}
+type subBRegAStep struct{}
+type subBRegCStep struct{}
+type addBValueStep byte
+type subBValueStep byte
+type addBStep int
+type subBStep int
+type modBStep int
+type divBStep int
+
+func (step negBStep) String() string      { return fmt.Sprintf("negate rb") }
+func (step addBRegAStep) String() string  { return "add rb, ra" }
+func (step addBRegCStep) String() string  { return "add rb, rc" }
+func (step subBRegAStep) String() string  { return "sub rb, ra" }
+func (step subBRegCStep) String() string  { return "sub rb, rc" }
+func (step addBValueStep) String() string { return fmt.Sprintf("add rb, $%s", string(step)) }
+func (step subBValueStep) String() string { return fmt.Sprintf("sub rb, $%s", string(step)) }
+func (step addBStep) String() string      { return fmt.Sprintf("add rb, %+d", int(step)) }
+func (step subBStep) String() string      { return fmt.Sprintf("sub rb, %+d", int(step)) }
+func (step modBStep) String() string      { return fmt.Sprintf("mod rb, %v", int(step)) }
+func (step divBStep) String() string      { return fmt.Sprintf("div rb, %v", int(step)) }
+
+func (step negBStep) run(sol *solution)      { sol.rb = -sol.rb }
+func (step addBRegAStep) run(sol *solution)  { sol.rb += sol.ra }
+func (step addBRegCStep) run(sol *solution)  { sol.rb += sol.rc }
+func (step subBRegAStep) run(sol *solution)  { sol.rb -= sol.ra }
+func (step subBRegCStep) run(sol *solution)  { sol.rb -= sol.rc }
+func (step addBValueStep) run(sol *solution) { sol.rb += sol.values[step] }
+func (step subBValueStep) run(sol *solution) { sol.rb -= sol.values[step] }
+func (step addBStep) run(sol *solution)      { sol.rb += int(step) }
+func (step subBStep) run(sol *solution)      { sol.rb -= int(step) }
+func (step modBStep) run(sol *solution)      { sol.rb = (sol.rb + int(step)<<1) % int(step) }
+func (step divBStep) run(sol *solution) {
+	if sol.ra < 0 {
+		sol.ra = -sol.ra / int(step)
+	} else {
+		sol.ra = sol.ra / int(step)
+	}
+}
+
 type exitStep struct{ err error }
 
 func (step exitStep) String() string    { return fmt.Sprintf("exit(%v)", step.err) }
