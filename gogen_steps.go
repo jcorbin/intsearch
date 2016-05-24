@@ -257,6 +257,8 @@ func isForkStep(step solutionStep) bool {
 	switch step.(type) {
 	case forkStep:
 		return true
+	case labelForkStep:
+		return true
 	default:
 		return false
 	}
