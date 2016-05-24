@@ -24,9 +24,15 @@ func (step setCAStep) run(sol *solution) { sol.rc = sol.ra }
 func (step setCBStep) run(sol *solution) { sol.rc = sol.rb }
 
 type setAStep int
+type setBStep int
+type setCStep int
 
 func (step setAStep) String() string    { return fmt.Sprintf("ra = %v", int(step)) }
+func (step setBStep) String() string    { return fmt.Sprintf("rb = %v", int(step)) }
+func (step setCStep) String() string    { return fmt.Sprintf("rc = %v", int(step)) }
 func (step setAStep) run(sol *solution) { sol.ra = int(step) }
+func (step setBStep) run(sol *solution) { sol.rb = int(step) }
+func (step setCStep) run(sol *solution) { sol.rc = int(step) }
 
 type ltStep int
 type lteStep int
