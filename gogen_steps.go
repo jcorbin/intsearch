@@ -254,10 +254,12 @@ func (step labelForkStep) resolveLabels(labels map[string]int) solutionStep {
 }
 
 func isForkStep(step solutionStep) bool {
-	if _, ok := step.(forkStep); ok {
+	switch step.(type) {
+	case forkStep:
 		return true
+	default:
+		return false
 	}
-	return false
 }
 
 type finishStep string
