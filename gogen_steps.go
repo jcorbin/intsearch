@@ -166,6 +166,7 @@ type labelJmpStep string
 type labelJZStep string
 type labelJNZStep string
 type forkStep int
+type relForkStep int
 type labelForkStep string
 
 func (step jmpStep) String() string       { return fmt.Sprintf("jmp @%d", int(step)) }
@@ -177,6 +178,7 @@ func (step labelJmpStep) String() string  { return fmt.Sprintf("jmp :%s", string
 func (step labelJZStep) String() string   { return fmt.Sprintf("jz :%s", string(step)) }
 func (step labelJNZStep) String() string  { return fmt.Sprintf("jnz :%s", string(step)) }
 func (step forkStep) String() string      { return fmt.Sprintf("fork @%d", int(step)) }
+func (step relForkStep) String() string   { return fmt.Sprintf("fork %+d", int(step)) }
 func (step labelForkStep) String() string { return fmt.Sprintf("fork :%s", string(step)) }
 
 func (step labelJmpStep) annotate() string  { return fmt.Sprintf("-> :%s", string(step)) }
@@ -224,6 +226,11 @@ func (step forkStep) run(sol *solution) {
 	child.stepi = int(step)
 	sol.emit(child)
 }
+func (step relForkStep) run(sol *solution) {
+	child := sol.copy()
+	child.stepi += int(step)
+	sol.emit(child)
+}
 func (step labelForkStep) run(sol *solution) {
 	sol.exit(fmt.Errorf("unresolved label jump :%s", string(step)))
 }
@@ -256,6 +263,8 @@ func (step labelForkStep) resolveLabels(labels map[string]int) solutionStep {
 func isForkStep(step solutionStep) bool {
 	switch step.(type) {
 	case forkStep:
+		return true
+	case relForkStep:
 		return true
 	case labelForkStep:
 		return true
