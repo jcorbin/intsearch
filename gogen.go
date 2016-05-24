@@ -176,17 +176,17 @@ func (gg *goGen) computeSum(col *column) {
 	steps = append(steps,
 		labelStep(gg.gensym("computeSum(%s)", col.label())))
 	if a != 0 {
-		steps = append(steps, addValueStep(a))
+		steps = append(steps, addAValueStep(a))
 	}
 	if b != 0 {
-		steps = append(steps, addValueStep(b))
+		steps = append(steps, addAValueStep(b))
 	}
 	steps = append(steps,
 		setBAStep{},
-		modStep(gg.base),
+		modAStep(gg.base),
 		storeStep(c),
 		setABStep{},
-		divStep(gg.base))
+		divAStep(gg.base))
 	gg.steps = append(gg.steps, steps...)
 
 	gg.carryPrior = col
@@ -215,21 +215,21 @@ func (gg *goGen) computeSummand(col *column, a, b, c byte) {
 	steps := make([]solutionStep, 0, 9)
 	steps = append(steps,
 		labelStep(gg.gensym("computeSummand(%s)", col.label())),
-		negateStep{})
+		negateAStep{})
 	if c != 0 {
-		steps = append(steps, addValueStep(c))
+		steps = append(steps, addAValueStep(c))
 	}
 	if b != 0 {
-		steps = append(steps, subValueStep(b))
+		steps = append(steps, subAValueStep(b))
 	}
 	steps = append(steps,
-		modStep(gg.base),
+		modAStep(gg.base),
 		storeStep(a),
-		addRegBStep{})
+		addARegBStep{})
 	if b != 0 {
-		steps = append(steps, addValueStep(b))
+		steps = append(steps, addAValueStep(b))
 	}
-	steps = append(steps, divStep(gg.base))
+	steps = append(steps, divAStep(gg.base))
 	gg.steps = append(gg.steps, steps...)
 
 	gg.carryPrior = col
@@ -358,12 +358,12 @@ func (gg *goGen) ensureCarry(col *column) {
 		labelStep(gg.gensym("computeCarry(%d)", col.label())))
 	steps := make([]solutionStep, 0, 3)
 	if c1 != 0 {
-		steps = append(steps, addValueStep(c1))
+		steps = append(steps, addAValueStep(c1))
 	}
 	if c2 != 0 {
-		steps = append(steps, addValueStep(c2))
+		steps = append(steps, addAValueStep(c2))
 	}
-	steps = append(steps, divStep(gg.base))
+	steps = append(steps, divAStep(gg.base))
 	gg.steps = append(gg.steps, steps...)
 
 	gg.carryPrior = col
@@ -389,25 +389,25 @@ func (gg *goGen) checkColumn(col *column, err error) {
 	n := 0
 	if a != 0 {
 		n++
-		steps = append(steps, addValueStep(a))
+		steps = append(steps, addAValueStep(a))
 	}
 	if b != 0 {
 		n++
-		steps = append(steps, addValueStep(b))
+		steps = append(steps, addAValueStep(b))
 	}
 	if n > 0 {
 		steps = append(steps,
 			setCAStep{},
-			modStep(gg.base))
+			modAStep(gg.base))
 	}
 	steps = append(steps,
-		subValueStep(c),
+		subAValueStep(c),
 		relJZStep(1),
 		exitStep{err})
 	if n > 0 {
 		steps = append(steps,
 			setACStep{},
-			divStep(gg.base))
+			divAStep(gg.base))
 	} else {
 		steps = append(steps, setAStep(0))
 	}
@@ -492,7 +492,7 @@ func (gg *goGen) verifyDuplicateLetters(name string, err error) {
 			if j > i {
 				gg.steps = append(gg.steps,
 					loadStep(c),
-					subValueStep(d),
+					subAValueStep(d),
 					relJNZStep(1),
 					exitStep{err})
 			}

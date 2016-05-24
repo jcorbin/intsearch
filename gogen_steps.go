@@ -82,41 +82,41 @@ func (step gtStep) run(sol *solution) {
 	}
 }
 
-type negateStep struct{}
-type addRegBStep struct{}
-type addRegCStep struct{}
-type subRegBStep struct{}
-type subRegCStep struct{}
-type addValueStep byte
-type subValueStep byte
-type addStep int
-type subStep int
-type modStep int
-type divStep int
+type negateAStep struct{}
+type addARegBStep struct{}
+type addARegCStep struct{}
+type subARegBStep struct{}
+type subARegCStep struct{}
+type addAValueStep byte
+type subAValueStep byte
+type addAStep int
+type subAStep int
+type modAStep int
+type divAStep int
 
-func (step negateStep) String() string   { return fmt.Sprintf("negate") }
-func (step addRegBStep) String() string  { return "add %b" }
-func (step addRegCStep) String() string  { return "add %c" }
-func (step subRegBStep) String() string  { return "sub %b" }
-func (step subRegCStep) String() string  { return "sub %c" }
-func (step addValueStep) String() string { return fmt.Sprintf("add $%s", string(step)) }
-func (step subValueStep) String() string { return fmt.Sprintf("sub $%s", string(step)) }
-func (step addStep) String() string      { return fmt.Sprintf("add %+d", int(step)) }
-func (step subStep) String() string      { return fmt.Sprintf("sub %+d", int(step)) }
-func (step modStep) String() string      { return fmt.Sprintf("mod %v", int(step)) }
-func (step divStep) String() string      { return fmt.Sprintf("div %v", int(step)) }
+func (step negateAStep) String() string   { return fmt.Sprintf("negate ra") }
+func (step addARegBStep) String() string  { return "add ra, rb" }
+func (step addARegCStep) String() string  { return "add ra, rc" }
+func (step subARegBStep) String() string  { return "sub ra, rb" }
+func (step subARegCStep) String() string  { return "sub ra, rc" }
+func (step addAValueStep) String() string { return fmt.Sprintf("add ra, $%s", string(step)) }
+func (step subAValueStep) String() string { return fmt.Sprintf("sub ra, $%s", string(step)) }
+func (step addAStep) String() string      { return fmt.Sprintf("add ra, %+d", int(step)) }
+func (step subAStep) String() string      { return fmt.Sprintf("sub ra, %+d", int(step)) }
+func (step modAStep) String() string      { return fmt.Sprintf("mod ra, %v", int(step)) }
+func (step divAStep) String() string      { return fmt.Sprintf("div ra, %v", int(step)) }
 
-func (step negateStep) run(sol *solution)   { sol.ra = -sol.ra }
-func (step addRegBStep) run(sol *solution)  { sol.ra += sol.rb }
-func (step addRegCStep) run(sol *solution)  { sol.ra += sol.rc }
-func (step subRegBStep) run(sol *solution)  { sol.ra -= sol.rb }
-func (step subRegCStep) run(sol *solution)  { sol.ra -= sol.rc }
-func (step addValueStep) run(sol *solution) { sol.ra += sol.values[step] }
-func (step subValueStep) run(sol *solution) { sol.ra -= sol.values[step] }
-func (step addStep) run(sol *solution)      { sol.ra += int(step) }
-func (step subStep) run(sol *solution)      { sol.ra -= int(step) }
-func (step modStep) run(sol *solution)      { sol.ra = (sol.ra + int(step)<<1) % int(step) }
-func (step divStep) run(sol *solution) {
+func (step negateAStep) run(sol *solution)   { sol.ra = -sol.ra }
+func (step addARegBStep) run(sol *solution)  { sol.ra += sol.rb }
+func (step addARegCStep) run(sol *solution)  { sol.ra += sol.rc }
+func (step subARegBStep) run(sol *solution)  { sol.ra -= sol.rb }
+func (step subARegCStep) run(sol *solution)  { sol.ra -= sol.rc }
+func (step addAValueStep) run(sol *solution) { sol.ra += sol.values[step] }
+func (step subAValueStep) run(sol *solution) { sol.ra -= sol.values[step] }
+func (step addAStep) run(sol *solution)      { sol.ra += int(step) }
+func (step subAStep) run(sol *solution)      { sol.ra -= int(step) }
+func (step modAStep) run(sol *solution)      { sol.ra = (sol.ra + int(step)<<1) % int(step) }
+func (step divAStep) run(sol *solution) {
 	if sol.ra < 0 {
 		sol.ra = -sol.ra / int(step)
 	} else {
@@ -343,7 +343,7 @@ func (step rangeStep) expandStep(
 		setACStep{},              //  6: ra = rc
 		jmpStep(addr + 17),       //  7: jmp :cont
 		setACStep{},              //  8: :LABEL:next ra = rc
-		addStep(1),               //  9: add 1
+		addAStep(1),              //  9: add 1
 		setCAStep{},              // 10: rc = ra
 		ltStep(step.max),         // 11: lt $max
 		jnzStep(addr + 2),        // 12: jnz :body
