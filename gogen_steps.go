@@ -41,23 +41,23 @@ func boolInt(b bool) int {
 	return 0
 }
 
-type ltStep int
-type lteStep int
-type eqStep int
-type gteStep int
-type gtStep int
+type ltAStep int
+type lteAStep int
+type eqAStep int
+type gteAStep int
+type gtAStep int
 
-func (step ltStep) String() string  { return fmt.Sprintf("lt(%v)", int(step)) }
-func (step lteStep) String() string { return fmt.Sprintf("lte(%v)", int(step)) }
-func (step eqStep) String() string  { return fmt.Sprintf("eq(%v)", int(step)) }
-func (step gteStep) String() string { return fmt.Sprintf("gte(%v)", int(step)) }
-func (step gtStep) String() string  { return fmt.Sprintf("gt(%v)", int(step)) }
+func (step ltAStep) String() string  { return fmt.Sprintf("lt ra, %v", int(step)) }
+func (step lteAStep) String() string { return fmt.Sprintf("lte ra, %v", int(step)) }
+func (step eqAStep) String() string  { return fmt.Sprintf("eq ra, %v", int(step)) }
+func (step gteAStep) String() string { return fmt.Sprintf("gte ra, %v", int(step)) }
+func (step gtAStep) String() string  { return fmt.Sprintf("gt ra, %v", int(step)) }
 
-func (step ltStep) run(sol *solution)  { sol.ra = boolInt(sol.ra < int(step)) }
-func (step lteStep) run(sol *solution) { sol.ra = boolInt(sol.ra <= int(step)) }
-func (step eqStep) run(sol *solution)  { sol.ra = boolInt(sol.ra == int(step)) }
-func (step gteStep) run(sol *solution) { sol.ra = boolInt(sol.ra >= int(step)) }
-func (step gtStep) run(sol *solution)  { sol.ra = boolInt(sol.ra > int(step)) }
+func (step ltAStep) run(sol *solution)  { sol.ra = boolInt(sol.ra < int(step)) }
+func (step lteAStep) run(sol *solution) { sol.ra = boolInt(sol.ra <= int(step)) }
+func (step eqAStep) run(sol *solution)  { sol.ra = boolInt(sol.ra == int(step)) }
+func (step gteAStep) run(sol *solution) { sol.ra = boolInt(sol.ra >= int(step)) }
+func (step gtAStep) run(sol *solution)  { sol.ra = boolInt(sol.ra > int(step)) }
 
 type negAStep struct{}
 type addARegBStep struct{}
@@ -384,7 +384,7 @@ func (step rangeStep) expandStep(
 		setACStep{},              //  8: :LABEL:next ra = rc
 		addAStep(1),              //  9: add 1
 		setCAStep{},              // 10: rc = ra
-		ltStep(step.max),         // 11: lt $max
+		ltAStep(step.max),        // 11: lt $max
 		jnzStep(addr + 2),        // 12: jnz :body
 		setACStep{},              // 13: ra = rc
 		usedAStep{},              // 14: used?

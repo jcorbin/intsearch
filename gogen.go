@@ -511,7 +511,7 @@ func (gg *goGen) verifyLettersNonNegative(name string, err error) {
 		}
 		gg.steps = append(gg.steps,
 			loadStep(c),
-			ltStep(0),
+			ltAStep(0),
 			relJZStep(1),
 			exitStep{err})
 	}
