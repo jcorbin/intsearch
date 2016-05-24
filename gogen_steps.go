@@ -82,6 +82,7 @@ func (step gtStep) run(sol *solution) {
 	}
 }
 
+type negateStep struct{}
 type addRegBStep struct{}
 type addRegCStep struct{}
 type subRegBStep struct{}
@@ -90,20 +91,22 @@ type addValueStep byte
 type subValueStep byte
 type addStep int
 type subStep int
-type divStep int
 type modStep int
+type divStep int
 
-func (step addRegBStep) String() string  { return "add(%b)" }
-func (step addRegCStep) String() string  { return "add(%c)" }
-func (step subRegBStep) String() string  { return "sub(%b)" }
-func (step subRegCStep) String() string  { return "sub(%c)" }
-func (step addValueStep) String() string { return fmt.Sprintf("add($%s)", string(step)) }
-func (step subValueStep) String() string { return fmt.Sprintf("sub($%s)", string(step)) }
-func (step addStep) String() string      { return fmt.Sprintf("add(%+d)", int(step)) }
-func (step subStep) String() string      { return fmt.Sprintf("sub(%+d)", int(step)) }
-func (step divStep) String() string      { return fmt.Sprintf("div(%v)", int(step)) }
-func (step modStep) String() string      { return fmt.Sprintf("mod(%v)", int(step)) }
+func (step negateStep) String() string   { return fmt.Sprintf("negate") }
+func (step addRegBStep) String() string  { return "add %b" }
+func (step addRegCStep) String() string  { return "add %c" }
+func (step subRegBStep) String() string  { return "sub %b" }
+func (step subRegCStep) String() string  { return "sub %c" }
+func (step addValueStep) String() string { return fmt.Sprintf("add $%s", string(step)) }
+func (step subValueStep) String() string { return fmt.Sprintf("sub $%s", string(step)) }
+func (step addStep) String() string      { return fmt.Sprintf("add %+d", int(step)) }
+func (step subStep) String() string      { return fmt.Sprintf("sub %+d", int(step)) }
+func (step modStep) String() string      { return fmt.Sprintf("mod %v", int(step)) }
+func (step divStep) String() string      { return fmt.Sprintf("div %v", int(step)) }
 
+func (step negateStep) run(sol *solution)   { sol.ra = -sol.ra }
 func (step addRegBStep) run(sol *solution)  { sol.ra += sol.rb }
 func (step addRegCStep) run(sol *solution)  { sol.ra += sol.rc }
 func (step subRegBStep) run(sol *solution)  { sol.ra -= sol.rb }
@@ -112,6 +115,7 @@ func (step addValueStep) run(sol *solution) { sol.ra += sol.values[step] }
 func (step subValueStep) run(sol *solution) { sol.ra -= sol.values[step] }
 func (step addStep) run(sol *solution)      { sol.ra += int(step) }
 func (step subStep) run(sol *solution)      { sol.ra -= int(step) }
+func (step modStep) run(sol *solution)      { sol.ra = (sol.ra + int(step)<<1) % int(step) }
 func (step divStep) run(sol *solution) {
 	if sol.ra < 0 {
 		sol.ra = -sol.ra / int(step)
@@ -119,12 +123,6 @@ func (step divStep) run(sol *solution) {
 		sol.ra = sol.ra / int(step)
 	}
 }
-func (step modStep) run(sol *solution) { sol.ra = (sol.ra + int(step)<<1) % int(step) }
-
-type negateStep struct{}
-
-func (step negateStep) String() string    { return fmt.Sprintf("negate") }
-func (step negateStep) run(sol *solution) { sol.ra = -sol.ra }
 
 type exitStep struct{ err error }
 
