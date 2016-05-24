@@ -158,16 +158,35 @@ func (c loadStep) run(sol *solution) {
 }
 
 type jmpStep int
-
-func (n jmpStep) String() string    { return fmt.Sprintf("jmp(%d)", int(n)) }
-func (n jmpStep) run(sol *solution) { sol.stepi = int(n) }
-
 type jzStep int
 type jnzStep int
+type relJZStep int
+type relJNZStep int
+type labelJmpStep string
+type labelJZStep string
+type labelJNZStep string
+type forkStep int
+type forkLabelStep string
 
-func (step jzStep) String() string  { return fmt.Sprintf("jz(%d)", int(step)) }
-func (step jnzStep) String() string { return fmt.Sprintf("jnz(%d)", int(step)) }
+func (step jmpStep) String() string       { return fmt.Sprintf("jmp @%d", int(step)) }
+func (step jzStep) String() string        { return fmt.Sprintf("jz @%d", int(step)) }
+func (step jnzStep) String() string       { return fmt.Sprintf("jnz @%d", int(step)) }
+func (step relJZStep) String() string     { return fmt.Sprintf("jz %+d", int(step)) }
+func (step relJNZStep) String() string    { return fmt.Sprintf("jnz %+d", int(step)) }
+func (step labelJmpStep) String() string  { return fmt.Sprintf("jmp :%s", string(step)) }
+func (step labelJZStep) String() string   { return fmt.Sprintf("jz :%s", string(step)) }
+func (step labelJNZStep) String() string  { return fmt.Sprintf("jnz :%s", string(step)) }
+func (step forkStep) String() string      { return fmt.Sprintf("fork @%d", int(step)) }
+func (step forkLabelStep) String() string { return fmt.Sprintf("fork :%s", string(step)) }
 
+func (step labelJmpStep) annotate() string  { return fmt.Sprintf("-> :%s", string(step)) }
+func (step labelJZStep) annotate() string   { return fmt.Sprintf("?-> :%s", string(step)) }
+func (step labelJNZStep) annotate() string  { return fmt.Sprintf("?-> :%s", string(step)) }
+func (step forkLabelStep) annotate() string { return fmt.Sprintf("*-> :%s", string(step)) }
+
+func (step jmpStep) run(sol *solution) {
+	sol.stepi = int(step)
+}
 func (step jzStep) run(sol *solution) {
 	if sol.ra == 0 {
 		sol.stepi = int(step)
@@ -178,12 +197,6 @@ func (step jnzStep) run(sol *solution) {
 		sol.stepi = int(step)
 	}
 }
-
-type relJZStep int
-type relJNZStep int
-
-func (step relJZStep) String() string  { return fmt.Sprintf("jz(%+d)", int(step)) }
-func (step relJNZStep) String() string { return fmt.Sprintf("jnz(%+d)", int(step)) }
 
 func (step relJZStep) run(sol *solution) {
 	if sol.ra == 0 {
@@ -196,18 +209,6 @@ func (step relJNZStep) run(sol *solution) {
 	}
 }
 
-type labelJZStep string
-type labelJNZStep string
-type labelJmpStep string
-
-func (step labelJmpStep) String() string { return fmt.Sprintf("jmp(:%s)", string(step)) }
-func (step labelJZStep) String() string  { return fmt.Sprintf("jz(:%s)", string(step)) }
-func (step labelJNZStep) String() string { return fmt.Sprintf("jnz(:%s)", string(step)) }
-
-func (step labelJZStep) annotate() string  { return fmt.Sprintf("?-> :%s", string(step)) }
-func (step labelJNZStep) annotate() string { return fmt.Sprintf("?-> :%s", string(step)) }
-func (step labelJmpStep) annotate() string { return fmt.Sprintf("-> :%s", string(step)) }
-
 func (step labelJmpStep) run(sol *solution) {
 	sol.exit(fmt.Errorf("unresolved label jump :%s", string(step)))
 }
@@ -215,6 +216,15 @@ func (step labelJZStep) run(sol *solution) {
 	sol.exit(fmt.Errorf("unresolved label jump :%s", string(step)))
 }
 func (step labelJNZStep) run(sol *solution) {
+	sol.exit(fmt.Errorf("unresolved label jump :%s", string(step)))
+}
+
+func (step forkStep) run(sol *solution) {
+	child := sol.copy()
+	child.stepi = int(step)
+	sol.emit(child)
+}
+func (step forkLabelStep) run(sol *solution) {
 	sol.exit(fmt.Errorf("unresolved label jump :%s", string(step)))
 }
 
@@ -236,28 +246,11 @@ func (step labelJNZStep) resolveLabels(labels map[string]int) solutionStep {
 	}
 	return nil
 }
-
-type forkLabelStep string
-
-func (step forkLabelStep) String() string   { return fmt.Sprintf("fork to :%s", string(step)) }
-func (step forkLabelStep) annotate() string { return fmt.Sprintf("*-> :%s", string(step)) }
-func (step forkLabelStep) run(sol *solution) {
-	sol.exit(fmt.Errorf("unresolved label jump :%s", string(step)))
-}
 func (step forkLabelStep) resolveLabels(labels map[string]int) solutionStep {
 	if addr, ok := labels[string(step)]; ok {
 		return forkStep(addr)
 	}
 	return nil
-}
-
-type forkStep int
-
-func (step forkStep) String() string { return fmt.Sprintf("fork to %d", int(step)) }
-func (step forkStep) run(sol *solution) {
-	child := sol.copy()
-	child.stepi = int(step)
-	sol.emit(child)
 }
 
 func isForkStep(step solutionStep) bool {
