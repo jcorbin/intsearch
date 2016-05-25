@@ -434,22 +434,22 @@ func (step rangeStep) expandStep(
 	}
 	return addr + 18, append(parts, []solutionStep{
 		setAStep(step.min),       //  0: :LABEL ra = $min
-		setCAStep{},              //  1: rc = ra
-		setACStep{},              //  2: :LABEL:body ra = rc
+		setBAStep{},              //  1: rb = ra
+		setABStep{},              //  2: :LABEL:body ra = rb
 		usedAStep{},              //  3: used?
 		jnzStep(addr + 8),        //  4: jnz :next
 		forkStep(addr + 8),       //  5: fork :next
-		setACStep{},              //  6: ra = rc
+		setABStep{},              //  6: ra = rb
 		jmpStep(addr + 17),       //  7: jmp :cont
-		setACStep{},              //  8: :LABEL:next ra = rc
+		setABStep{},              //  8: :LABEL:next ra = rb
 		addAStep(1),              //  9: add 1
-		setCAStep{},              // 10: rc = ra
+		setBAStep{},              // 10: rb = ra
 		ltAStep(step.max),        // 11: lt $max
 		jnzStep(addr + 2),        // 12: jnz :body
-		setACStep{},              // 13: ra = rc
+		setABStep{},              // 13: ra = rb
 		usedAStep{},              // 14: used?
 		jzStep(addr + 17),        // 15: jz :cont
 		exitStep{errAlreadyUsed}, // 16: exit errAlreadyUsed
-		setACStep{},              // 17: :LABEL:cont ra = rc
+		setABStep{},              // 17: :LABEL:cont ra = rb
 	}), labels
 }

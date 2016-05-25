@@ -150,7 +150,7 @@ func (gg *goGen) stashCarry(col *column) {
 
 	gg.steps = append(gg.steps,
 		labelStep(gg.gensym("stashCarry(%d)", col.i)),
-		setBAStep{})
+		setCAStep{})
 	gg.carrySaved = true
 	gg.carryPrior = col
 }
@@ -182,7 +182,7 @@ func (gg *goGen) computeSum(col *column) {
 		steps = append(steps, addAValueStep(b))
 	}
 	steps = append(steps,
-		setBAStep{},
+		setCAStep{},
 		modAStep(gg.base),
 		setCAStep{},
 		usedAStep{},
@@ -319,7 +319,7 @@ func (gg *goGen) restoreCarry(col *column) bool {
 	}
 	gg.steps = append(gg.steps,
 		labelStep(gg.gensym("restoreCarry(%d)", col.i)),
-		setABStep{})
+		setACStep{})
 	gg.carryValid = true
 	return true
 }
