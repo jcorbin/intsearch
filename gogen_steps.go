@@ -186,27 +186,9 @@ func (step usedAStep) String() string { return fmt.Sprintf("used? ra") }
 func (step usedBStep) String() string { return fmt.Sprintf("used? rb") }
 func (step usedCStep) String() string { return fmt.Sprintf("used? rc") }
 
-func (step usedAStep) run(sol *solution) {
-	if sol.used[sol.ra] {
-		sol.ra = 1
-	} else {
-		sol.ra = 0
-	}
-}
-func (step usedBStep) run(sol *solution) {
-	if sol.used[sol.rb] {
-		sol.ra = 1
-	} else {
-		sol.ra = 0
-	}
-}
-func (step usedCStep) run(sol *solution) {
-	if sol.used[sol.rc] {
-		sol.ra = 1
-	} else {
-		sol.ra = 0
-	}
-}
+func (step usedAStep) run(sol *solution) { sol.ra = boolInt(sol.used[sol.ra]) }
+func (step usedBStep) run(sol *solution) { sol.ra = boolInt(sol.used[sol.rb]) }
+func (step usedCStep) run(sol *solution) { sol.ra = boolInt(sol.used[sol.rc]) }
 
 type storeAStep byte
 type storeBStep byte
