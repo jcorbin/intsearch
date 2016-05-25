@@ -179,10 +179,18 @@ func (step usedCStep) run(sol *solution) {
 }
 
 type storeAStep byte
+type storeBStep byte
+type storeCStep byte
 type loadAStep byte
+type loadBStep byte
+type loadCStep byte
 
 func (c storeAStep) String() string { return fmt.Sprintf("store %s, ra", string(c)) }
+func (c storeBStep) String() string { return fmt.Sprintf("store %s, rb", string(c)) }
+func (c storeCStep) String() string { return fmt.Sprintf("store %s, rc", string(c)) }
 func (c loadAStep) String() string  { return fmt.Sprintf("load ra, %s", string(c)) }
+func (c loadBStep) String() string  { return fmt.Sprintf("load rb, %s", string(c)) }
+func (c loadCStep) String() string  { return fmt.Sprintf("load rc, %s", string(c)) }
 func (c storeAStep) run(sol *solution) {
 	// TODO: drop guard, program can now use used checks to guarantee this
 	// never happens
@@ -192,13 +200,31 @@ func (c storeAStep) run(sol *solution) {
 	sol.values[c] = sol.ra
 	sol.used[sol.ra] = true
 }
+func (c storeBStep) run(sol *solution) {
+	sol.values[c] = sol.rb
+	sol.used[sol.rb] = true
+}
+func (c storeCStep) run(sol *solution) {
+	sol.values[c] = sol.rc
+	sol.used[sol.rc] = true
+}
 func (c loadAStep) run(sol *solution) {
 	sol.ra = sol.values[c]
+}
+func (c loadBStep) run(sol *solution) {
+	sol.rb = sol.values[c]
+}
+func (c loadCStep) run(sol *solution) {
+	sol.rc = sol.values[c]
 }
 
 func isStoreStep(step solutionStep) bool {
 	switch step.(type) {
 	case storeAStep:
+		return true
+	case storeBStep:
+		return true
+	case storeCStep:
 		return true
 	default:
 		return false
