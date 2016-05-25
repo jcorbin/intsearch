@@ -400,8 +400,9 @@ func (step rangeStep) expandStep(
 	annotate annoFunc,
 ) (int, [][]solutionStep, map[string]int) {
 	if annotate != nil {
-		annotate(addr, fmt.Sprintf(":%s", step.label))
-		annotate(addr, fmt.Sprintf("range:[%d, %d]", step.min, step.max))
+		annotate(addr,
+			fmt.Sprintf(":%s", step.label),
+			fmt.Sprintf("range:[%d, %d]", step.min, step.max))
 		annotate(addr+1, fmt.Sprintf(":%s:body", step.label))
 		annotate(addr+5, fmt.Sprintf(":%s:next", step.label))
 		annotate(addr+11, fmt.Sprintf(":%s:cont", step.label))
