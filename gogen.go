@@ -364,7 +364,7 @@ func (gg *goGen) ensureCarry(col *column) {
 
 	gg.ensureCarry(col.prior)
 	gg.steps = append(gg.steps,
-		labelStep(gg.gensym("computeCarry(%d)", col.label())))
+		labelStep(gg.gensym("computeCarry(%s)", col.label())))
 	steps := make([]solutionStep, 0, 3)
 	if c1 != 0 {
 		steps = append(steps, addAValueStep(c1))
