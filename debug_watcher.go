@@ -17,7 +17,7 @@ func (wat debugWatcher) beforeStep(srch searcher, sol *solution) {
 
 func (wat debugWatcher) stepped(srch searcher, sol *solution) {
 	wat.logf("... %v", sol)
-	if _, ok := sol.steps[sol.stepi-1].(storeStep); ok {
+	if isStoreStep(sol.steps[sol.stepi-1]) {
 		wat.logf("... %s", sol.letterMapping())
 	} else if isForkStep(sol.steps[sol.stepi-1]) {
 		wat.logf("... len(frontier) == %v", srch.frontierSize())

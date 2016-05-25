@@ -196,6 +196,15 @@ func (c loadStep) run(sol *solution) {
 	sol.ra = sol.values[c]
 }
 
+func isStoreStep(step solutionStep) bool {
+	switch step.(type) {
+	case storeAStep:
+		return true
+	default:
+		return false
+	}
+}
+
 type jmpStep int
 type jzStep int
 type jnzStep int
