@@ -192,11 +192,6 @@ func (c loadAStep) String() string  { return fmt.Sprintf("load ra, %s", string(c
 func (c loadBStep) String() string  { return fmt.Sprintf("load rb, %s", string(c)) }
 func (c loadCStep) String() string  { return fmt.Sprintf("load rc, %s", string(c)) }
 func (c storeAStep) run(sol *solution) {
-	// TODO: drop guard, program can now use used checks to guarantee this
-	// never happens
-	if sol.used[sol.ra] {
-		sol.exit(errAlreadyUsed)
-	}
 	sol.values[c] = sol.ra
 	sol.used[sol.ra] = true
 }
