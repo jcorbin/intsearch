@@ -420,28 +420,22 @@ func (step rangeStep) expandStep(
 	if annotate != nil {
 		annotate(addr, fmt.Sprintf(":%s", step.label))
 		annotate(addr, fmt.Sprintf("range:[%d, %d]", step.min, step.max))
-		annotate(addr+2, fmt.Sprintf(":%s:body", step.label))
-		annotate(addr+8, fmt.Sprintf(":%s:next", step.label))
-		annotate(addr+17, fmt.Sprintf(":%s:cont", step.label))
+		annotate(addr+1, fmt.Sprintf(":%s:body", step.label))
+		annotate(addr+5, fmt.Sprintf(":%s:next", step.label))
+		annotate(addr+11, fmt.Sprintf(":%s:cont", step.label))
 	}
-	return addr + 18, append(parts, []solutionStep{
-		setAStep(step.min),       //  0: :LABEL ra = $min
-		setBAStep{},              //  1: rb = ra
-		setABStep{},              //  2: :LABEL:body ra = rb
-		usedAStep{},              //  3: used?
-		jnzStep(addr + 8),        //  4: jnz :next
-		forkStep(addr + 8),       //  5: fork :next
-		setABStep{},              //  6: ra = rb
-		jmpStep(addr + 17),       //  7: jmp :cont
-		setABStep{},              //  8: :LABEL:next ra = rb
-		addAStep(1),              //  9: add 1
-		setBAStep{},              // 10: rb = ra
-		ltAStep(step.max),        // 11: lt $max
-		jnzStep(addr + 2),        // 12: jnz :body
-		setABStep{},              // 13: ra = rb
-		usedAStep{},              // 14: used?
-		jzStep(addr + 17),        // 15: jz :cont
-		exitStep{errAlreadyUsed}, // 16: exit errAlreadyUsed
-		setABStep{},              // 17: :LABEL:cont ra = rb
+	return addr + 11, append(parts, []solutionStep{
+		setBStep(step.min),       //  0: :LABEL rb = $min
+		usedBStep{},              //  1: :LABEL:body used? rb
+		relJNZStep(2),            //  2: jnz :next
+		relForkStep(1),           //  3: fork :next
+		relJMPStep(6),            //  4: jmp :cont
+		addBStep(1),              //  5: :LABEL:next add rb, 1
+		ltBStep(step.max),        //  6: lt rb, $max
+		relJNZStep(-7),           //  7: jnz :body
+		usedBStep{},              //  8: used? rb
+		relJZStep(1),             //  9: jz :cont
+		exitStep{errAlreadyUsed}, // 10: exit errAlreadyUsed
+		//                           11: :LABEL:cont
 	}), labels
 }

@@ -303,7 +303,7 @@ func (gg *goGen) chooseRange(c byte, min, max int) {
 	label := gg.gensym("choose(%s)", string(c))
 	gg.steps = append(gg.steps,
 		rangeStep{label, min, max}, // range [$min, $max]
-		storeAStep(c),              // store $c, ra
+		storeBStep(c),              // store $c, rb
 	)
 }
 
