@@ -250,24 +250,31 @@ type labelJNZStep string
 type forkStep int
 type relForkStep int
 type labelForkStep string
+type branchStep int
+type relBranchStep int
+type labelBranchStep string
 
-func (step jmpStep) String() string       { return fmt.Sprintf("jmp @%d", int(step)) }
-func (step jzStep) String() string        { return fmt.Sprintf("jz @%d", int(step)) }
-func (step jnzStep) String() string       { return fmt.Sprintf("jnz @%d", int(step)) }
-func (step relJMPStep) String() string    { return fmt.Sprintf("jmp %+d", int(step)) }
-func (step relJZStep) String() string     { return fmt.Sprintf("jz %+d", int(step)) }
-func (step relJNZStep) String() string    { return fmt.Sprintf("jnz %+d", int(step)) }
-func (step labelJmpStep) String() string  { return fmt.Sprintf("jmp :%s", string(step)) }
-func (step labelJZStep) String() string   { return fmt.Sprintf("jz :%s", string(step)) }
-func (step labelJNZStep) String() string  { return fmt.Sprintf("jnz :%s", string(step)) }
-func (step forkStep) String() string      { return fmt.Sprintf("fork @%d", int(step)) }
-func (step relForkStep) String() string   { return fmt.Sprintf("fork %+d", int(step)) }
-func (step labelForkStep) String() string { return fmt.Sprintf("fork :%s", string(step)) }
+func (step jmpStep) String() string         { return fmt.Sprintf("jmp @%d", int(step)) }
+func (step jzStep) String() string          { return fmt.Sprintf("jz @%d", int(step)) }
+func (step jnzStep) String() string         { return fmt.Sprintf("jnz @%d", int(step)) }
+func (step relJMPStep) String() string      { return fmt.Sprintf("jmp %+d", int(step)) }
+func (step relJZStep) String() string       { return fmt.Sprintf("jz %+d", int(step)) }
+func (step relJNZStep) String() string      { return fmt.Sprintf("jnz %+d", int(step)) }
+func (step labelJmpStep) String() string    { return fmt.Sprintf("jmp :%s", string(step)) }
+func (step labelJZStep) String() string     { return fmt.Sprintf("jz :%s", string(step)) }
+func (step labelJNZStep) String() string    { return fmt.Sprintf("jnz :%s", string(step)) }
+func (step forkStep) String() string        { return fmt.Sprintf("fork @%d", int(step)) }
+func (step relForkStep) String() string     { return fmt.Sprintf("fork %+d", int(step)) }
+func (step labelForkStep) String() string   { return fmt.Sprintf("fork :%s", string(step)) }
+func (step branchStep) String() string      { return fmt.Sprintf("branch @%d", int(step)) }
+func (step relBranchStep) String() string   { return fmt.Sprintf("branch %+d", int(step)) }
+func (step labelBranchStep) String() string { return fmt.Sprintf("branch :%s", string(step)) }
 
-func (step labelJmpStep) annotate() string  { return fmt.Sprintf("-> :%s", string(step)) }
-func (step labelJZStep) annotate() string   { return fmt.Sprintf("?-> :%s", string(step)) }
-func (step labelJNZStep) annotate() string  { return fmt.Sprintf("?-> :%s", string(step)) }
-func (step labelForkStep) annotate() string { return fmt.Sprintf("*-> :%s", string(step)) }
+func (step labelJmpStep) annotate() string    { return fmt.Sprintf("-> :%s", string(step)) }
+func (step labelJZStep) annotate() string     { return fmt.Sprintf("?-> :%s", string(step)) }
+func (step labelJNZStep) annotate() string    { return fmt.Sprintf("?-> :%s", string(step)) }
+func (step labelForkStep) annotate() string   { return fmt.Sprintf("*-> :%s", string(step)) }
+func (step labelBranchStep) annotate() string { return fmt.Sprintf("/-> :%s", string(step)) }
 
 func (step jmpStep) run(sol *solution) {
 	sol.stepi = int(step)
@@ -320,6 +327,19 @@ func (step relForkStep) run(sol *solution) {
 func (step labelForkStep) run(sol *solution) {
 	sol.exit(fmt.Errorf("unresolved label jump :%s", string(step)))
 }
+func (step branchStep) run(sol *solution) {
+	child := sol.copy()
+	sol.emit(child)
+	sol.stepi = int(step)
+}
+func (step relBranchStep) run(sol *solution) {
+	child := sol.copy()
+	sol.emit(child)
+	sol.stepi += int(step)
+}
+func (step labelBranchStep) run(sol *solution) {
+	sol.exit(fmt.Errorf("unresolved label jump :%s", string(step)))
+}
 
 func (step labelJmpStep) resolveLabels(labels map[string]int) solutionStep {
 	if addr, ok := labels[string(step)]; ok {
@@ -345,6 +365,12 @@ func (step labelForkStep) resolveLabels(labels map[string]int) solutionStep {
 	}
 	return nil
 }
+func (step labelBranchStep) resolveLabels(labels map[string]int) solutionStep {
+	if addr, ok := labels[string(step)]; ok {
+		return branchStep(addr)
+	}
+	return nil
+}
 
 func isForkStep(step solutionStep) bool {
 	switch step.(type) {
@@ -353,6 +379,12 @@ func isForkStep(step solutionStep) bool {
 	case relForkStep:
 		return true
 	case labelForkStep:
+		return true
+	case branchStep:
+		return true
+	case relBranchStep:
+		return true
+	case labelBranchStep:
 		return true
 	default:
 		return false
