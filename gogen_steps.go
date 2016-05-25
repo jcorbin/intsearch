@@ -378,6 +378,21 @@ func (step finishStep) expandStep(
 	return addr + 1, append(parts, []solutionStep{exitStep{nil}}), labels
 }
 
+type loopBStep struct {
+	offset int
+	max    int
+}
+
+func (step loopBStep) String() string {
+	return fmt.Sprintf("loop %+d rb < %v", step.offset, step.max)
+}
+func (step loopBStep) run(sol *solution) {
+	sol.rb++
+	if sol.rb < step.max {
+		sol.stepi += step.offset
+	}
+}
+
 type rangeStep struct {
 	label    string
 	min, max int
@@ -405,20 +420,18 @@ func (step rangeStep) expandStep(
 			fmt.Sprintf("range:[%d, %d]", step.min, step.max))
 		annotate(addr+1, fmt.Sprintf(":%s:body", step.label))
 		annotate(addr+5, fmt.Sprintf(":%s:next", step.label))
-		annotate(addr+11, fmt.Sprintf(":%s:cont", step.label))
+		annotate(addr+9, fmt.Sprintf(":%s:cont", step.label))
 	}
-	return addr + 11, append(parts, []solutionStep{
-		setBStep(step.min),       //  0: :LABEL rb = $min
-		usedBStep{},              //  1: :LABEL:body used? rb
-		relJNZStep(2),            //  2: jnz :next
-		relForkStep(1),           //  3: fork :next
-		relJMPStep(6),            //  4: jmp :cont
-		addBStep(1),              //  5: :LABEL:next add rb, 1
-		ltBStep(step.max),        //  6: lt rb, $max
-		relJNZStep(-7),           //  7: jnz :body
-		usedBStep{},              //  8: used? rb
-		relJZStep(1),             //  9: jz :cont
-		exitStep{errAlreadyUsed}, // 10: exit errAlreadyUsed
-		//                           11: :LABEL:cont
+	return addr + 9, append(parts, []solutionStep{
+		setBStep(step.min),       // 0: :LABEL rb = $min
+		usedBStep{},              // 1: :LABEL:body used? rb
+		relJNZStep(2),            // 2: jnz :next
+		relForkStep(1),           // 3: fork :next
+		relJMPStep(4),            // 4: jmp :cont
+		loopBStep{-5, step.max},  // 5: :LABEL:next loop :body rb < $max
+		usedBStep{},              // 6: used? rb
+		relJZStep(1),             // 7: jz :cont
+		exitStep{errAlreadyUsed}, // 8: exit errAlreadyUsed
+		//                           9: :LABEL:cont
 	}), labels
 }
