@@ -418,19 +418,11 @@ func (step rangeStep) expandStep(
 	annotate annoFunc,
 ) (int, [][]solutionStep, map[string]int) {
 	if annotate != nil {
-		bodySym := fmt.Sprintf("%s:body", step.label)
-		nextSym := fmt.Sprintf("%s:next", step.label)
-		contSym := fmt.Sprintf("%s:cont", step.label)
-		annotate(addr, labelStep(step.label).String())
+		annotate(addr, fmt.Sprintf(":%s", step.label))
 		annotate(addr, fmt.Sprintf("range:[%d, %d]", step.min, step.max))
-		annotate(addr+2, labelStep(bodySym).String())
-		annotate(addr+8, labelStep(nextSym).String())
-		annotate(addr+17, labelStep(contSym).String())
-		annotate(addr+4, labelJNZStep(nextSym).annotate())
-		annotate(addr+5, labelForkStep(nextSym).annotate())
-		annotate(addr+7, labelJmpStep(contSym).annotate())
-		annotate(addr+12, labelJNZStep(bodySym).annotate())
-		annotate(addr+15, labelJZStep(contSym).annotate())
+		annotate(addr+2, fmt.Sprintf(":%s:body", step.label))
+		annotate(addr+8, fmt.Sprintf(":%s:next", step.label))
+		annotate(addr+17, fmt.Sprintf(":%s:cont", step.label))
 	}
 	return addr + 18, append(parts, []solutionStep{
 		setAStep(step.min),       //  0: :LABEL ra = $min
