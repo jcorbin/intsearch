@@ -451,19 +451,17 @@ func (step rangeStep) expandStep(
 			fmt.Sprintf(":%s", step.label),
 			fmt.Sprintf("range:[%d, %d]", step.min, step.max))
 		annotate(addr+1, fmt.Sprintf(":%s:body", step.label))
-		annotate(addr+5, fmt.Sprintf(":%s:next", step.label))
-		annotate(addr+9, fmt.Sprintf(":%s:cont", step.label))
+		annotate(addr+8, fmt.Sprintf(":%s:cont", step.label))
 	}
-	return addr + 9, append(parts, []solutionStep{
+	return addr + 8, append(parts, []solutionStep{
 		setBStep(step.min),       // 0: :LABEL rb = $min
 		usedBStep{},              // 1: :LABEL:body used? rb
-		relJNZStep(2),            // 2: jnz :next
-		relForkStep(1),           // 3: fork :next
-		relJMPStep(4),            // 4: jmp :cont
-		loopBStep{-5, step.max},  // 5: :LABEL:next loop :body rb < $max
-		usedBStep{},              // 6: used? rb
-		relJZStep(1),             // 7: jz :cont
-		exitStep{errAlreadyUsed}, // 8: exit errAlreadyUsed
-		//                           9: :LABEL:cont
+		relJNZStep(1),            // 2: jnz +1
+		relBranchStep(4),         // 3: branch :cont
+		loopBStep{-4, step.max},  // 4: loop :body rb < $max
+		usedBStep{},              // 5: used? rb
+		relJZStep(1),             // 6: jz :cont
+		exitStep{errAlreadyUsed}, // 7: exit errAlreadyUsed
+		//                           8: :LABEL:cont
 	}), labels
 }
