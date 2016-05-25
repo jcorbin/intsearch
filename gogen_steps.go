@@ -253,6 +253,10 @@ type labelForkStep string
 type branchStep int
 type relBranchStep int
 type labelBranchStep string
+type relFZStep int
+type relFNZStep int
+type relBZStep int
+type relBNZStep int
 
 func (step jmpStep) String() string         { return fmt.Sprintf("jmp @%d", int(step)) }
 func (step jzStep) String() string          { return fmt.Sprintf("jz @%d", int(step)) }
@@ -269,6 +273,10 @@ func (step labelForkStep) String() string   { return fmt.Sprintf("fork :%s", str
 func (step branchStep) String() string      { return fmt.Sprintf("branch @%d", int(step)) }
 func (step relBranchStep) String() string   { return fmt.Sprintf("branch %+d", int(step)) }
 func (step labelBranchStep) String() string { return fmt.Sprintf("branch :%s", string(step)) }
+func (step relFZStep) String() string       { return fmt.Sprintf("fz %+d", int(step)) }
+func (step relFNZStep) String() string      { return fmt.Sprintf("fnz %+d", int(step)) }
+func (step relBZStep) String() string       { return fmt.Sprintf("bz %+d", int(step)) }
+func (step relBNZStep) String() string      { return fmt.Sprintf("bnz %+d", int(step)) }
 
 func (step labelJmpStep) annotate() string    { return fmt.Sprintf("-> :%s", string(step)) }
 func (step labelJZStep) annotate() string     { return fmt.Sprintf("?-> :%s", string(step)) }
@@ -341,6 +349,36 @@ func (step labelBranchStep) run(sol *solution) {
 	sol.exit(fmt.Errorf("unresolved label jump :%s", string(step)))
 }
 
+func (step relFZStep) run(sol *solution) {
+	if sol.ra == 0 {
+		child := sol.copy()
+		child.stepi += int(step)
+		sol.emit(child)
+	}
+}
+func (step relFNZStep) run(sol *solution) {
+	if sol.ra != 0 {
+		child := sol.copy()
+		child.stepi += int(step)
+		sol.emit(child)
+	}
+}
+
+func (step relBZStep) run(sol *solution) {
+	if sol.ra == 0 {
+		child := sol.copy()
+		sol.emit(child)
+		sol.stepi += int(step)
+	}
+}
+func (step relBNZStep) run(sol *solution) {
+	if sol.ra != 0 {
+		child := sol.copy()
+		sol.emit(child)
+		sol.stepi += int(step)
+	}
+}
+
 func (step labelJmpStep) resolveLabels(labels map[string]int) solutionStep {
 	if addr, ok := labels[string(step)]; ok {
 		return jmpStep(addr)
@@ -385,6 +423,14 @@ func isForkStep(step solutionStep) bool {
 	case relBranchStep:
 		return true
 	case labelBranchStep:
+		return true
+	case relFZStep:
+		return true
+	case relFNZStep:
+		return true
+	case relBZStep:
+		return true
+	case relBNZStep:
 		return true
 	default:
 		return false
