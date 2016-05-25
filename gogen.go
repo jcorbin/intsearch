@@ -172,7 +172,7 @@ func (gg *goGen) computeSum(col *column) {
 	gg.carryValid = false
 	gg.carrySaved = false
 
-	steps := make([]solutionStep, 0, 8)
+	steps := make([]solutionStep, 0, 12)
 	steps = append(steps,
 		labelStep(gg.gensym("computeSum(%s)", col.label())))
 	if a != 0 {
@@ -184,7 +184,11 @@ func (gg *goGen) computeSum(col *column) {
 	steps = append(steps,
 		setBAStep{},
 		modAStep(gg.base),
-		storeAStep(c),
+		setCAStep{},
+		usedAStep{},
+		relJZStep(1),
+		exitStep{errCheckFailed},
+		storeCStep(c),
 		setABStep{},
 		divAStep(gg.base))
 	gg.steps = append(gg.steps, steps...)
