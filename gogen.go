@@ -213,8 +213,9 @@ func (gg *goGen) computeSummand(col *column, a, b, c byte) {
 	//   carry + a + b = c (mod base)
 	// Solve for a:
 	//   a = c - b - carry (mod base)
-	gg.saveCarry(col.prior)
+	gg.ensureCarry(col.prior)
 	gg.carryValid = false
+	gg.carrySaved = false
 
 	steps := make([]solutionStep, 0, 9)
 	steps = append(steps,
