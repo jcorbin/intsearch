@@ -178,12 +178,12 @@ func (step usedCStep) run(sol *solution) {
 	}
 }
 
-type storeStep byte
-type loadStep byte
+type storeAStep byte
+type loadAStep byte
 
-func (c storeStep) String() string { return fmt.Sprintf("store(%s)", string(c)) }
-func (c loadStep) String() string  { return fmt.Sprintf("load(%s)", string(c)) }
-func (c storeStep) run(sol *solution) {
+func (c storeAStep) String() string { return fmt.Sprintf("store %s, ra", string(c)) }
+func (c loadAStep) String() string  { return fmt.Sprintf("load ra, %s", string(c)) }
+func (c storeAStep) run(sol *solution) {
 	// TODO: drop guard, program can now use used checks to guarantee this
 	// never happens
 	if sol.used[sol.ra] {
@@ -192,7 +192,7 @@ func (c storeStep) run(sol *solution) {
 	sol.values[c] = sol.ra
 	sol.used[sol.ra] = true
 }
-func (c loadStep) run(sol *solution) {
+func (c loadAStep) run(sol *solution) {
 	sol.ra = sol.values[c]
 }
 

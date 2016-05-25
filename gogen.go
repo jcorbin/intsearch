@@ -130,7 +130,7 @@ func (gg *goGen) fix(c byte, v int) {
 	gg.steps = append(gg.steps,
 		labelStep(gg.gensym("fix(%s)", string(c))),
 		setAStep(v),
-		storeStep(c))
+		storeAStep(c))
 }
 
 func (gg *goGen) stashCarry(col *column) {
@@ -184,7 +184,7 @@ func (gg *goGen) computeSum(col *column) {
 	steps = append(steps,
 		setBAStep{},
 		modAStep(gg.base),
-		storeStep(c),
+		storeAStep(c),
 		setABStep{},
 		divAStep(gg.base))
 	gg.steps = append(gg.steps, steps...)
@@ -224,7 +224,7 @@ func (gg *goGen) computeSummand(col *column, a, b, c byte) {
 	}
 	steps = append(steps,
 		modAStep(gg.base),
-		storeStep(a),
+		storeAStep(a),
 		addARegBStep{})
 	if b != 0 {
 		steps = append(steps, addAValueStep(b))
@@ -253,7 +253,7 @@ func (gg *goGen) checkInitialLetter(col *column, c byte) {
 	if gg.carryValid {
 		gg.stashCarry(col)
 		gg.carryValid = false
-		steps = append(steps, loadStep(c))
+		steps = append(steps, loadAStep(c))
 	}
 	steps = append(steps,
 		relJNZStep(1),
@@ -294,7 +294,7 @@ func (gg *goGen) chooseRange(c byte, min, max int) {
 	label := gg.gensym("choose(%s)", string(c))
 	gg.steps = append(gg.steps,
 		rangeStep{label, min, max}, // range [$min, $max]
-		storeStep(c),               // store $c
+		storeAStep(c),              // store $c, ra
 	)
 }
 
@@ -469,7 +469,7 @@ func (gg *goGen) verifyInitialLetters(name string, err error) {
 	gg.steps = append(gg.steps, labelStep(gg.gensym("%s:initialLetters", name)))
 	for _, word := range gg.words {
 		gg.steps = append(gg.steps,
-			loadStep(word[0]),
+			loadAStep(word[0]),
 			relJNZStep(1),
 			exitStep{err})
 	}
@@ -491,7 +491,7 @@ func (gg *goGen) verifyDuplicateLetters(name string, err error) {
 			}
 			if j > i {
 				gg.steps = append(gg.steps,
-					loadStep(c),
+					loadAStep(c),
 					subAValueStep(d),
 					relJNZStep(1),
 					exitStep{err})
@@ -510,7 +510,7 @@ func (gg *goGen) verifyLettersNonNegative(name string, err error) {
 			continue
 		}
 		gg.steps = append(gg.steps,
-			loadStep(c),
+			loadAStep(c),
 			ltAStep(0),
 			relJZStep(1),
 			exitStep{err})
