@@ -214,10 +214,14 @@ func (gg *goGen) computeSummand(col *column, a, b, c byte) {
 	// Solve for a:
 	//   a = c - b - carry (mod base)
 	gg.ensureCarry(col.prior)
+	if !gg.carrySaved {
+		gg.steps = append(gg.steps, setCAStep{})
+	}
+
 	gg.carryValid = false
 	gg.carrySaved = false
 
-	steps := make([]solutionStep, 0, 14)
+	steps := make([]solutionStep, 0, 10)
 	steps = append(steps,
 		labelStep(gg.gensym("computeSummand(%s)", col.label())),
 		negAStep{})
@@ -233,17 +237,29 @@ func (gg *goGen) computeSummand(col *column, a, b, c byte) {
 		usedBStep{},
 		relJZStep(1),
 		exitStep{errCheckFailed},
-		storeBStep(a),
-		addARegBStep{})
-	if b != 0 {
-		steps = append(steps, addAValueStep(b))
-	}
-	steps = append(steps, divAStep(gg.base))
+		storeBStep(a))
 	gg.steps = append(gg.steps, steps...)
 
 	gg.carryPrior = col
-	gg.carryValid = true
+	gg.carryValid = false
 	gg.carrySaved = false
+
+	if b != 0 {
+		gg.steps = append(gg.steps,
+			setACStep{},
+			addARegBStep{},
+			addAValueStep(b),
+			divAStep(gg.base),
+		)
+		gg.carryValid = true
+	} else {
+		gg.steps = append(gg.steps,
+			setACStep{},
+			addARegBStep{},
+			divAStep(gg.base),
+		)
+		gg.carryValid = true
+	}
 
 	gg.checkAfterCompute(col, a)
 }
