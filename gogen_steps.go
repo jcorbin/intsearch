@@ -497,17 +497,16 @@ func (step rangeStep) expandStep(
 			fmt.Sprintf(":%s", step.label),
 			fmt.Sprintf("range:[%d, %d]", step.min, step.max))
 		annotate(addr+1, fmt.Sprintf(":%s:body", step.label))
-		annotate(addr+8, fmt.Sprintf(":%s:cont", step.label))
+		annotate(addr+7, fmt.Sprintf(":%s:cont", step.label))
 	}
-	return addr + 8, append(parts, []solutionStep{
+	return addr + 7, append(parts, []solutionStep{
 		setBStep(step.min),       // 0: :LABEL rb = $min
 		usedBStep{},              // 1: :LABEL:body used? rb
-		relJNZStep(1),            // 2: jnz +1
-		relBranchStep(4),         // 3: branch :cont
-		loopBStep{-4, step.max},  // 4: loop :body rb < $max
-		usedBStep{},              // 5: used? rb
-		relJZStep(1),             // 6: jz :cont
-		exitStep{errAlreadyUsed}, // 7: exit errAlreadyUsed
-		//                           8: :LABEL:cont
+		relBZStep(4),             // 2: bz +4
+		loopBStep{-3, step.max},  // 3: loop :body rb < $max
+		usedBStep{},              // 4: used? rb
+		relJZStep(1),             // 5: jz :cont
+		exitStep{errAlreadyUsed}, // 6: exit errAlreadyUsed
+		//                           7: :LABEL:cont
 	}), labels
 }
