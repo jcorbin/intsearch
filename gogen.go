@@ -154,8 +154,11 @@ func (gg *goGen) fork(prob *planProblem, name, altLabel, contLabel string) solut
 }
 
 func (gg *goGen) fix(c byte, v int) {
+	if gg.addrAnnos != nil {
+		gg.steps = append(gg.steps,
+			labelStep(gg.gensym("fix(%s)", string(c))))
+	}
 	gg.steps = append(gg.steps,
-		labelStep(gg.gensym("fix(%s)", string(c))),
 		setAStep(v),
 		storeAStep(c))
 }
