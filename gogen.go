@@ -561,7 +561,9 @@ func (gg *goGen) verifyDuplicateLetters(name string, err error) {
 	if err == nil {
 		err = verifyError("duplicate valued character")
 	}
-	gg.steps = append(gg.steps, labelStep(gg.gensym("%s:duplicateLetters", name)))
+	if name != "" {
+		gg.steps = append(gg.steps, labelStep(gg.gensym("%s:duplicateLetters", name)))
+	}
 	letters := gg.sortedLetters()
 	for i, c := range letters {
 		if !gg.known[c] {
