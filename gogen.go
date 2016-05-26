@@ -546,7 +546,9 @@ func (gg *goGen) verifyInitialLetters(name string, err error) {
 	if err == nil {
 		err = verifyError("initial letter cannot be zero")
 	}
-	gg.steps = append(gg.steps, labelStep(gg.gensym("%s:initialLetters", name)))
+	if name != "" {
+		gg.steps = append(gg.steps, labelStep(gg.gensym("%s:initialLetters", name)))
+	}
 	for _, word := range gg.words {
 		gg.steps = append(gg.steps,
 			loadAStep(word[0]),
