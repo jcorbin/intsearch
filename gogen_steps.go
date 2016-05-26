@@ -449,8 +449,13 @@ type forkAltStep struct {
 	contLabel string
 }
 
-func (step forkAltStep) String() string    { return fmt.Sprintf("forkAlt :%s", step.name) }
 func (step forkAltStep) labelName() string { return step.name }
+func (step forkAltStep) String() string {
+	if step.name == "" {
+		return "forkAlt UNNAMED"
+	}
+	return fmt.Sprintf("forkAlt :%s", step.name)
+}
 func (step forkAltStep) run(sol *solution) {
 	panic(fmt.Sprintf("unexpanded forkAlt :%s", step.name))
 }
@@ -475,21 +480,31 @@ func (step forkAltStep) expandStep(
 
 	if annotate != nil {
 		annotate(addr, labelForkStep(step.contLabel).annotate())
-		annotate(addr+1, fmt.Sprintf(":%s", step.altLabel))
 	}
 
-	addr, parts = addr+1, append(parts, []solutionStep{
-		labelForkStep(step.contLabel)})
-	labels[step.altLabel] = addr
+	forkPart := []solutionStep{
+		labelForkStep(step.contLabel)}
+	addr, parts = addr+1, append(parts, forkPart)
 
+	if step.altLabel != "" {
+		labels[step.altLabel] = addr
+		if annotate != nil {
+			annotate(addr, fmt.Sprintf(":%s", step.altLabel))
+		}
+	}
+
+	altAddr := addr
 	addr, parts, labels = expandSteps(addr, step.alt.steps, parts, labels, annotate)
-
 	addr, parts = addr+1, append(parts, []solutionStep{
 		exitStep{errDeadFork}})
-	labels[step.contLabel] = addr
 
-	if annotate != nil {
-		annotate(addr, fmt.Sprintf(":%s", step.contLabel))
+	forkPart[0] = relForkStep(addr - altAddr)
+
+	if step.contLabel != "" {
+		labels[step.contLabel] = addr
+		if annotate != nil {
+			annotate(addr, fmt.Sprintf(":%s", step.contLabel))
+		}
 	}
 
 	return addr, parts, labels
