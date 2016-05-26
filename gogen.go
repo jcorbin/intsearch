@@ -385,9 +385,11 @@ func (gg *goGen) restoreCarry(col *column) bool {
 
 func (gg *goGen) ensureCarry(col *column) {
 	if col == nil {
-		gg.steps = append(gg.steps,
-			labelStep(gg.gensym("ensureCarry:nil")),
-			setAStep(0))
+		if gg.addrAnnos != nil {
+			gg.steps = append(gg.steps,
+				labelStep(gg.gensym("ensureCarry:nil")))
+		}
+		gg.steps = append(gg.steps, setAStep(0))
 		gg.carryPrior = nil
 		gg.carrySaved = false
 		gg.carryValid = true
@@ -398,9 +400,11 @@ func (gg *goGen) ensureCarry(col *column) {
 	case carryZero:
 		fallthrough
 	case carryOne:
-		gg.steps = append(gg.steps,
-			labelStep(gg.gensym("ensureCarry(%d):fixed", col.i)),
-			setAStep(col.carry))
+		if gg.addrAnnos != nil {
+			gg.steps = append(gg.steps,
+				labelStep(gg.gensym("ensureCarry(%d):fixed", col.i)))
+		}
+		gg.steps = append(gg.steps, setAStep(col.carry))
 		gg.carryPrior = col
 		gg.carrySaved = false
 		gg.carryValid = true
@@ -422,8 +426,10 @@ func (gg *goGen) ensureCarry(col *column) {
 	}
 
 	gg.ensureCarry(col.prior)
-	gg.steps = append(gg.steps,
-		labelStep(gg.gensym("computeCarry(%s)", col.label())))
+	if gg.addrAnnos != nil {
+		gg.steps = append(gg.steps,
+			labelStep(gg.gensym("computeCarry(%s)", col.label())))
+	}
 	steps := make([]solutionStep, 0, 3)
 	if c1 != 0 {
 		steps = append(steps, addAValueStep(c1))
