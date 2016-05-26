@@ -446,7 +446,11 @@ func (gg *goGen) ensureCarry(col *column) {
 }
 
 func (gg *goGen) check(err error) {
-	gg.doVerify("check", err)
+	if gg.addrAnnos == nil {
+		gg.doVerify("", err)
+	} else {
+		gg.doVerify("check", err)
+	}
 }
 
 func (gg *goGen) checkColumn(col *column, err error) {
