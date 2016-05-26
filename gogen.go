@@ -312,8 +312,11 @@ func (gg *goGen) checkInitialLetter(col *column, c byte) {
 		gg.stashCarry(col)
 		gg.carryValid = false
 	}
+	if gg.addrAnnos != nil {
+		gg.steps = append(gg.steps,
+			labelStep(gg.gensym("checkInitialLetter(%s)", string(c))))
+	}
 	gg.steps = append(gg.steps,
-		labelStep(gg.gensym("checkInitialLetter(%s)", string(c))),
 		loadAStep(c),
 		relJNZStep(1),
 		exitStep{errCheckFailed})
