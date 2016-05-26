@@ -354,7 +354,10 @@ func (gg *goGen) checkFixedCarry(col *column) {
 func (gg *goGen) chooseRange(c byte, min, max int) {
 	gg.stashCarry(gg.carryPrior)
 	gg.carryValid = false
-	label := gg.gensym("choose(%s)", string(c))
+	label := ""
+	if gg.addrAnnos != nil {
+		label = gg.gensym("choose(%s)", string(c))
+	}
 	gg.steps = append(gg.steps,
 		rangeStep{label, min, max}, // range [$min, $max]
 		storeBStep(c),              // store $c, rb
