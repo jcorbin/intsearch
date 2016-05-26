@@ -538,6 +538,9 @@ func (step rangeStep) labelName() string {
 	return step.label
 }
 func (step rangeStep) String() string {
+	if step.label == "" {
+		return fmt.Sprintf("range [%d, %d]", step.min, step.max)
+	}
 	return fmt.Sprintf(":%s range [%d, %d]", step.label, step.min, step.max)
 }
 func (step rangeStep) run(sol *solution) {
@@ -550,7 +553,7 @@ func (step rangeStep) expandStep(
 	labels map[string]int,
 	annotate annoFunc,
 ) (int, [][]solutionStep, map[string]int) {
-	if annotate != nil {
+	if annotate != nil && step.label != "" {
 		annotate(addr,
 			fmt.Sprintf(":%s", step.label),
 			fmt.Sprintf("range:[%d, %d]", step.min, step.max))
