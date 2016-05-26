@@ -502,7 +502,9 @@ func (gg *goGen) verify() {
 }
 
 func (gg *goGen) doVerify(name string, err error) {
-	name = gg.gensym(name)
+	if name != "" {
+		name = gg.gensym(name)
+	}
 	gg.steps = append(gg.steps, labelStep(name))
 	gg.verifyInitialLetters(name, err)
 	gg.verifyDuplicateLetters(name, err)
