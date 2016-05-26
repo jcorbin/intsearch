@@ -460,8 +460,10 @@ func (gg *goGen) checkColumn(col *column, err error) {
 
 	a, b, c := col.cx[0], col.cx[1], col.cx[2]
 	gg.ensureCarry(col.prior)
-	gg.steps = append(gg.steps,
-		labelStep(gg.gensym("checkColumn(%s)", col.label())))
+	if gg.addrAnnos != nil {
+		gg.steps = append(gg.steps,
+			labelStep(gg.gensym("checkColumn(%s)", col.label())))
+	}
 	steps := make([]solutionStep, 0, 9)
 
 	n := 0
