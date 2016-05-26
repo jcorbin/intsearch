@@ -334,16 +334,18 @@ func (gg *goGen) checkFixedCarry(col *column) {
 		return
 	}
 
-	label := gg.gensym("checkFixedCarry(%s)", col.label())
+	if gg.addrAnnos != nil {
+		gg.steps = append(gg.steps,
+			labelStep(gg.gensym("checkFixedCarry(%s)", col.label())))
+	}
+
 	switch col.carry {
 	case carryZero:
 		gg.steps = append(gg.steps,
-			labelStep(label),
 			relJZStep(1),
 			exitStep{errCheckFailed})
 	case carryOne:
 		gg.steps = append(gg.steps,
-			labelStep(label),
 			relJNZStep(1),
 			exitStep{errCheckFailed})
 	}
