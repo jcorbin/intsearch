@@ -498,7 +498,11 @@ func (gg *goGen) checkColumn(col *column, err error) {
 }
 
 func (gg *goGen) verify() {
-	gg.doVerify("verify", nil)
+	if gg.addrAnnos == nil {
+		gg.doVerify("", nil)
+	} else {
+		gg.doVerify("verify", nil)
+	}
 }
 
 func (gg *goGen) doVerify(name string, err error) {
