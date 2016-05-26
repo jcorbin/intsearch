@@ -178,9 +178,11 @@ func (gg *goGen) stashCarry(col *column) {
 		return
 	}
 
-	gg.steps = append(gg.steps,
-		labelStep(gg.gensym("stashCarry(%d)", col.i)),
-		setCAStep{})
+	if gg.addrAnnos != nil {
+		gg.steps = append(gg.steps,
+			labelStep(gg.gensym("stashCarry(%d)", col.i)))
+	}
+	gg.steps = append(gg.steps, setCAStep{})
 	gg.carrySaved = true
 	gg.carryPrior = col
 }
