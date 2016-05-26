@@ -326,6 +326,10 @@ func (prob *planProblem) fixRange(min, max int, c byte) (int, int) {
 }
 
 func (prob *planProblem) chooseOne(gen solutionGen, col *column) bool {
+	return prob.chooseBest(gen, col)
+}
+
+func (prob *planProblem) chooseBest(gen solutionGen, col *column) bool {
 	var min, max, N [3]int
 
 	i := -1
