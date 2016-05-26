@@ -374,9 +374,11 @@ func (gg *goGen) restoreCarry(col *column) bool {
 	if !gg.carrySaved {
 		return false
 	}
-	gg.steps = append(gg.steps,
-		labelStep(gg.gensym("restoreCarry(%d)", col.i)),
-		setACStep{})
+	if gg.addrAnnos != nil {
+		gg.steps = append(gg.steps,
+			labelStep(gg.gensym("restoreCarry(%d)", col.i)))
+	}
+	gg.steps = append(gg.steps, setACStep{})
 	gg.carryValid = true
 	return true
 }
