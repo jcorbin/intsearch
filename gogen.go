@@ -256,9 +256,11 @@ func (gg *goGen) computeSummand(col *column, a, b, c byte) {
 	gg.carrySaved = false
 
 	steps := make([]solutionStep, 0, 10)
-	steps = append(steps,
-		labelStep(gg.gensym("computeSummand(%s)", col.label())),
-		negAStep{})
+	if gg.addrAnnos != nil {
+		steps = append(steps,
+			labelStep(gg.gensym("computeSummand(%s)", col.label())))
+	}
+	steps = append(steps, negAStep{})
 	if c != 0 {
 		steps = append(steps, addAValueStep(c))
 	}
