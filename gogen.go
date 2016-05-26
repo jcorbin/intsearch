@@ -184,12 +184,12 @@ func (gg *goGen) computeSum(col *column) {
 	steps = append(steps,
 		setCAStep{},
 		modAStep(gg.base),
-		setCAStep{},
+		setBAStep{},
 		usedAStep{},
 		relJZStep(1),
 		exitStep{errCheckFailed},
-		storeCStep(c),
-		setABStep{},
+		storeBStep(c),
+		setACStep{},
 		divAStep(gg.base))
 	gg.steps = append(gg.steps, steps...)
 
