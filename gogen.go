@@ -205,8 +205,10 @@ func (gg *goGen) computeSum(col *column) {
 	gg.carrySaved = false
 
 	steps := make([]solutionStep, 0, 12)
-	steps = append(steps,
-		labelStep(gg.gensym("computeSum(%s)", col.label())))
+	if gg.addrAnnos != nil {
+		steps = append(steps,
+			labelStep(gg.gensym("computeSum(%s)", col.label())))
+	}
 	if a != 0 {
 		steps = append(steps, addAValueStep(a))
 	}
