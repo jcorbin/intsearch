@@ -588,7 +588,9 @@ func (gg *goGen) verifyLettersNonNegative(name string, err error) {
 	if err == nil {
 		err = verifyError("negative valued character")
 	}
-	gg.steps = append(gg.steps, labelStep(gg.gensym("%s:allLettersNonNegative", name)))
+	if name != "" {
+		gg.steps = append(gg.steps, labelStep(gg.gensym("%s:allLettersNonNegative", name)))
+	}
 	for _, c := range gg.sortedLetters() {
 		if !gg.known[c] {
 			continue
