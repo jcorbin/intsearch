@@ -541,7 +541,7 @@ func (step rangeStep) String() string {
 	return fmt.Sprintf(":%s range [%d, %d]", step.label, step.min, step.max)
 }
 func (step rangeStep) run(sol *solution) {
-	sol.exit(fmt.Errorf("unexpanded range :%s [%d, %d]", step.label, step.min, step.max))
+	sol.exit(fmt.Errorf("unexpanded %v", step))
 }
 
 func (step rangeStep) expandStep(
