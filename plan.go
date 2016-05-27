@@ -282,17 +282,22 @@ func (prob *planProblem) assumeCarrySolveColumn(
 	gen solutionGen, col *column,
 	andThen func(*planProblem, solutionGen, *column) bool,
 ) bool {
-	label := col.label()
-	gen.logf("assumeCarrySolveColumn: %s", label)
-	label = fmt.Sprintf("assumeCarry(%s)", label)
+	var label, altLabel, contLabel string
+	if prob.annotated {
+		label = col.label()
+		gen.logf("assumeCarrySolveColumn: %s", label)
+		label = fmt.Sprintf("assumeCarry(%s)", label)
+	}
 
 	altProb := prob.copy()
 	altCol := &altProb.columns[col.i]
 
 	altCol.prior.carry = carryZero
 	col.prior.carry = carryOne
-	altLabel := fmt.Sprintf("assumeCarry(%s)", altCol.label())
-	contLabel := fmt.Sprintf("assumeCarry(%s)", col.label())
+	if prob.annotated {
+		altLabel = fmt.Sprintf("assumeCarry(%s)", altCol.label())
+		contLabel = fmt.Sprintf("assumeCarry(%s)", col.label())
+	}
 	altGen := gen.fork(altProb, label, altLabel, contLabel)
 
 	altProb.solveColumn(altGen, altCol)
@@ -469,7 +474,9 @@ func (prob *planProblem) solveColumnFromPrior(gen solutionGen, col *column) bool
 		return false
 	}
 
-	gen.logf("solveFromPrior: %s", col.label())
+	if prob.annotated {
+		gen.logf("solveFromPrior: %s", col.label())
+	}
 
 	for u := col.unknown; u > 1; u = col.unknown {
 		if !prob.chooseOne(gen, col) {
