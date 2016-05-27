@@ -37,9 +37,14 @@ type goGen struct {
 }
 
 func newGoGen(prob *planProblem) *goGen {
+	n := 0
+	for _, w := range prob.words {
+		n += len(w)
+	}
 	gg := &goGen{
 		planProblem: prob,
 		usedSymbols: make(map[string]struct{}, 3*len(prob.letterSet)),
+		steps:       make([]solutionStep, 0, n*50),
 	}
 	if prob.annotated {
 		gg.addrAnnos = make(map[int][]string)
@@ -51,6 +56,7 @@ func (gg *goGen) copy() *goGen {
 	alt := &goGen{
 		planProblem: gg.planProblem,
 		usedSymbols: gg.usedSymbols,
+		steps:       make([]solutionStep, 0, cap(gg.steps)),
 	}
 	// TODO: carry state copy... but whither column
 	return alt
