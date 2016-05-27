@@ -133,6 +133,7 @@ func (col *column) priorCarry() carryValue {
 
 type planProblem struct {
 	problem
+	annotated    bool
 	columns      []column
 	letCols      map[byte][]*column
 	known        map[byte]bool
@@ -156,11 +157,12 @@ type solutionGen interface {
 	finalize()
 }
 
-func newPlanProblem(p *problem) *planProblem {
+func newPlanProblem(p *problem, annotated bool) *planProblem {
 	C := p.numColumns()
 	N := len(p.letterSet)
 	prob := &planProblem{
 		problem:      *p,
+		annotated:    annotated,
 		columns:      make([]column, C),
 		letCols:      make(map[byte][]*column, N),
 		known:        make(map[byte]bool, N),
@@ -210,6 +212,7 @@ func (prob *planProblem) copy() *planProblem {
 	N := len(prob.letterSet)
 	other := &planProblem{
 		problem:      prob.problem,
+		annotated:    prob.annotated,
 		columns:      make([]column, C),
 		letCols:      make(map[byte][]*column, N),
 		known:        make(map[byte]bool, N),

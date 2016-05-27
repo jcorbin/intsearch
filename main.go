@@ -190,7 +190,7 @@ func main() {
 	// - dumping program benefits from annotations
 	// - as do program traces
 	// - the debug watcher always traces
-	gg = newGoGen(newPlanProblem(&prob), annotated)
+	gg = newGoGen(newPlanProblem(&prob, annotated))
 
 	if *dumpProg {
 		gen = gg.loggedGen()
