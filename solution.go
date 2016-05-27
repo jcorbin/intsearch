@@ -107,7 +107,9 @@ func extractLabels(steps []solutionStep, labels map[string]int) map[string]int {
 	}
 	for addr, step := range steps {
 		if ls, ok := step.(labeledStep); ok {
-			labels[ls.labelName()] = addr
+			if name := ls.labelName(); name != "" {
+				labels[name] = addr
+			}
 		}
 	}
 	return labels
@@ -223,7 +225,9 @@ func actuallyExpandSteps(
 	var prior int
 	for i, step := range steps {
 		if ls, ok := step.(labeledStep); ok {
-			labels[ls.labelName()] = addr
+			if name := ls.labelName(); name != "" {
+				labels[name] = addr
+			}
 		}
 		if es, ok := step.(expandableStep); ok {
 			if head := steps[prior:i]; len(head) > 0 {
