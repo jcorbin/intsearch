@@ -142,11 +142,11 @@ func (gg *goGen) init(desc string) {
 }
 
 func (gg *goGen) fork(prob *planProblem, name, altLabel, contLabel string) solutionGen {
-	if altLabel == "" {
-		altLabel = gg.gensym("%s:alt", name)
+	if altLabel != "" {
+		altLabel = gg.gensym("%s:alt", altLabel)
 	}
-	if contLabel == "" {
-		contLabel = gg.gensym("%s:cont", name)
+	if contLabel != "" {
+		contLabel = gg.gensym("%s:cont", contLabel)
 	}
 	alt := gg.copy()
 	alt.planProblem = prob
