@@ -224,6 +224,10 @@ func (prob *planProblem) copy() *planProblem {
 		other.fixedLetters[l] = v
 	}
 
+	for c, k := range prob.known {
+		other.known[c] = k
+	}
+
 	remap := make(map[*column]*column, len(prob.columns))
 	var last *column
 	for i := 0; i < C; i++ {
@@ -241,9 +245,6 @@ func (prob *planProblem) copy() *planProblem {
 			otherCols[i] = remap[col]
 		}
 		other.letCols[c] = otherCols
-	}
-	for c, k := range prob.known {
-		other.known[c] = k
 	}
 
 	return other
