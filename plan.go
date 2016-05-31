@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"sync"
 )
 
 type carryValue int
@@ -131,14 +132,31 @@ func (col *column) priorCarry() carryValue {
 	return col.prior.carry
 }
 
+type planProblemPool struct {
+	sync.Pool
+}
+
+func (pp *planProblemPool) Get() *planProblem {
+	if item := pp.Pool.Get(); item != nil {
+		return item.(*planProblem)
+	}
+	return nil
+}
+
+func (pp *planProblemPool) Put(prob *planProblem) {
+	pp.Pool.Put(prob)
+}
+
 type planProblem struct {
 	problem
+	pool         planProblemPool
 	annotated    bool
 	columns      []column
 	letCols      map[byte][]*column
 	known        map[byte]bool
 	fixedLetters map[byte]int
 	fixedValues  []bool
+	remap        map[*column]*column
 }
 
 type solutionGen interface {
@@ -210,14 +228,33 @@ func newPlanProblem(p *problem, annotated bool) *planProblem {
 func (prob *planProblem) copy() *planProblem {
 	C := prob.numColumns()
 	N := len(prob.letterSet)
-	other := &planProblem{
-		problem:      prob.problem,
-		annotated:    prob.annotated,
-		columns:      make([]column, C),
-		letCols:      make(map[byte][]*column, N),
-		known:        make(map[byte]bool, N),
-		fixedLetters: make(map[byte]int, N),
-		fixedValues:  append([]bool(nil), prob.fixedValues...),
+
+	other := prob.pool.Get()
+	if other == nil {
+		other = &planProblem{
+			pool:      prob.pool,
+			remap:     prob.remap,
+			problem:   prob.problem,
+			annotated: prob.annotated,
+		}
+		other.columns = make([]column, C)
+		other.letCols = make(map[byte][]*column, N)
+		other.known = make(map[byte]bool, N)
+		other.fixedLetters = make(map[byte]int, N)
+		other.fixedValues = append([]bool(nil), prob.fixedValues...)
+	} else {
+		if len(other.columns) != C {
+			other.columns = make([]column, C)
+		}
+		if len(other.fixedValues) != len(prob.fixedValues) {
+			other.fixedValues = append([]bool(nil), prob.fixedValues...)
+		}
+		for l := range other.fixedLetters {
+			delete(other.fixedLetters, l)
+		}
+		for c := range other.known {
+			delete(other.known, c)
+		}
 	}
 
 	for l, v := range prob.fixedLetters {
@@ -228,7 +265,12 @@ func (prob *planProblem) copy() *planProblem {
 		other.known[c] = k
 	}
 
-	remap := make(map[*column]*column, len(prob.columns))
+	if prob.remap == nil {
+		prob.remap = make(map[*column]*column, len(prob.columns))
+		other.remap = prob.remap
+	}
+	remap := prob.remap
+
 	var last *column
 	for i := 0; i < C; i++ {
 		other.columns[i] = prob.columns[i]
@@ -239,8 +281,12 @@ func (prob *planProblem) copy() *planProblem {
 		}
 		last = col
 	}
+
 	for c, cols := range prob.letCols {
-		otherCols := make([]*column, len(cols))
+		otherCols, _ := other.letCols[c]
+		if otherCols == nil {
+			otherCols = make([]*column, len(cols))
+		}
 		for i, col := range cols {
 			otherCols[i] = remap[col]
 		}
@@ -307,6 +353,8 @@ func (prob *planProblem) assumeCarrySolveColumn(
 		// path below
 		panic("alt pruning unimplemented")
 	}
+	prob.pool.Put(altProb)
+	altProb, altGen, altCol = nil, nil, nil
 
 	prob.solveColumn(gen, col)
 	if !andThen(prob, gen, col.prior) {
