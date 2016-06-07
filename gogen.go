@@ -33,7 +33,6 @@ type goGen struct {
 	usedSymbols map[string]struct{}
 	labels      map[string]int
 	addrAnnos   map[int][]string
-	lastLogDump int
 }
 
 func newGoGen(prob *planProblem) *goGen {
@@ -83,21 +82,7 @@ func (gg *goGen) loggedGen() solutionGen {
 	return multiGen([]solutionGen{
 		newLogGen(gg.planProblem),
 		gg,
-		// TODO: doesn't work right wrt fork alt
-		// afterGen(gg.dumpLastSteps),
 	})
-}
-
-func (gg *goGen) dumpLastSteps() {
-	// TODO: don't dump after finalize when we resurrect this
-	i := gg.lastLogDump
-	for ; i < len(gg.steps); i++ {
-		fmt.Printf("%v: %v\n", i, gg.steps[i])
-	}
-	if i > gg.lastLogDump {
-		fmt.Println()
-		gg.lastLogDump = i
-	}
 }
 
 func (gg *goGen) labelFor(i int) string {
