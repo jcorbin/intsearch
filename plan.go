@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"strings"
 	"sync"
 
 	"github.com/jcorbin/intsearch/word"
@@ -32,7 +31,7 @@ func planPrunedBrute(prob *planProblem, gen solutionGen, verified bool) {
 	}
 	for i := len(prob.columns) - 1; i >= 0; i-- {
 		col := &prob.columns[i]
-		for _, c := range col.cx {
+		for _, c := range col.Chars {
 			if c != 0 && !prob.known[c] {
 				prob.chooseRange(gen, c, mins[c], prob.Base-1)
 			}
@@ -60,47 +59,6 @@ func planBottomUp(prob *planProblem, gen solutionGen, verified bool) {
 	gen.finalize()
 }
 
-type column struct {
-	i       int
-	prior   *column
-	cx      [3]byte
-	solved  bool
-	have    int
-	known   int
-	unknown int
-	fixed   int
-	carry   word.CarryValue
-}
-
-func (col *column) String() string {
-	return fmt.Sprintf(
-		"%s solved=%t have=%d known=%d unknown=%d fixed=%d",
-		col.label(),
-		col.solved, col.have, col.known, col.unknown, col.fixed)
-}
-
-func (col *column) label() string {
-	return fmt.Sprintf("[%d] %s carry=%s", col.i, col.expr(), col.carry.Expr())
-}
-
-func (col *column) expr() string {
-	parts := make([]string, 0, 7)
-	if col.prior != nil {
-		parts = append(parts, col.prior.carry.Expr())
-	}
-	for _, c := range col.cx[:2] {
-		if c != 0 {
-			if len(parts) > 0 {
-				parts = append(parts, "+", string(c))
-			} else {
-				parts = append(parts, string(c))
-			}
-		}
-	}
-	parts = append(parts, "=", string(col.cx[2]))
-	return strings.Join(parts, " ")
-}
-
 type planProblemPool struct {
 	sync.Pool
 }
@@ -120,12 +78,12 @@ type planProblem struct {
 	word.Problem
 	pool         planProblemPool
 	annotated    bool
-	columns      []column
-	letCols      map[byte][]*column
+	columns      []word.Column
+	letCols      map[byte][]*word.Column
 	known        map[byte]bool
 	fixedLetters map[byte]int
 	fixedValues  []bool
-	remap        map[*column]*column
+	remap        map[*word.Column]*word.Column
 }
 
 type solutionGen interface {
@@ -133,11 +91,11 @@ type solutionGen interface {
 	init(desc string)
 	fork(prob *planProblem, name, alt, cont string) solutionGen
 	fix(c byte, v int)
-	computeSum(col *column)
-	computeFirstSummand(col *column)
-	computeSecondSummand(col *column)
+	computeSum(col *word.Column)
+	computeFirstSummand(col *word.Column)
+	computeSecondSummand(col *word.Column)
 	chooseRange(c byte, min, max int)
-	checkColumn(col *column, err error)
+	checkColumn(col *word.Column, err error)
 	check(err error)
 	finish()
 	verify()
@@ -150,42 +108,42 @@ func newPlanProblem(p *word.Problem, annotated bool) *planProblem {
 	prob := &planProblem{
 		Problem:      *p,
 		annotated:    annotated,
-		columns:      make([]column, C),
-		letCols:      make(map[byte][]*column, N),
+		columns:      make([]word.Column, C),
+		letCols:      make(map[byte][]*word.Column, N),
 		known:        make(map[byte]bool, N),
 		fixedLetters: make(map[byte]int, N),
 		fixedValues:  make([]bool, p.Base),
 	}
-	var last *column
+	var last *word.Column
 	for i := 0; i < C; i++ {
 		col := &prob.columns[i]
-		col.i = i
+		col.I = i
 		if i == 0 {
-			col.carry = word.CarryZero
+			col.Carry = word.CarryZero
 		} else {
-			col.carry = word.CarryUnknown
+			col.Carry = word.CarryUnknown
 		}
 		if last != nil {
-			last.prior = col
+			last.Prior = col
 		}
-		col.cx = prob.GetColumn(i)
-		a, b, c := col.cx[0], col.cx[1], col.cx[2]
+		col.Chars = prob.GetColumn(i)
+		a, b, c := col.Chars[0], col.Chars[1], col.Chars[2]
 		if a != 0 {
-			col.have++
-			col.unknown++
+			col.Have++
+			col.Unknown++
 			prob.letCols[a] = append(prob.letCols[a], col)
 		}
 		if b != 0 {
-			col.have++
+			col.Have++
 			if b != a {
-				col.unknown++
+				col.Unknown++
 				prob.letCols[b] = append(prob.letCols[b], col)
 			}
 		}
 		if c != 0 {
-			col.have++
+			col.Have++
 			if c != b && c != a {
-				col.unknown++
+				col.Unknown++
 				prob.letCols[c] = append(prob.letCols[c], col)
 			}
 		}
@@ -206,14 +164,14 @@ func (prob *planProblem) copy() *planProblem {
 			Problem:   prob.Problem,
 			annotated: prob.annotated,
 		}
-		other.columns = make([]column, C)
-		other.letCols = make(map[byte][]*column, N)
+		other.columns = make([]word.Column, C)
+		other.letCols = make(map[byte][]*word.Column, N)
 		other.known = make(map[byte]bool, N)
 		other.fixedLetters = make(map[byte]int, N)
 		other.fixedValues = append([]bool(nil), prob.fixedValues...)
 	} else {
 		if len(other.columns) != C {
-			other.columns = make([]column, C)
+			other.columns = make([]word.Column, C)
 		}
 		if len(other.fixedValues) != len(prob.fixedValues) {
 			other.fixedValues = append([]bool(nil), prob.fixedValues...)
@@ -235,18 +193,18 @@ func (prob *planProblem) copy() *planProblem {
 	}
 
 	if prob.remap == nil {
-		prob.remap = make(map[*column]*column, len(prob.columns))
+		prob.remap = make(map[*word.Column]*word.Column, len(prob.columns))
 		other.remap = prob.remap
 	}
 	remap := prob.remap
 
-	var last *column
+	var last *word.Column
 	for i := 0; i < C; i++ {
 		other.columns[i] = prob.columns[i]
 		col := &other.columns[i]
 		remap[&prob.columns[i]] = col
 		if last != nil {
-			last.prior = col
+			last.Prior = col
 		}
 		last = col
 	}
@@ -254,7 +212,7 @@ func (prob *planProblem) copy() *planProblem {
 	for c, cols := range prob.letCols {
 		otherCols, _ := other.letCols[c]
 		if otherCols == nil {
-			otherCols = make([]*column, len(cols))
+			otherCols = make([]*word.Column, len(cols))
 		}
 		for i, col := range cols {
 			otherCols[i] = remap[col]
@@ -268,13 +226,13 @@ func (prob *planProblem) copy() *planProblem {
 func (prob *planProblem) markKnown(c byte) {
 	prob.known[c] = true
 	for _, col := range prob.letCols[c] {
-		col.unknown--
-		col.known++
+		col.Unknown--
+		col.Known++
 	}
 }
 
-func (prob *planProblem) procTopDown(gen solutionGen, col *column, verified bool) bool {
-	if col.prior == nil {
+func (prob *planProblem) procTopDown(gen solutionGen, col *word.Column, verified bool) bool {
+	if col.Prior == nil {
 		prob.solveColumn(gen, col)
 		if verified {
 			gen.verify()
@@ -284,40 +242,40 @@ func (prob *planProblem) procTopDown(gen solutionGen, col *column, verified bool
 	}
 
 	if prob.maySolveColumn(gen, col) {
-		return prob.procTopDown(gen, col.prior, verified)
+		return prob.procTopDown(gen, col.Prior, verified)
 	}
 
 	return prob.assumeCarrySolveColumn(
 		gen, col,
-		func(subProb *planProblem, subGen solutionGen, subCol *column) bool {
+		func(subProb *planProblem, subGen solutionGen, subCol *word.Column) bool {
 			return subProb.procTopDown(subGen, subCol, verified)
 		})
 }
 
 func (prob *planProblem) assumeCarrySolveColumn(
-	gen solutionGen, col *column,
-	andThen func(*planProblem, solutionGen, *column) bool,
+	gen solutionGen, col *word.Column,
+	andThen func(*planProblem, solutionGen, *word.Column) bool,
 ) bool {
 	var label, altLabel, contLabel string
 	if prob.annotated {
-		label = col.label()
+		label = col.Label()
 		gen.logf("assumeCarrySolveColumn: %s", label)
 		label = fmt.Sprintf("assumeCarry(%s)", label)
 	}
 
 	altProb := prob.copy()
-	altCol := &altProb.columns[col.i]
+	altCol := &altProb.columns[col.I]
 
-	altCol.prior.carry = word.CarryZero
-	col.prior.carry = word.CarryOne
+	altCol.Prior.Carry = word.CarryZero
+	col.Prior.Carry = word.CarryOne
 	if prob.annotated {
-		altLabel = fmt.Sprintf("assumeCarry(%s)", altCol.label())
-		contLabel = fmt.Sprintf("assumeCarry(%s)", col.label())
+		altLabel = fmt.Sprintf("assumeCarry(%s)", altCol.Label())
+		contLabel = fmt.Sprintf("assumeCarry(%s)", col.Label())
 	}
 	altGen := gen.fork(altProb, label, altLabel, contLabel)
 
 	altProb.solveColumn(altGen, altCol)
-	if !andThen(altProb, altGen, altCol.prior) {
+	if !andThen(altProb, altGen, altCol.Prior) {
 		// TODO: needs to be able to cancel the fork, leaving only the cont
 		// path below
 		panic("alt pruning unimplemented")
@@ -326,7 +284,7 @@ func (prob *planProblem) assumeCarrySolveColumn(
 	altProb, altGen, altCol = nil, nil, nil
 
 	prob.solveColumn(gen, col)
-	if !andThen(prob, gen, col.prior) {
+	if !andThen(prob, gen, col.Prior) {
 		// TODO: needs to be able replace the fork with just the generated alt
 		// steps, or return false if the alt failed as well
 		panic("alt swapping unimplemented")
@@ -345,28 +303,28 @@ func (prob *planProblem) procBottomUp(gen solutionGen, verified bool) {
 	gen.finish()
 }
 
-func (prob *planProblem) checkColumn(gen solutionGen, col *column) bool {
-	if !col.solved {
+func (prob *planProblem) checkColumn(gen solutionGen, col *word.Column) bool {
+	if !col.Solved {
 		gen.checkColumn(col, nil)
-		col.solved = true
-		col.carry = word.CarryComputed
+		col.Solved = true
+		col.Carry = word.CarryComputed
 	}
 	return true
 }
 
-func (prob *planProblem) maySolveColumn(gen solutionGen, col *column) bool {
-	if col.solved {
-		if col.unknown != 0 {
+func (prob *planProblem) maySolveColumn(gen solutionGen, col *word.Column) bool {
+	if col.Solved {
+		if col.Unknown != 0 {
 			panic("invalid column solved state")
 		}
 		return true
 	}
 
-	if col.unknown == 0 {
+	if col.Unknown == 0 {
 		return prob.checkColumn(gen, col)
 	}
 
-	if col.have == 1 {
+	if col.Have == 1 {
 		if prob.solveSingularColumn(gen, col) {
 			return true
 		}
@@ -375,7 +333,7 @@ func (prob *planProblem) maySolveColumn(gen solutionGen, col *column) bool {
 	return prob.solveColumnFromPrior(gen, col)
 }
 
-func (prob *planProblem) solveColumn(gen solutionGen, col *column) {
+func (prob *planProblem) solveColumn(gen solutionGen, col *word.Column) {
 	if !prob.maySolveColumn(gen, col) {
 		log.Fatalf("cannot solve column: %#v", col)
 	}
@@ -387,24 +345,24 @@ func (prob *planProblem) fix(gen solutionGen, c byte, v int) {
 	// TODO: consider inlining markKnown and unifying the for range letCols loops
 	prob.markKnown(c)
 	for _, col := range prob.letCols[c] {
-		col.fixed++
+		col.Fixed++
 	}
 	gen.fix(c, v)
 }
 
-func (prob *planProblem) solveSingularColumn(gen solutionGen, col *column) bool {
-	if col.have != 1 || col.unknown != 1 {
+func (prob *planProblem) solveSingularColumn(gen solutionGen, col *word.Column) bool {
+	if col.Have != 1 || col.Unknown != 1 {
 		return false
 	}
 
-	if c := col.cx[2]; col.i == 0 && c != 0 {
+	if c := col.Chars[2]; col.I == 0 && c != 0 {
 		// carry + _ + _ = c --> c == carry --> c = carry = 1
-		if col.prior == nil {
+		if col.Prior == nil {
 			panic("invalid final column: has no prior")
 		}
 		prob.fix(gen, c, 1)
-		col.solved = true
-		col.prior.carry = word.CarryOne
+		col.Solved = true
+		col.Prior.Carry = word.CarryOne
 		return true
 	}
 
@@ -430,12 +388,12 @@ func (prob *planProblem) fixRange(min, max int, c byte) (int, int) {
 	return min, max
 }
 
-func (prob *planProblem) chooseOne(gen solutionGen, col *column) bool {
+func (prob *planProblem) chooseOne(gen solutionGen, col *word.Column) bool {
 	return prob.chooseFirst(gen, col)
 }
 
-func (prob *planProblem) chooseFirst(gen solutionGen, col *column) bool {
-	for _, cc := range col.cx {
+func (prob *planProblem) chooseFirst(gen solutionGen, col *word.Column) bool {
+	for _, cc := range col.Chars {
 		if cc == 0 || prob.known[cc] {
 			continue
 		}
@@ -450,11 +408,11 @@ func (prob *planProblem) chooseFirst(gen solutionGen, col *column) bool {
 	return false
 }
 
-func (prob *planProblem) chooseBest(gen solutionGen, col *column) bool {
+func (prob *planProblem) chooseBest(gen solutionGen, col *word.Column) bool {
 	var min, max, N [3]int
 
 	i := -1
-	for j, cc := range col.cx {
+	for j, cc := range col.Chars {
 		if cc == 0 || prob.known[cc] {
 			continue
 		}
@@ -472,7 +430,7 @@ func (prob *planProblem) chooseBest(gen solutionGen, col *column) bool {
 		return false
 	}
 
-	prob.chooseRange(gen, col.cx[i], min[i], max[i])
+	prob.chooseRange(gen, col.Chars[i], min[i], max[i])
 	return true
 }
 
@@ -481,47 +439,47 @@ func (prob *planProblem) chooseRange(gen solutionGen, c byte, min, max int) {
 	prob.markKnown(c)
 }
 
-func (prob *planProblem) solveColumnFromPrior(gen solutionGen, col *column) bool {
-	if col.prior != nil && col.prior.carry == word.CarryUnknown {
+func (prob *planProblem) solveColumnFromPrior(gen solutionGen, col *word.Column) bool {
+	if col.Prior != nil && col.Prior.Carry == word.CarryUnknown {
 		// unknown prior carry is a case for assumeCarrySolveColumn
 		return false
 	}
 
-	if col.unknown == 0 {
+	if col.Unknown == 0 {
 		// this is checkColumn's job
 		return false
 	}
 
 	if prob.annotated {
-		gen.logf("solveFromPrior: %s", col.label())
+		gen.logf("solveFromPrior: %s", col.Label())
 	}
 
-	for u := col.unknown; u > 1; u = col.unknown {
+	for u := col.Unknown; u > 1; u = col.Unknown {
 		if !prob.chooseOne(gen, col) {
 			break
 		}
 	}
-	if col.unknown > 1 {
+	if col.Unknown > 1 {
 		// chooseOne was unable to figure it out
 		return false
 	}
 
-	if c := col.cx[0]; c != 0 && !prob.known[c] {
+	if c := col.Chars[0]; c != 0 && !prob.known[c] {
 		gen.computeFirstSummand(col)
-		col.carry = word.CarryComputed
+		col.Carry = word.CarryComputed
 		prob.markKnown(c)
-	} else if c := col.cx[1]; c != 0 && !prob.known[c] {
+	} else if c := col.Chars[1]; c != 0 && !prob.known[c] {
 		gen.computeSecondSummand(col)
-		col.carry = word.CarryComputed
+		col.Carry = word.CarryComputed
 		prob.markKnown(c)
-	} else if c := col.cx[2]; c != 0 && !prob.known[c] {
+	} else if c := col.Chars[2]; c != 0 && !prob.known[c] {
 		gen.computeSum(col)
-		col.carry = word.CarryComputed
+		col.Carry = word.CarryComputed
 		prob.markKnown(c)
 	} else {
 		panic("invalid solveColumnFromPrior state")
 	}
 
-	col.solved = true
+	col.Solved = true
 	return true
 }

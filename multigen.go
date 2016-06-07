@@ -1,5 +1,7 @@
 package main
 
+import "github.com/jcorbin/intsearch/word"
+
 type multiGen []solutionGen
 
 func (mg multiGen) logf(format string, args ...interface{}) error {
@@ -29,19 +31,19 @@ func (mg multiGen) fix(c byte, v int) {
 	}
 }
 
-func (mg multiGen) computeSum(col *column) {
+func (mg multiGen) computeSum(col *word.Column) {
 	for _, gen := range mg {
 		gen.computeSum(col)
 	}
 }
 
-func (mg multiGen) computeFirstSummand(col *column) {
+func (mg multiGen) computeFirstSummand(col *word.Column) {
 	for _, gen := range mg {
 		gen.computeFirstSummand(col)
 	}
 }
 
-func (mg multiGen) computeSecondSummand(col *column) {
+func (mg multiGen) computeSecondSummand(col *word.Column) {
 	for _, gen := range mg {
 		gen.computeSecondSummand(col)
 	}
@@ -53,7 +55,7 @@ func (mg multiGen) chooseRange(c byte, min, max int) {
 	}
 }
 
-func (mg multiGen) checkColumn(col *column, err error) {
+func (mg multiGen) checkColumn(col *word.Column, err error) {
 	for _, gen := range mg {
 		gen.checkColumn(col, err)
 	}

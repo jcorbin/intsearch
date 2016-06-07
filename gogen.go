@@ -29,7 +29,7 @@ func (ve verifyError) Error() string {
 type goGen struct {
 	*planProblem
 	steps       []solutionStep
-	carryPrior  *column
+	carryPrior  *word.Column
 	carrySaved  bool
 	carryValid  bool
 	usedSymbols map[string]struct{}
@@ -156,7 +156,7 @@ func (gg *goGen) fix(c byte, v int) {
 		storeAStep(c))
 }
 
-func (gg *goGen) stashCarry(col *column) {
+func (gg *goGen) stashCarry(col *word.Column) {
 	if gg.carryPrior == col && (col == nil || gg.carrySaved) {
 		return
 	}
@@ -173,34 +173,34 @@ func (gg *goGen) stashCarry(col *column) {
 
 	if gg.addrAnnos != nil {
 		gg.steps = append(gg.steps,
-			labelStep(gg.gensym("stashCarry(%d)", col.i)))
+			labelStep(gg.gensym("stashCarry(%d)", col.I)))
 	}
 	gg.steps = append(gg.steps, setCAStep{})
 	gg.carrySaved = true
 	gg.carryPrior = col
 }
 
-func (gg *goGen) saveCarry(col *column) {
+func (gg *goGen) saveCarry(col *word.Column) {
 	if !gg.carryValid {
 		gg.ensureCarry(col)
 	}
 	gg.stashCarry(col)
 }
 
-func (gg *goGen) computeSum(col *column) {
+func (gg *goGen) computeSum(col *word.Column) {
 	// Given:
 	//   carry + a + b = c (mod base)
 	// Solve for c:
 	//   c = carry + a + b (mod base)
-	a, b, c := col.cx[0], col.cx[1], col.cx[2]
-	gg.ensureCarry(col.prior)
+	a, b, c := col.Chars[0], col.Chars[1], col.Chars[2]
+	gg.ensureCarry(col.Prior)
 	gg.carryValid = false
 	gg.carrySaved = false
 
 	steps := make([]solutionStep, 0, 12)
 	if gg.addrAnnos != nil {
 		steps = append(steps,
-			labelStep(gg.gensym("computeSum(%s)", col.label())))
+			labelStep(gg.gensym("computeSum(%s)", col.Label())))
 	}
 	if a != 0 {
 		steps = append(steps, addAValueStep(a))
@@ -227,20 +227,20 @@ func (gg *goGen) computeSum(col *column) {
 	gg.checkAfterCompute(col, c)
 }
 
-func (gg *goGen) computeFirstSummand(col *column) {
-	gg.computeSummand(col, col.cx[0], col.cx[1], col.cx[2])
+func (gg *goGen) computeFirstSummand(col *word.Column) {
+	gg.computeSummand(col, col.Chars[0], col.Chars[1], col.Chars[2])
 }
 
-func (gg *goGen) computeSecondSummand(col *column) {
-	gg.computeSummand(col, col.cx[1], col.cx[0], col.cx[2])
+func (gg *goGen) computeSecondSummand(col *word.Column) {
+	gg.computeSummand(col, col.Chars[1], col.Chars[0], col.Chars[2])
 }
 
-func (gg *goGen) computeSummand(col *column, a, b, c byte) {
+func (gg *goGen) computeSummand(col *word.Column, a, b, c byte) {
 	// Given:
 	//   carry + a + b = c (mod base)
 	// Solve for a:
 	//   a = c - b - carry (mod base)
-	gg.ensureCarry(col.prior)
+	gg.ensureCarry(col.Prior)
 	if !gg.carrySaved {
 		gg.steps = append(gg.steps, setCAStep{})
 	}
@@ -251,7 +251,7 @@ func (gg *goGen) computeSummand(col *column, a, b, c byte) {
 	steps := make([]solutionStep, 0, 10)
 	if gg.addrAnnos != nil {
 		steps = append(steps,
-			labelStep(gg.gensym("computeSummand(%s)", col.label())))
+			labelStep(gg.gensym("computeSummand(%s)", col.Label())))
 	}
 	steps = append(steps, negAStep{})
 	if c != 0 {
@@ -293,14 +293,14 @@ func (gg *goGen) computeSummand(col *column, a, b, c byte) {
 	gg.checkAfterCompute(col, a)
 }
 
-func (gg *goGen) checkAfterCompute(col *column, c byte) {
+func (gg *goGen) checkAfterCompute(col *word.Column, c byte) {
 	if c == gg.Words[0][0] || c == gg.Words[1][0] || c == gg.Words[2][0] {
 		gg.checkInitialLetter(col, c)
 	}
 	gg.checkFixedCarry(col)
 }
 
-func (gg *goGen) checkInitialLetter(col *column, c byte) {
+func (gg *goGen) checkInitialLetter(col *word.Column, c byte) {
 	if gg.carryValid {
 		gg.stashCarry(col)
 		gg.carryValid = false
@@ -315,8 +315,8 @@ func (gg *goGen) checkInitialLetter(col *column, c byte) {
 		exitStep{errCheckFailed})
 }
 
-func (gg *goGen) checkFixedCarry(col *column) {
-	switch col.carry {
+func (gg *goGen) checkFixedCarry(col *word.Column) {
+	switch col.Carry {
 	case word.CarryZero:
 		fallthrough
 	case word.CarryOne:
@@ -329,10 +329,10 @@ func (gg *goGen) checkFixedCarry(col *column) {
 
 	if gg.addrAnnos != nil {
 		gg.steps = append(gg.steps,
-			labelStep(gg.gensym("checkFixedCarry(%s)", col.label())))
+			labelStep(gg.gensym("checkFixedCarry(%s)", col.Label())))
 	}
 
-	switch col.carry {
+	switch col.Carry {
 	case word.CarryZero:
 		gg.steps = append(gg.steps,
 			relJZStep(1),
@@ -357,7 +357,7 @@ func (gg *goGen) chooseRange(c byte, min, max int) {
 	)
 }
 
-func (gg *goGen) restoreCarry(col *column) bool {
+func (gg *goGen) restoreCarry(col *word.Column) bool {
 	if col != gg.carryPrior {
 		return false
 	}
@@ -369,14 +369,14 @@ func (gg *goGen) restoreCarry(col *column) bool {
 	}
 	if gg.addrAnnos != nil {
 		gg.steps = append(gg.steps,
-			labelStep(gg.gensym("restoreCarry(%d)", col.i)))
+			labelStep(gg.gensym("restoreCarry(%d)", col.I)))
 	}
 	gg.steps = append(gg.steps, setACStep{})
 	gg.carryValid = true
 	return true
 }
 
-func (gg *goGen) ensureCarry(col *column) {
+func (gg *goGen) ensureCarry(col *word.Column) {
 	if col == nil {
 		if gg.addrAnnos != nil {
 			gg.steps = append(gg.steps,
@@ -389,15 +389,15 @@ func (gg *goGen) ensureCarry(col *column) {
 		return
 	}
 
-	switch col.carry {
+	switch col.Carry {
 	case word.CarryZero:
 		fallthrough
 	case word.CarryOne:
 		if gg.addrAnnos != nil {
 			gg.steps = append(gg.steps,
-				labelStep(gg.gensym("ensureCarry(%d):fixed", col.i)))
+				labelStep(gg.gensym("ensureCarry(%d):fixed", col.I)))
 		}
-		gg.steps = append(gg.steps, setAStep(col.carry))
+		gg.steps = append(gg.steps, setAStep(col.Carry))
 		gg.carryPrior = col
 		gg.carrySaved = false
 		gg.carryValid = true
@@ -408,20 +408,20 @@ func (gg *goGen) ensureCarry(col *column) {
 		return
 	}
 
-	c1 := col.cx[0]
+	c1 := col.Chars[0]
 	if c1 != 0 && !gg.known[c1] {
 		log.Fatalf("cannot compute carry from unknown c1 for column %v", col)
 	}
 
-	c2 := col.cx[1]
+	c2 := col.Chars[1]
 	if c2 != 0 && !gg.known[c2] {
 		log.Fatalf("cannot compute carry from unknown c2 for column %v", col)
 	}
 
-	gg.ensureCarry(col.prior)
+	gg.ensureCarry(col.Prior)
 	if gg.addrAnnos != nil {
 		gg.steps = append(gg.steps,
-			labelStep(gg.gensym("computeCarry(%s)", col.label())))
+			labelStep(gg.gensym("computeCarry(%s)", col.Label())))
 	}
 	steps := make([]solutionStep, 0, 3)
 	if c1 != 0 {
@@ -446,16 +446,16 @@ func (gg *goGen) check(err error) {
 	}
 }
 
-func (gg *goGen) checkColumn(col *column, err error) {
+func (gg *goGen) checkColumn(col *word.Column, err error) {
 	if err == nil {
 		err = errCheckFailed
 	}
 
-	a, b, c := col.cx[0], col.cx[1], col.cx[2]
-	gg.ensureCarry(col.prior)
+	a, b, c := col.Chars[0], col.Chars[1], col.Chars[2]
+	gg.ensureCarry(col.Prior)
 	if gg.addrAnnos != nil {
 		gg.steps = append(gg.steps,
-			labelStep(gg.gensym("checkColumn(%s)", col.label())))
+			labelStep(gg.gensym("checkColumn(%s)", col.Label())))
 	}
 	steps := make([]solutionStep, 0, 9)
 
@@ -512,13 +512,13 @@ func (gg *goGen) doVerify(name string, err error) {
 func (gg *goGen) verifyColumns(name string, err error) {
 	// verify columns from bottom up
 	for i := len(gg.columns) - 1; i >= 0; i-- {
-		if gg.columns[i].unknown > 0 {
+		if gg.columns[i].Unknown > 0 {
 			return
 		}
 		col := &gg.columns[i]
 		colErr := err
 		if colErr == nil {
-			colErr = verifyError(col.label())
+			colErr = verifyError(col.Label())
 		}
 		gg.checkColumn(col, colErr)
 	}

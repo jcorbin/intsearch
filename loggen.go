@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"strings"
+
+	"github.com/jcorbin/intsearch/word"
 )
 
 type logGen struct {
@@ -81,8 +83,8 @@ func (lg *logGen) fix(c byte, v int) {
 	lg.stepf("fix %v = %v", string(c), v)
 }
 
-func (lg *logGen) computeSum(col *column) {
-	a, b, c := col.cx[0], col.cx[1], col.cx[2]
+func (lg *logGen) computeSum(col *word.Column) {
+	a, b, c := col.Chars[0], col.Chars[1], col.Chars[2]
 	if a != 0 && b != 0 {
 		lg.stepf("compute %v = %v + %v + carry (mod %v)", string(c), string(a), string(b), lg.Base)
 	} else if a != 0 {
@@ -94,12 +96,12 @@ func (lg *logGen) computeSum(col *column) {
 	}
 }
 
-func (lg *logGen) computeFirstSummand(col *column) {
-	lg.computeSummand(col.cx[0], col.cx[1], col.cx[2])
+func (lg *logGen) computeFirstSummand(col *word.Column) {
+	lg.computeSummand(col.Chars[0], col.Chars[1], col.Chars[2])
 }
 
-func (lg *logGen) computeSecondSummand(col *column) {
-	lg.computeSummand(col.cx[1], col.cx[0], col.cx[2])
+func (lg *logGen) computeSecondSummand(col *word.Column) {
+	lg.computeSummand(col.Chars[1], col.Chars[0], col.Chars[2])
 }
 
 func (lg *logGen) computeSummand(a, b, c byte) {
@@ -124,8 +126,8 @@ func (lg *logGen) chooseRange(c byte, min, max int) {
 	lg.stepf("choose %v (branch by %v)", string(c), N)
 }
 
-func (lg *logGen) checkColumn(col *column, err error) {
-	lg.stepf("check column: %s", col.label())
+func (lg *logGen) checkColumn(col *word.Column, err error) {
+	lg.stepf("check column: %s", col.Label())
 }
 
 func (lg *logGen) verify() {
