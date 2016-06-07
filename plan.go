@@ -9,8 +9,6 @@ import (
 	"github.com/jcorbin/intsearch/word"
 )
 
-type carryValue int
-
 type planFunc func(*planProblem, solutionGen, bool)
 
 func planNaiveBrute(prob *planProblem, gen solutionGen, verified bool) {
@@ -62,30 +60,6 @@ func planBottomUp(prob *planProblem, gen solutionGen, verified bool) {
 	gen.finalize()
 }
 
-const (
-	carryUnknown carryValue = iota - 1
-	carryZero
-	carryOne
-	carryComputed
-)
-
-//go:generate stringer -type=carryValue
-
-func (cv carryValue) expr() string {
-	switch cv {
-	case carryUnknown:
-		return "?"
-	case carryZero:
-		return "0"
-	case carryOne:
-		return "1"
-	case carryComputed:
-		return "C"
-	default:
-		return "!"
-	}
-}
-
 type column struct {
 	i       int
 	prior   *column
@@ -95,7 +69,7 @@ type column struct {
 	known   int
 	unknown int
 	fixed   int
-	carry   carryValue
+	carry   word.CarryValue
 }
 
 func (col *column) String() string {
@@ -106,13 +80,13 @@ func (col *column) String() string {
 }
 
 func (col *column) label() string {
-	return fmt.Sprintf("[%d] %s carry=%s", col.i, col.expr(), col.carry.expr())
+	return fmt.Sprintf("[%d] %s carry=%s", col.i, col.expr(), col.carry.Expr())
 }
 
 func (col *column) expr() string {
 	parts := make([]string, 0, 7)
 	if col.prior != nil {
-		parts = append(parts, col.prior.carry.expr())
+		parts = append(parts, col.prior.carry.Expr())
 	}
 	for _, c := range col.cx[:2] {
 		if c != 0 {
@@ -187,9 +161,9 @@ func newPlanProblem(p *word.Problem, annotated bool) *planProblem {
 		col := &prob.columns[i]
 		col.i = i
 		if i == 0 {
-			col.carry = carryZero
+			col.carry = word.CarryZero
 		} else {
-			col.carry = carryUnknown
+			col.carry = word.CarryUnknown
 		}
 		if last != nil {
 			last.prior = col
@@ -334,8 +308,8 @@ func (prob *planProblem) assumeCarrySolveColumn(
 	altProb := prob.copy()
 	altCol := &altProb.columns[col.i]
 
-	altCol.prior.carry = carryZero
-	col.prior.carry = carryOne
+	altCol.prior.carry = word.CarryZero
+	col.prior.carry = word.CarryOne
 	if prob.annotated {
 		altLabel = fmt.Sprintf("assumeCarry(%s)", altCol.label())
 		contLabel = fmt.Sprintf("assumeCarry(%s)", col.label())
@@ -375,7 +349,7 @@ func (prob *planProblem) checkColumn(gen solutionGen, col *column) bool {
 	if !col.solved {
 		gen.checkColumn(col, nil)
 		col.solved = true
-		col.carry = carryComputed
+		col.carry = word.CarryComputed
 	}
 	return true
 }
@@ -430,7 +404,7 @@ func (prob *planProblem) solveSingularColumn(gen solutionGen, col *column) bool 
 		}
 		prob.fix(gen, c, 1)
 		col.solved = true
-		col.prior.carry = carryOne
+		col.prior.carry = word.CarryOne
 		return true
 	}
 
@@ -508,7 +482,7 @@ func (prob *planProblem) chooseRange(gen solutionGen, c byte, min, max int) {
 }
 
 func (prob *planProblem) solveColumnFromPrior(gen solutionGen, col *column) bool {
-	if col.prior != nil && col.prior.carry == carryUnknown {
+	if col.prior != nil && col.prior.carry == word.CarryUnknown {
 		// unknown prior carry is a case for assumeCarrySolveColumn
 		return false
 	}
@@ -534,15 +508,15 @@ func (prob *planProblem) solveColumnFromPrior(gen solutionGen, col *column) bool
 
 	if c := col.cx[0]; c != 0 && !prob.known[c] {
 		gen.computeFirstSummand(col)
-		col.carry = carryComputed
+		col.carry = word.CarryComputed
 		prob.markKnown(c)
 	} else if c := col.cx[1]; c != 0 && !prob.known[c] {
 		gen.computeSecondSummand(col)
-		col.carry = carryComputed
+		col.carry = word.CarryComputed
 		prob.markKnown(c)
 	} else if c := col.cx[2]; c != 0 && !prob.known[c] {
 		gen.computeSum(col)
-		col.carry = carryComputed
+		col.carry = word.CarryComputed
 		prob.markKnown(c)
 	} else {
 		panic("invalid solveColumnFromPrior state")

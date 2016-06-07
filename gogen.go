@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"strings"
+
+	"github.com/jcorbin/intsearch/word"
 )
 
 var (
@@ -315,9 +317,9 @@ func (gg *goGen) checkInitialLetter(col *column, c byte) {
 
 func (gg *goGen) checkFixedCarry(col *column) {
 	switch col.carry {
-	case carryZero:
+	case word.CarryZero:
 		fallthrough
-	case carryOne:
+	case word.CarryOne:
 		if !gg.restoreCarry(col) {
 			return
 		}
@@ -331,11 +333,11 @@ func (gg *goGen) checkFixedCarry(col *column) {
 	}
 
 	switch col.carry {
-	case carryZero:
+	case word.CarryZero:
 		gg.steps = append(gg.steps,
 			relJZStep(1),
 			exitStep{errCheckFailed})
-	case carryOne:
+	case word.CarryOne:
 		gg.steps = append(gg.steps,
 			relJNZStep(1),
 			exitStep{errCheckFailed})
@@ -388,9 +390,9 @@ func (gg *goGen) ensureCarry(col *column) {
 	}
 
 	switch col.carry {
-	case carryZero:
+	case word.CarryZero:
 		fallthrough
-	case carryOne:
+	case word.CarryOne:
 		if gg.addrAnnos != nil {
 			gg.steps = append(gg.steps,
 				labelStep(gg.gensym("ensureCarry(%d):fixed", col.i)))
