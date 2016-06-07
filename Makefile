@@ -1,4 +1,4 @@
-PACKAGES=.
+PACKAGES=. ./word
 
 .PHONY: generate
 generate:

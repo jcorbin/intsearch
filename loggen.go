@@ -16,7 +16,7 @@ func newLogGen(prob *planProblem) *logGen {
 	return &logGen{
 		planProblem: prob,
 		prefix:      "",
-		branches:    make([]int, 0, len(prob.letterSet)),
+		branches:    make([]int, 0, len(prob.Letters)),
 	}
 }
 
@@ -38,20 +38,20 @@ func (lg *logGen) stepf(format string, args ...interface{}) {
 
 func (lg *logGen) init(desc string) {
 	var w int
-	for _, word := range lg.words {
+	for _, word := range lg.Words {
 		if len(word) > w {
 			w = len(word)
 		}
 	}
-	letters := make([]string, len(lg.letterSet))
-	for i, c := range lg.sortedLetters() {
+	letters := make([]string, len(lg.Letters))
+	for i, c := range lg.SortedLetters() {
 		letters[i] = string(c)
 	}
 	lg.logf("Problem:")
-	lg.logf("  %s%v", strings.Repeat(" ", w-len(lg.words[0])), string(lg.words[0]))
-	lg.logf("+ %s%v", strings.Repeat(" ", w-len(lg.words[1])), string(lg.words[1]))
-	lg.logf("= %s%v", strings.Repeat(" ", w-len(lg.words[2])), string(lg.words[2]))
-	lg.logf("base: %v", lg.base)
+	lg.logf("  %s%v", strings.Repeat(" ", w-len(lg.Words[0])), string(lg.Words[0]))
+	lg.logf("+ %s%v", strings.Repeat(" ", w-len(lg.Words[1])), string(lg.Words[1]))
+	lg.logf("= %s%v", strings.Repeat(" ", w-len(lg.Words[2])), string(lg.Words[2]))
+	lg.logf("base: %v", lg.Base)
 	lg.logf("letters: %v", letters)
 	lg.logf("method: %s", desc)
 	lg.logf("")
@@ -84,13 +84,13 @@ func (lg *logGen) fix(c byte, v int) {
 func (lg *logGen) computeSum(col *column) {
 	a, b, c := col.cx[0], col.cx[1], col.cx[2]
 	if a != 0 && b != 0 {
-		lg.stepf("compute %v = %v + %v + carry (mod %v)", string(c), string(a), string(b), lg.base)
+		lg.stepf("compute %v = %v + %v + carry (mod %v)", string(c), string(a), string(b), lg.Base)
 	} else if a != 0 {
-		lg.stepf("compute %v = %v + carry (mod %v)", string(c), string(a), lg.base)
+		lg.stepf("compute %v = %v + carry (mod %v)", string(c), string(a), lg.Base)
 	} else if b != 0 {
-		lg.stepf("compute %v = %v + carry (mod %v)", string(c), string(b), lg.base)
+		lg.stepf("compute %v = %v + carry (mod %v)", string(c), string(b), lg.Base)
 	} else {
-		lg.stepf("compute %v = carry (mod %v)", string(c), lg.base)
+		lg.stepf("compute %v = carry (mod %v)", string(c), lg.Base)
 	}
 }
 
@@ -104,19 +104,19 @@ func (lg *logGen) computeSecondSummand(col *column) {
 
 func (lg *logGen) computeSummand(a, b, c byte) {
 	if b != 0 && c != 0 {
-		lg.stepf("compute %v = %v - %v - carry (mod %v)", string(a), string(b), string(c), lg.base)
+		lg.stepf("compute %v = %v - %v - carry (mod %v)", string(a), string(b), string(c), lg.Base)
 	} else if b != 0 {
-		lg.stepf("compute %v = %v - carry (mod %v)", string(a), string(b), lg.base)
+		lg.stepf("compute %v = %v - carry (mod %v)", string(a), string(b), lg.Base)
 	} else if c != 0 {
-		lg.stepf("compute %v = %v - carry (mod %v)", string(a), string(c), lg.base)
+		lg.stepf("compute %v = %v - carry (mod %v)", string(a), string(c), lg.Base)
 	} else {
-		lg.stepf("compute %v = - carry (mod %v)", string(a), lg.base)
+		lg.stepf("compute %v = - carry (mod %v)", string(a), lg.Base)
 	}
 }
 
 func (lg *logGen) chooseRange(c byte, min, max int) {
 	N := max - min
-	R := lg.base - len(lg.known)
+	R := lg.Base - len(lg.known)
 	if R < N {
 		N = R
 	}

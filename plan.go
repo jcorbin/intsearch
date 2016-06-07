@@ -5,6 +5,8 @@ import (
 	"log"
 	"strings"
 	"sync"
+
+	"github.com/jcorbin/intsearch/word"
 )
 
 type carryValue int
@@ -13,8 +15,8 @@ type planFunc func(*planProblem, solutionGen, bool)
 
 func planNaiveBrute(prob *planProblem, gen solutionGen, verified bool) {
 	gen.init("naive brute force")
-	for _, c := range prob.sortedLetters() {
-		prob.chooseRange(gen, c, 0, prob.base-1)
+	for _, c := range prob.SortedLetters() {
+		prob.chooseRange(gen, c, 0, prob.Base-1)
 	}
 	gen.check(errCheckFailed)
 	if verified {
@@ -27,14 +29,14 @@ func planNaiveBrute(prob *planProblem, gen solutionGen, verified bool) {
 func planPrunedBrute(prob *planProblem, gen solutionGen, verified bool) {
 	gen.init("pruned brute force")
 	var mins [256]int
-	for _, word := range prob.words {
+	for _, word := range prob.Words {
 		mins[word[0]] = 1
 	}
 	for i := len(prob.columns) - 1; i >= 0; i-- {
 		col := &prob.columns[i]
 		for _, c := range col.cx {
 			if c != 0 && !prob.known[c] {
-				prob.chooseRange(gen, c, mins[c], prob.base-1)
+				prob.chooseRange(gen, c, mins[c], prob.Base-1)
 			}
 		}
 		prob.checkColumn(gen, col)
@@ -148,7 +150,7 @@ func (pp *planProblemPool) Put(prob *planProblem) {
 }
 
 type planProblem struct {
-	problem
+	word.Problem
 	pool         planProblemPool
 	annotated    bool
 	columns      []column
@@ -175,17 +177,17 @@ type solutionGen interface {
 	finalize()
 }
 
-func newPlanProblem(p *problem, annotated bool) *planProblem {
-	C := p.numColumns()
-	N := len(p.letterSet)
+func newPlanProblem(p *word.Problem, annotated bool) *planProblem {
+	C := p.NumColumns()
+	N := len(p.Letters)
 	prob := &planProblem{
-		problem:      *p,
+		Problem:      *p,
 		annotated:    annotated,
 		columns:      make([]column, C),
 		letCols:      make(map[byte][]*column, N),
 		known:        make(map[byte]bool, N),
 		fixedLetters: make(map[byte]int, N),
-		fixedValues:  make([]bool, p.base),
+		fixedValues:  make([]bool, p.Base),
 	}
 	var last *column
 	for i := 0; i < C; i++ {
@@ -199,7 +201,7 @@ func newPlanProblem(p *problem, annotated bool) *planProblem {
 		if last != nil {
 			last.prior = col
 		}
-		col.cx = prob.getColumn(i)
+		col.cx = prob.GetColumn(i)
 		a, b, c := col.cx[0], col.cx[1], col.cx[2]
 		if a != 0 {
 			col.have++
@@ -226,15 +228,15 @@ func newPlanProblem(p *problem, annotated bool) *planProblem {
 }
 
 func (prob *planProblem) copy() *planProblem {
-	C := prob.numColumns()
-	N := len(prob.letterSet)
+	C := prob.NumColumns()
+	N := len(prob.Letters)
 
 	other := prob.pool.Get()
 	if other == nil {
 		other = &planProblem{
 			pool:      prob.pool,
 			remap:     prob.remap,
-			problem:   prob.problem,
+			Problem:   prob.Problem,
 			annotated: prob.annotated,
 		}
 		other.columns = make([]column, C)
@@ -444,9 +446,9 @@ func (prob *planProblem) solveSingularColumn(gen solutionGen, col *column) bool 
 
 func (prob *planProblem) fixRange(min, max int, c byte) (int, int) {
 	if min == 0 && (prob.fixedValues[0] ||
-		c == prob.words[0][0] ||
-		c == prob.words[1][0] ||
-		c == prob.words[2][0]) {
+		c == prob.Words[0][0] ||
+		c == prob.Words[1][0] ||
+		c == prob.Words[2][0]) {
 		min = 1
 	}
 	for max > 0 && prob.fixedValues[max] {
@@ -470,7 +472,7 @@ func (prob *planProblem) chooseFirst(gen solutionGen, col *column) bool {
 		if cc == 0 || prob.known[cc] {
 			continue
 		}
-		min, max := prob.fixRange(0, prob.base-1, cc)
+		min, max := prob.fixRange(0, prob.Base-1, cc)
 		if min == max {
 			prob.fix(gen, cc, min)
 			return true
@@ -489,7 +491,7 @@ func (prob *planProblem) chooseBest(gen solutionGen, col *column) bool {
 		if cc == 0 || prob.known[cc] {
 			continue
 		}
-		min[j], max[j] = prob.fixRange(0, prob.base-1, cc)
+		min[j], max[j] = prob.fixRange(0, prob.Base-1, cc)
 		if min[j] == max[j] {
 			prob.fix(gen, cc, min[j])
 			return true

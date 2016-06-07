@@ -6,6 +6,8 @@ import (
 	"log"
 	"sort"
 	"strings"
+
+	"github.com/jcorbin/intsearch/word"
 )
 
 var planStrategies = map[string]planFunc{
@@ -35,7 +37,7 @@ var (
 		strings.Join(planStrategyNames(), ", ")))
 
 	first bool
-	prob  problem
+	prob  word.Problem
 	srch  search
 	gg    *goGen
 	gen   solutionGen
@@ -182,7 +184,7 @@ func main() {
 			plan, strings.Join(planStrategyNames(), ", "))
 	}
 
-	if err := prob.setup(word1, word2, word3); err != nil {
+	if err := prob.Setup(word1, word2, word3); err != nil {
 		log.Fatalf("setup failed: %v", err)
 	}
 

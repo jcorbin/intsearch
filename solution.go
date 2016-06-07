@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+
+	"github.com/jcorbin/intsearch/word"
 )
 
 type solutionPool struct {
@@ -279,7 +281,7 @@ func mustExpandStepSanely(
 }
 
 type solution struct {
-	prob       *problem
+	prob       *word.Problem
 	pool       *solutionPool
 	emit       func(*solution)
 	steps      []solutionStep
@@ -292,7 +294,7 @@ type solution struct {
 	trace      []*solution
 }
 
-func newSolution(prob *problem, steps []solutionStep, emit func(*solution)) *solution {
+func newSolution(prob *word.Problem, steps []solutionStep, emit func(*solution)) *solution {
 	sol := solution{
 		prob:  prob,
 		pool:  &solutionPool{},
@@ -326,16 +328,16 @@ func (sol *solution) printCheck(printf func(string, ...interface{})) {
 	if !check {
 		rels[2] = "!="
 	}
-	for i, word := range sol.prob.words {
-		pad := strings.Repeat(" ", len(sol.prob.words[2])-len(word))
+	for i, word := range sol.prob.Words {
+		pad := strings.Repeat(" ", len(sol.prob.Words[2])-len(word))
 		printf("  %s%s %s == %s%v", marks[i], pad, word, pad, ns[i])
 	}
 }
 
 func (sol *solution) numbers() [3]int {
 	var ns [3]int
-	base := sol.prob.base
-	for i, word := range sol.prob.words {
+	base := sol.prob.Base
+	for i, word := range sol.prob.Words {
 		n := 0
 		for _, c := range word {
 			n = n*base + sol.values[c]
@@ -346,8 +348,8 @@ func (sol *solution) numbers() [3]int {
 }
 
 func (sol *solution) letterMapping() string {
-	parts := make([]string, 0, len(sol.prob.letterSet))
-	for _, c := range sol.prob.sortedLetters() {
+	parts := make([]string, 0, len(sol.prob.Letters))
+	for _, c := range sol.prob.SortedLetters() {
 		v := sol.values[c]
 		if v >= 0 && sol.used[v] {
 			parts = append(parts, fmt.Sprintf("%s:%v", string(c), v))

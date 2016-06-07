@@ -37,12 +37,12 @@ type goGen struct {
 
 func newGoGen(prob *planProblem) *goGen {
 	n := 0
-	for _, w := range prob.words {
+	for _, w := range prob.Words {
 		n += len(w)
 	}
 	gg := &goGen{
 		planProblem: prob,
-		usedSymbols: make(map[string]struct{}, 3*len(prob.letterSet)),
+		usedSymbols: make(map[string]struct{}, 3*len(prob.Letters)),
 		steps:       make([]solutionStep, 0, n*50),
 	}
 	if prob.annotated {
@@ -72,9 +72,9 @@ func fallFact(x, y int) int {
 }
 
 func (gg *goGen) searchInit(emit emitFunc) int {
-	emit(newSolution(&gg.planProblem.problem, gg.steps, emit))
+	emit(newSolution(&gg.planProblem.Problem, gg.steps, emit))
 	// worst case, we have to run every step for every possible brute force solution
-	numBrute := fallFact(gg.base, len(gg.letterSet))
+	numBrute := fallFact(gg.Base, len(gg.Letters))
 	return numBrute * len(gg.steps)
 }
 
@@ -208,14 +208,14 @@ func (gg *goGen) computeSum(col *column) {
 	}
 	steps = append(steps,
 		setCAStep{},
-		modAStep(gg.base),
+		modAStep(gg.Base),
 		setBAStep{},
 		usedAStep{},
 		relJZStep(1),
 		exitStep{errCheckFailed},
 		storeBStep(c),
 		setACStep{},
-		divAStep(gg.base))
+		divAStep(gg.Base))
 	gg.steps = append(gg.steps, steps...)
 
 	gg.carryPrior = col
@@ -259,7 +259,7 @@ func (gg *goGen) computeSummand(col *column, a, b, c byte) {
 		steps = append(steps, subAValueStep(b))
 	}
 	steps = append(steps,
-		modAStep(gg.base),
+		modAStep(gg.Base),
 		setBAStep{},
 		usedBStep{},
 		relJZStep(1),
@@ -276,14 +276,14 @@ func (gg *goGen) computeSummand(col *column, a, b, c byte) {
 			setACStep{},
 			addARegBStep{},
 			addAValueStep(b),
-			divAStep(gg.base),
+			divAStep(gg.Base),
 		)
 		gg.carryValid = true
 	} else {
 		gg.steps = append(gg.steps,
 			setACStep{},
 			addARegBStep{},
-			divAStep(gg.base),
+			divAStep(gg.Base),
 		)
 		gg.carryValid = true
 	}
@@ -292,7 +292,7 @@ func (gg *goGen) computeSummand(col *column, a, b, c byte) {
 }
 
 func (gg *goGen) checkAfterCompute(col *column, c byte) {
-	if c == gg.words[0][0] || c == gg.words[1][0] || c == gg.words[2][0] {
+	if c == gg.Words[0][0] || c == gg.Words[1][0] || c == gg.Words[2][0] {
 		gg.checkInitialLetter(col, c)
 	}
 	gg.checkFixedCarry(col)
@@ -428,7 +428,7 @@ func (gg *goGen) ensureCarry(col *column) {
 	if c2 != 0 {
 		steps = append(steps, addAValueStep(c2))
 	}
-	steps = append(steps, divAStep(gg.base))
+	steps = append(steps, divAStep(gg.Base))
 	gg.steps = append(gg.steps, steps...)
 
 	gg.carryPrior = col
@@ -469,7 +469,7 @@ func (gg *goGen) checkColumn(col *column, err error) {
 	if n > 0 {
 		steps = append(steps,
 			setCAStep{},
-			modAStep(gg.base))
+			modAStep(gg.Base))
 	}
 	steps = append(steps,
 		subAValueStep(c),
@@ -478,7 +478,7 @@ func (gg *goGen) checkColumn(col *column, err error) {
 	if n > 0 {
 		steps = append(steps,
 			setACStep{},
-			divAStep(gg.base))
+			divAStep(gg.Base))
 	} else {
 		steps = append(steps, setAStep(0))
 	}
@@ -546,7 +546,7 @@ func (gg *goGen) verifyInitialLetters(name string, err error) {
 	if name != "" {
 		gg.steps = append(gg.steps, labelStep(gg.gensym("%s:initialLetters", name)))
 	}
-	for _, word := range gg.words {
+	for _, word := range gg.Words {
 		gg.steps = append(gg.steps,
 			loadAStep(word[0]),
 			relJNZStep(1),
@@ -561,7 +561,7 @@ func (gg *goGen) verifyDuplicateLetters(name string, err error) {
 	if name != "" {
 		gg.steps = append(gg.steps, labelStep(gg.gensym("%s:duplicateLetters", name)))
 	}
-	letters := gg.sortedLetters()
+	letters := gg.SortedLetters()
 	for i, c := range letters {
 		if !gg.known[c] {
 			continue
@@ -588,7 +588,7 @@ func (gg *goGen) verifyLettersNonNegative(name string, err error) {
 	if name != "" {
 		gg.steps = append(gg.steps, labelStep(gg.gensym("%s:allLettersNonNegative", name)))
 	}
-	for _, c := range gg.sortedLetters() {
+	for _, c := range gg.SortedLetters() {
 		if !gg.known[c] {
 			continue
 		}

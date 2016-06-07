@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+
+	"github.com/jcorbin/intsearch/word"
 )
 
 func TestGogen_prunedBrute(t *testing.T) {
@@ -43,8 +45,8 @@ func BenchmarkGogenRun_topDown(b *testing.B) {
 }
 
 func runGogenTest(t *testing.T, planf planFunc, w1, w2, w3 string) {
-	var prob problem
-	if err := prob.setup(w1, w2, w3); err != nil {
+	var prob word.Problem
+	if err := prob.Setup(w1, w2, w3); err != nil {
 		t.Fatalf("setup failed: %v", err)
 	}
 
@@ -101,8 +103,8 @@ func runGogenTest(t *testing.T, planf planFunc, w1, w2, w3 string) {
 }
 
 func benchGogenPlan(b *testing.B, planf planFunc, w1, w2, w3 string) {
-	var prob problem
-	if err := prob.setup(w1, w2, w3); err != nil {
+	var prob word.Problem
+	if err := prob.Setup(w1, w2, w3); err != nil {
 		b.Fatalf("setup failed: %v", err)
 	}
 	for n := 0; n < b.N; n++ {
@@ -112,8 +114,8 @@ func benchGogenPlan(b *testing.B, planf planFunc, w1, w2, w3 string) {
 }
 
 func benchGogenRun(b *testing.B, planf planFunc, w1, w2, w3 string) {
-	var prob problem
-	if err := prob.setup(w1, w2, w3); err != nil {
+	var prob word.Problem
+	if err := prob.Setup(w1, w2, w3); err != nil {
 		b.Fatalf("setup failed: %v", err)
 	}
 
