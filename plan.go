@@ -127,13 +127,6 @@ func (col *column) expr() string {
 	return strings.Join(parts, " ")
 }
 
-func (col *column) priorCarry() carryValue {
-	if col.prior == nil {
-		return carryZero
-	}
-	return col.prior.carry
-}
-
 type planProblemPool struct {
 	sync.Pool
 }
@@ -515,7 +508,7 @@ func (prob *planProblem) chooseRange(gen solutionGen, c byte, min, max int) {
 }
 
 func (prob *planProblem) solveColumnFromPrior(gen solutionGen, col *column) bool {
-	if col.priorCarry() == carryUnknown {
+	if col.prior != nil && col.prior.carry == carryUnknown {
 		// unknown prior carry is a case for assumeCarrySolveColumn
 		return false
 	}
