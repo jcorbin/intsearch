@@ -10,11 +10,11 @@ import (
 	"github.com/jcorbin/intsearch/word"
 )
 
-var planStrategies = map[string]planFunc{
-	"naiveBrute":  planNaiveBrute,
-	"prunedBrute": planPrunedBrute,
-	"bottomUp":    planBottomUp,
-	"topDown":     planTopDown,
+var planStrategies = map[string]word.PlanFunc{
+	"naiveBrute":  word.PlanNaiveBrute,
+	"prunedBrute": word.PlanPrunedBrute,
+	"bottomUp":    word.PlanBottomUp,
+	"topDown":     word.PlanTopDown,
 }
 
 func planStrategyNames() []string {

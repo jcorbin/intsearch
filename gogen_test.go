@@ -9,42 +9,42 @@ import (
 )
 
 func TestGogen_prunedBrute(t *testing.T) {
-	runGogenTest(t, planPrunedBrute, "send", "more", "money")
+	runGogenTest(t, word.PlanPrunedBrute, "send", "more", "money")
 }
 
 func BenchmarkGogenPlan_prunedBrute(b *testing.B) {
-	benchGogenPlan(b, planPrunedBrute, "send", "more", "money")
+	benchGogenPlan(b, word.PlanPrunedBrute, "send", "more", "money")
 }
 
 func BenchmarkGogenRun_prunedBrute(b *testing.B) {
-	benchGogenRun(b, planPrunedBrute, "send", "more", "money")
+	benchGogenRun(b, word.PlanPrunedBrute, "send", "more", "money")
 }
 
 func TestGogen_bottomUp(t *testing.T) {
-	runGogenTest(t, planBottomUp, "send", "more", "money")
+	runGogenTest(t, word.PlanBottomUp, "send", "more", "money")
 }
 
 func BenchmarkGogenPlan_bottomUp(b *testing.B) {
-	benchGogenPlan(b, planBottomUp, "send", "more", "money")
+	benchGogenPlan(b, word.PlanBottomUp, "send", "more", "money")
 }
 
 func BenchmarkGogenRun_bottomUp(b *testing.B) {
-	benchGogenRun(b, planBottomUp, "send", "more", "money")
+	benchGogenRun(b, word.PlanBottomUp, "send", "more", "money")
 }
 
 func TestGogen_topDown(t *testing.T) {
-	runGogenTest(t, planTopDown, "send", "more", "money")
+	runGogenTest(t, word.PlanTopDown, "send", "more", "money")
 }
 
 func BenchmarkGogenPlan_topDown(b *testing.B) {
-	benchGogenPlan(b, planTopDown, "send", "more", "money")
+	benchGogenPlan(b, word.PlanTopDown, "send", "more", "money")
 }
 
 func BenchmarkGogenRun_topDown(b *testing.B) {
-	benchGogenRun(b, planTopDown, "send", "more", "money")
+	benchGogenRun(b, word.PlanTopDown, "send", "more", "money")
 }
 
-func runGogenTest(t *testing.T, planf planFunc, w1, w2, w3 string) {
+func runGogenTest(t *testing.T, planf word.PlanFunc, w1, w2, w3 string) {
 	var prob word.Problem
 	if err := prob.Setup(w1, w2, w3); err != nil {
 		t.Fatalf("setup failed: %v", err)
@@ -102,7 +102,7 @@ func runGogenTest(t *testing.T, planf planFunc, w1, w2, w3 string) {
 	}
 }
 
-func benchGogenPlan(b *testing.B, planf planFunc, w1, w2, w3 string) {
+func benchGogenPlan(b *testing.B, planf word.PlanFunc, w1, w2, w3 string) {
 	var prob word.Problem
 	if err := prob.Setup(w1, w2, w3); err != nil {
 		b.Fatalf("setup failed: %v", err)
@@ -113,7 +113,7 @@ func benchGogenPlan(b *testing.B, planf planFunc, w1, w2, w3 string) {
 	}
 }
 
-func benchGogenRun(b *testing.B, planf planFunc, w1, w2, w3 string) {
+func benchGogenRun(b *testing.B, planf word.PlanFunc, w1, w2, w3 string) {
 	var prob word.Problem
 	if err := prob.Setup(w1, w2, w3); err != nil {
 		b.Fatalf("setup failed: %v", err)
