@@ -81,7 +81,7 @@ func (gg *goGen) searchInit(emit emitFunc) int {
 }
 
 func (gg *goGen) loggedGen() word.SolutionGen {
-	return multiGen([]word.SolutionGen{
+	return word.MultiGen([]word.SolutionGen{
 		newLogGen(gg.PlanProblem),
 		gg,
 	})
