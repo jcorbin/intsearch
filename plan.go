@@ -49,7 +49,9 @@ func planTopDown(prob *planProblem, gen solutionGen, verified bool) {
 	var proc func(prob *planProblem, gen solutionGen, col *word.Column) bool
 	proc = func(prob *planProblem, gen solutionGen, col *word.Column) bool {
 		if col.Prior == nil {
-			prob.solveColumn(gen, col)
+			if !prob.maySolveColumn(gen, col) {
+				return false
+			}
 			if verified {
 				gen.Verify()
 			}
@@ -71,7 +73,10 @@ func planTopDown(prob *planProblem, gen solutionGen, verified bool) {
 func planBottomUp(prob *planProblem, gen solutionGen, verified bool) {
 	gen.Init("bottom up")
 	for i := len(prob.columns) - 1; i >= 0; i-- {
-		prob.solveColumn(gen, &prob.columns[i])
+		col := &prob.columns[i]
+		if !prob.maySolveColumn(gen, col) {
+			log.Fatalf("cannot solve column: %#v", col)
+		}
 	}
 	if verified {
 		gen.Verify()
@@ -274,8 +279,8 @@ func (prob *planProblem) assumeCarrySolveColumn(
 	}
 	altGen := gen.Fork(altProb, label, altLabel, contLabel)
 
-	altProb.solveColumn(altGen, altCol)
-	if !andThen(altProb, altGen, altCol.Prior) {
+	if !altProb.maySolveColumn(altGen, altCol) ||
+		!andThen(altProb, altGen, altCol.Prior) {
 		// TODO: needs to be able to cancel the fork, leaving only the cont
 		// path below
 		panic("alt pruning unimplemented")
@@ -283,8 +288,8 @@ func (prob *planProblem) assumeCarrySolveColumn(
 	prob.pool.Put(altProb)
 	altProb, altGen, altCol = nil, nil, nil
 
-	prob.solveColumn(gen, col)
-	if !andThen(prob, gen, col.Prior) {
+	if !prob.maySolveColumn(gen, col) ||
+		!andThen(prob, gen, col.Prior) {
 		// TODO: needs to be able replace the fork with just the generated alt
 		// steps, or return false if the alt failed as well
 		panic("alt swapping unimplemented")
@@ -321,12 +326,6 @@ func (prob *planProblem) maySolveColumn(gen solutionGen, col *word.Column) bool 
 	}
 
 	return prob.solveColumnFromPrior(gen, col)
-}
-
-func (prob *planProblem) solveColumn(gen solutionGen, col *word.Column) {
-	if !prob.maySolveColumn(gen, col) {
-		log.Fatalf("cannot solve column: %#v", col)
-	}
 }
 
 func (prob *planProblem) fix(gen solutionGen, c byte, v int) {
