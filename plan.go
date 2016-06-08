@@ -46,8 +46,23 @@ func planPrunedBrute(prob *planProblem, gen solutionGen, verified bool) {
 }
 
 func planTopDown(prob *planProblem, gen solutionGen, verified bool) {
+	var proc func(prob *planProblem, gen solutionGen, col *word.Column) bool
+	proc = func(prob *planProblem, gen solutionGen, col *word.Column) bool {
+		if col.Prior == nil {
+			prob.solveColumn(gen, col)
+			if verified {
+				gen.Verify()
+			}
+			gen.Finish()
+			return true
+		}
+		if prob.maySolveColumn(gen, col) {
+			return proc(prob, gen, col.Prior)
+		}
+		return prob.assumeCarrySolveColumn(gen, col, proc)
+	}
 	gen.Init("top down")
-	if !prob.procTopDown(gen, &prob.columns[0], verified) {
+	if !proc(prob, gen, &prob.columns[0]) {
 		panic("unable to plan top down")
 	}
 	gen.Finalize()
@@ -55,7 +70,13 @@ func planTopDown(prob *planProblem, gen solutionGen, verified bool) {
 
 func planBottomUp(prob *planProblem, gen solutionGen, verified bool) {
 	gen.Init("bottom up")
-	prob.procBottomUp(gen, verified)
+	for i := len(prob.columns) - 1; i >= 0; i-- {
+		prob.solveColumn(gen, &prob.columns[i])
+	}
+	if verified {
+		gen.Verify()
+	}
+	gen.Finish()
 	gen.Finalize()
 }
 
@@ -231,27 +252,6 @@ func (prob *planProblem) markKnown(c byte) {
 	}
 }
 
-func (prob *planProblem) procTopDown(gen solutionGen, col *word.Column, verified bool) bool {
-	if col.Prior == nil {
-		prob.solveColumn(gen, col)
-		if verified {
-			gen.Verify()
-		}
-		gen.Finish()
-		return true
-	}
-
-	if prob.maySolveColumn(gen, col) {
-		return prob.procTopDown(gen, col.Prior, verified)
-	}
-
-	return prob.assumeCarrySolveColumn(
-		gen, col,
-		func(subProb *planProblem, subGen solutionGen, subCol *word.Column) bool {
-			return subProb.procTopDown(subGen, subCol, verified)
-		})
-}
-
 func (prob *planProblem) assumeCarrySolveColumn(
 	gen solutionGen, col *word.Column,
 	andThen func(*planProblem, solutionGen, *word.Column) bool,
@@ -291,16 +291,6 @@ func (prob *planProblem) assumeCarrySolveColumn(
 	}
 
 	return true
-}
-
-func (prob *planProblem) procBottomUp(gen solutionGen, verified bool) {
-	for i := len(prob.columns) - 1; i >= 0; i-- {
-		prob.solveColumn(gen, &prob.columns[i])
-	}
-	if verified {
-		gen.Verify()
-	}
-	gen.Finish()
 }
 
 func (prob *planProblem) checkColumn(gen solutionGen, col *word.Column) bool {
