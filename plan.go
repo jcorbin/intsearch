@@ -329,6 +329,7 @@ func (prob *planProblem) maySolveColumn(gen solutionGen, col *word.Column) bool 
 }
 
 func (prob *planProblem) fix(gen solutionGen, c byte, v int) {
+	gen.Fix(c, v)
 	prob.fixedLetters[c] = v
 	prob.fixedValues[v] = true
 	// TODO: consider inlining markKnown and unifying the for range letCols loops
@@ -336,7 +337,6 @@ func (prob *planProblem) fix(gen solutionGen, c byte, v int) {
 	for _, col := range prob.letCols[c] {
 		col.Fixed++
 	}
-	gen.Fix(c, v)
 }
 
 func (prob *planProblem) solveSingularColumn(gen solutionGen, col *word.Column) bool {
