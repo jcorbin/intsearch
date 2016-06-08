@@ -1,4 +1,4 @@
-package main
+package runnable
 
 import (
 	"fmt"
@@ -12,16 +12,16 @@ type solutionPool struct {
 	sync.Pool
 }
 
-func (sp *solutionPool) Get() *solution {
-	sol, _ := sp.Pool.Get().(*solution)
+func (sp *solutionPool) Get() *Solution {
+	sol, _ := sp.Pool.Get().(*Solution)
 	if sol == nil {
-		sol = &solution{}
+		sol = &Solution{}
 	}
 	sol.pool = sp
 	return sol
 }
 
-func (sp *solutionPool) Put(sol *solution) {
+func (sp *solutionPool) Put(sol *Solution) {
 	if sol.trace != nil {
 		for i := range sol.trace {
 			// sp.Put(sol.trace[i]) XXX useful?
@@ -32,8 +32,9 @@ func (sp *solutionPool) Put(sol *solution) {
 	sp.Pool.Put(sol)
 }
 
-type solutionStep interface {
-	run(sol *solution)
+// Step is a single runnable step that will make progress on a solution.
+type Step interface {
+	run(sol *Solution)
 }
 
 type labeledStep interface {
@@ -43,10 +44,10 @@ type labeledStep interface {
 type expandableStep interface {
 	expandStep(
 		addr int,
-		parts [][]solutionStep,
+		parts [][]Step,
 		labels map[string]int,
 		annotate annoFunc,
-	) (int, [][]solutionStep, map[string]int)
+	) (int, [][]Step, map[string]int)
 }
 
 type annotatedStep interface {
@@ -54,7 +55,7 @@ type annotatedStep interface {
 }
 
 type resolvableStep interface {
-	resolveLabels(labels map[string]int) solutionStep
+	resolveLabels(labels map[string]int) Step
 }
 
 type labelStep string
@@ -65,10 +66,10 @@ func (l labelStep) labelName() string {
 
 func (l labelStep) expandStep(
 	addr int,
-	parts [][]solutionStep,
+	parts [][]Step,
 	labels map[string]int,
 	annotate annoFunc,
-) (int, [][]solutionStep, map[string]int) {
+) (int, [][]Step, map[string]int) {
 	if annotate != nil {
 		annotate(addr, l.String())
 	}
@@ -79,13 +80,13 @@ func (l labelStep) String() string {
 	return fmt.Sprintf(":%s", string(l))
 }
 
-func (l labelStep) run(sol *solution) {
+func (l labelStep) run(sol *Solution) {
 }
 
 // extractLabels collects all labeledStep addresses from the list of steps
 // passed.  After return every labeledStep, ls, has an entry in labels,
 // labels[ls.labelName()] == addr, such that steps[addr] == ls.
-func extractLabels(steps []solutionStep, labels map[string]int) map[string]int {
+func extractLabels(steps []Step, labels map[string]int) map[string]int {
 	n := 0
 	for _, step := range steps {
 		if _, ok := step.(labeledStep); ok {
@@ -122,7 +123,7 @@ func extractLabels(steps []solutionStep, labels map[string]int) map[string]int {
 // resolveLabels method returned.  If the passed labels map is nil, then
 // extractLabels is called to build it.  Both the modified steps and labels map
 // are returned.
-func resolveLabels(steps []solutionStep, labels map[string]int) ([]solutionStep, map[string]int) {
+func resolveLabels(steps []Step, labels map[string]int) ([]Step, map[string]int) {
 	if labels == nil {
 		labels = extractLabels(steps, nil)
 	}
@@ -141,10 +142,10 @@ type annoFunc func(addr int, annos ...string)
 type stepExpander func(
 	es expandableStep,
 	addr int,
-	parts [][]solutionStep,
+	parts [][]Step,
 	labels map[string]int,
 	annotate annoFunc,
-) (int, [][]solutionStep, map[string]int)
+) (int, [][]Step, map[string]int)
 
 // expandSteps expands all expandableSteps.
 //
@@ -158,21 +159,21 @@ type stepExpander func(
 // that need it; recursive step expansion is not provided by expandSteps.
 func expandSteps(
 	addr int,
-	steps []solutionStep,
-	parts [][]solutionStep,
+	steps []Step,
+	parts [][]Step,
 	labels map[string]int,
 	annotate annoFunc,
-) (int, [][]solutionStep, map[string]int) {
+) (int, [][]Step, map[string]int) {
 	return actuallyExpandSteps(addr, steps, parts, labels, annotate, nil)
 }
 
 func debugExpandSteps(
 	addr int,
-	steps []solutionStep,
-	parts [][]solutionStep,
+	steps []Step,
+	parts [][]Step,
 	labels map[string]int,
 	annotate annoFunc,
-) (int, [][]solutionStep, map[string]int) {
+) (int, [][]Step, map[string]int) {
 	fmt.Println()
 	fmt.Printf("// expanding steps @%d\n", addr)
 	for i, step := range steps {
@@ -206,12 +207,12 @@ func debugExpandSteps(
 
 func actuallyExpandSteps(
 	addr int,
-	steps []solutionStep,
-	parts [][]solutionStep,
+	steps []Step,
+	parts [][]Step,
 	labels map[string]int,
 	annotate annoFunc,
 	expand stepExpander,
-) (int, [][]solutionStep, map[string]int) {
+) (int, [][]Step, map[string]int) {
 	if parts == nil {
 		nl := len(labels)
 		if labels == nil {
@@ -222,7 +223,7 @@ func actuallyExpandSteps(
 			}
 			labels = make(map[string]int, nl)
 		}
-		parts = make([][]solutionStep, 0, 2*nl+1)
+		parts = make([][]Step, 0, 2*nl+1)
 	}
 	var prior int
 	for i, step := range steps {
@@ -259,12 +260,12 @@ func actuallyExpandSteps(
 func mustExpandStepSanely(
 	es expandableStep,
 	addr int,
-	parts [][]solutionStep,
+	parts [][]Step,
 	labels map[string]int,
 	annotate annoFunc,
 ) (
 	newAddr int,
-	newParts [][]solutionStep,
+	newParts [][]Step,
 	newLabels map[string]int,
 ) {
 	newAddr, newParts, newLabels = es.expandStep(addr, parts, labels, annotate)
@@ -280,22 +281,25 @@ func mustExpandStepSanely(
 	return
 }
 
-type solution struct {
+// Solution is a problem, a built program to solve the problem, and the state
+// for that program.  Solutions are only created by StepsGen.SearchInit or as
+// copies of an existing solution.
+type Solution struct {
 	prob       *word.Problem
 	pool       *solutionPool
-	emit       func(*solution)
-	steps      []solutionStep
+	emit       func(*Solution)
+	steps      []Step
 	stepi      int
 	values     [256]int
 	used       [256]bool
 	ra, rb, rc int
 	done       bool
 	err        error
-	trace      []*solution
+	trace      []*Solution
 }
 
-func newSolution(prob *word.Problem, steps []solutionStep, emit func(*solution)) *solution {
-	sol := solution{
+func newSolution(prob *word.Problem, steps []Step, emit func(*Solution)) *Solution {
+	sol := Solution{
 		prob:  prob,
 		pool:  &solutionPool{},
 		emit:  emit,
@@ -307,8 +311,18 @@ func newSolution(prob *word.Problem, steps []solutionStep, emit func(*solution))
 	return &sol
 }
 
-func (sol *solution) String() string {
-	var step solutionStep
+// Err returns any execution error.
+func (sol *Solution) Err() error {
+	return sol.err
+}
+
+// Trace returns any execution trace collected so far.
+func (sol *Solution) Trace() []*Solution {
+	return sol.trace
+}
+
+func (sol *Solution) String() string {
+	var step Step
 	if sol.stepi < len(sol.steps) {
 		step = sol.steps[sol.stepi]
 	}
@@ -319,8 +333,23 @@ func (sol *solution) String() string {
 	)
 }
 
-func (sol *solution) printCheck(printf func(string, ...interface{})) {
-	ns := sol.numbers()
+// PaddedString returns a white-spaced padded version of .String().
+func (sol *Solution) PaddedString() string {
+	var step Step
+	if sol.stepi < len(sol.steps) {
+		step = sol.steps[sol.stepi]
+	}
+	return fmt.Sprintf(
+		"ra:%-3v rb:%-3v rc:%-3v done:%v err:%v -- @%-3v %-20v",
+		sol.ra, sol.rb, sol.rc,
+		sol.done, sol.err,
+		sol.stepi, step,
+	)
+}
+
+// PrintCheck prints a simple double check of the solution.
+func (sol *Solution) PrintCheck(printf func(string, ...interface{})) {
+	ns := sol.Numbers()
 	check := ns[0]+ns[1] == ns[2]
 	printf("Check: %v", check)
 	marks := []string{" ", "+", "="}
@@ -334,7 +363,9 @@ func (sol *solution) printCheck(printf func(string, ...interface{})) {
 	}
 }
 
-func (sol *solution) numbers() [3]int {
+// Numbers returns 3 numbers computed for the solution (as determined by the
+// letter mapping).
+func (sol *Solution) Numbers() [3]int {
 	var ns [3]int
 	base := sol.prob.Base
 	for i, word := range sol.prob.Words {
@@ -347,7 +378,8 @@ func (sol *solution) numbers() [3]int {
 	return ns
 }
 
-func (sol *solution) letterMapping() string {
+// LetterMapping returns a string describing the letter mapping like "x:1 y:2 z:3".
+func (sol *Solution) LetterMapping() string {
 	parts := make([]string, 0, len(sol.prob.Letters))
 	for _, c := range sol.prob.SortedLetters() {
 		v := sol.values[c]
@@ -358,14 +390,19 @@ func (sol *solution) letterMapping() string {
 	return strings.Join(parts, " ")
 }
 
-func (sol *solution) step() bool {
+// Step runs a single step against the solution, and returns true if the
+// solution has not terminated (should be steped again).
+func (sol *Solution) Step() bool {
+	if sol.done {
+		return false
+	}
 	step := sol.steps[sol.stepi]
 	sol.stepi++
 	step.run(sol)
 	return !sol.done
 }
 
-func (sol *solution) exit(err error) {
+func (sol *Solution) exit(err error) {
 	sol.done = true
 	sol.err = err
 	if err != nil {
@@ -373,7 +410,7 @@ func (sol *solution) exit(err error) {
 	}
 }
 
-func (sol *solution) copy() *solution {
+func (sol *Solution) copy() *Solution {
 	other := sol.pool.Get()
 	*other = *sol
 	return other

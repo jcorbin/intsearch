@@ -1,4 +1,4 @@
-package main
+package runnable
 
 import (
 	"errors"
@@ -19,12 +19,12 @@ func (step setBCStep) String() string { return fmt.Sprintf("rb = rc") }
 func (step setCAStep) String() string { return fmt.Sprintf("rc = ra") }
 func (step setCBStep) String() string { return fmt.Sprintf("rc = rb") }
 
-func (step setABStep) run(sol *solution) { sol.ra = sol.rb }
-func (step setACStep) run(sol *solution) { sol.ra = sol.rc }
-func (step setBAStep) run(sol *solution) { sol.rb = sol.ra }
-func (step setBCStep) run(sol *solution) { sol.rb = sol.rc }
-func (step setCAStep) run(sol *solution) { sol.rc = sol.ra }
-func (step setCBStep) run(sol *solution) { sol.rc = sol.rb }
+func (step setABStep) run(sol *Solution) { sol.ra = sol.rb }
+func (step setACStep) run(sol *Solution) { sol.ra = sol.rc }
+func (step setBAStep) run(sol *Solution) { sol.rb = sol.ra }
+func (step setBCStep) run(sol *Solution) { sol.rb = sol.rc }
+func (step setCAStep) run(sol *Solution) { sol.rc = sol.ra }
+func (step setCBStep) run(sol *Solution) { sol.rc = sol.rb }
 
 type setAStep int
 type setBStep int
@@ -33,9 +33,9 @@ type setCStep int
 func (step setAStep) String() string    { return fmt.Sprintf("ra = %v", int(step)) }
 func (step setBStep) String() string    { return fmt.Sprintf("rb = %v", int(step)) }
 func (step setCStep) String() string    { return fmt.Sprintf("rc = %v", int(step)) }
-func (step setAStep) run(sol *solution) { sol.ra = int(step) }
-func (step setBStep) run(sol *solution) { sol.rb = int(step) }
-func (step setCStep) run(sol *solution) { sol.rc = int(step) }
+func (step setAStep) run(sol *Solution) { sol.ra = int(step) }
+func (step setBStep) run(sol *Solution) { sol.rb = int(step) }
+func (step setCStep) run(sol *Solution) { sol.rc = int(step) }
 
 func boolInt(b bool) int {
 	if b {
@@ -76,21 +76,21 @@ func (step gtAStep) String() string  { return fmt.Sprintf("gt ra, %v", int(step)
 func (step gtBStep) String() string  { return fmt.Sprintf("gt rb, %v", int(step)) }
 func (step gtCStep) String() string  { return fmt.Sprintf("gt rc, %v", int(step)) }
 
-func (step ltAStep) run(sol *solution)  { sol.ra = boolInt(sol.ra < int(step)) }
-func (step ltBStep) run(sol *solution)  { sol.ra = boolInt(sol.rb < int(step)) }
-func (step ltCStep) run(sol *solution)  { sol.ra = boolInt(sol.rc < int(step)) }
-func (step lteAStep) run(sol *solution) { sol.ra = boolInt(sol.ra <= int(step)) }
-func (step lteBStep) run(sol *solution) { sol.ra = boolInt(sol.rb <= int(step)) }
-func (step lteCStep) run(sol *solution) { sol.ra = boolInt(sol.rc <= int(step)) }
-func (step eqAStep) run(sol *solution)  { sol.ra = boolInt(sol.ra == int(step)) }
-func (step eqBStep) run(sol *solution)  { sol.ra = boolInt(sol.rb == int(step)) }
-func (step eqCStep) run(sol *solution)  { sol.ra = boolInt(sol.rc == int(step)) }
-func (step gteAStep) run(sol *solution) { sol.ra = boolInt(sol.ra >= int(step)) }
-func (step gteBStep) run(sol *solution) { sol.ra = boolInt(sol.rb >= int(step)) }
-func (step gteCStep) run(sol *solution) { sol.ra = boolInt(sol.rc >= int(step)) }
-func (step gtAStep) run(sol *solution)  { sol.ra = boolInt(sol.ra > int(step)) }
-func (step gtBStep) run(sol *solution)  { sol.ra = boolInt(sol.rb > int(step)) }
-func (step gtCStep) run(sol *solution)  { sol.ra = boolInt(sol.rc > int(step)) }
+func (step ltAStep) run(sol *Solution)  { sol.ra = boolInt(sol.ra < int(step)) }
+func (step ltBStep) run(sol *Solution)  { sol.ra = boolInt(sol.rb < int(step)) }
+func (step ltCStep) run(sol *Solution)  { sol.ra = boolInt(sol.rc < int(step)) }
+func (step lteAStep) run(sol *Solution) { sol.ra = boolInt(sol.ra <= int(step)) }
+func (step lteBStep) run(sol *Solution) { sol.ra = boolInt(sol.rb <= int(step)) }
+func (step lteCStep) run(sol *Solution) { sol.ra = boolInt(sol.rc <= int(step)) }
+func (step eqAStep) run(sol *Solution)  { sol.ra = boolInt(sol.ra == int(step)) }
+func (step eqBStep) run(sol *Solution)  { sol.ra = boolInt(sol.rb == int(step)) }
+func (step eqCStep) run(sol *Solution)  { sol.ra = boolInt(sol.rc == int(step)) }
+func (step gteAStep) run(sol *Solution) { sol.ra = boolInt(sol.ra >= int(step)) }
+func (step gteBStep) run(sol *Solution) { sol.ra = boolInt(sol.rb >= int(step)) }
+func (step gteCStep) run(sol *Solution) { sol.ra = boolInt(sol.rc >= int(step)) }
+func (step gtAStep) run(sol *Solution)  { sol.ra = boolInt(sol.ra > int(step)) }
+func (step gtBStep) run(sol *Solution)  { sol.ra = boolInt(sol.rb > int(step)) }
+func (step gtCStep) run(sol *Solution)  { sol.ra = boolInt(sol.rc > int(step)) }
 
 type negAStep struct{}
 type addARegBStep struct{}
@@ -116,17 +116,17 @@ func (step subAStep) String() string      { return fmt.Sprintf("sub ra, %+d", in
 func (step modAStep) String() string      { return fmt.Sprintf("mod ra, %v", int(step)) }
 func (step divAStep) String() string      { return fmt.Sprintf("div ra, %v", int(step)) }
 
-func (step negAStep) run(sol *solution)      { sol.ra = -sol.ra }
-func (step addARegBStep) run(sol *solution)  { sol.ra += sol.rb }
-func (step addARegCStep) run(sol *solution)  { sol.ra += sol.rc }
-func (step subARegBStep) run(sol *solution)  { sol.ra -= sol.rb }
-func (step subARegCStep) run(sol *solution)  { sol.ra -= sol.rc }
-func (step addAValueStep) run(sol *solution) { sol.ra += sol.values[step] }
-func (step subAValueStep) run(sol *solution) { sol.ra -= sol.values[step] }
-func (step addAStep) run(sol *solution)      { sol.ra += int(step) }
-func (step subAStep) run(sol *solution)      { sol.ra -= int(step) }
-func (step modAStep) run(sol *solution)      { sol.ra = (sol.ra + int(step)<<1) % int(step) }
-func (step divAStep) run(sol *solution) {
+func (step negAStep) run(sol *Solution)      { sol.ra = -sol.ra }
+func (step addARegBStep) run(sol *Solution)  { sol.ra += sol.rb }
+func (step addARegCStep) run(sol *Solution)  { sol.ra += sol.rc }
+func (step subARegBStep) run(sol *Solution)  { sol.ra -= sol.rb }
+func (step subARegCStep) run(sol *Solution)  { sol.ra -= sol.rc }
+func (step addAValueStep) run(sol *Solution) { sol.ra += sol.values[step] }
+func (step subAValueStep) run(sol *Solution) { sol.ra -= sol.values[step] }
+func (step addAStep) run(sol *Solution)      { sol.ra += int(step) }
+func (step subAStep) run(sol *Solution)      { sol.ra -= int(step) }
+func (step modAStep) run(sol *Solution)      { sol.ra = (sol.ra + int(step)<<1) % int(step) }
+func (step divAStep) run(sol *Solution) {
 	if sol.ra < 0 {
 		sol.ra = -sol.ra / int(step)
 	} else {
@@ -158,17 +158,17 @@ func (step subBStep) String() string      { return fmt.Sprintf("sub rb, %+d", in
 func (step modBStep) String() string      { return fmt.Sprintf("mod rb, %v", int(step)) }
 func (step divBStep) String() string      { return fmt.Sprintf("div rb, %v", int(step)) }
 
-func (step negBStep) run(sol *solution)      { sol.rb = -sol.rb }
-func (step addBRegAStep) run(sol *solution)  { sol.rb += sol.ra }
-func (step addBRegCStep) run(sol *solution)  { sol.rb += sol.rc }
-func (step subBRegAStep) run(sol *solution)  { sol.rb -= sol.ra }
-func (step subBRegCStep) run(sol *solution)  { sol.rb -= sol.rc }
-func (step addBValueStep) run(sol *solution) { sol.rb += sol.values[step] }
-func (step subBValueStep) run(sol *solution) { sol.rb -= sol.values[step] }
-func (step addBStep) run(sol *solution)      { sol.rb += int(step) }
-func (step subBStep) run(sol *solution)      { sol.rb -= int(step) }
-func (step modBStep) run(sol *solution)      { sol.rb = (sol.rb + int(step)<<1) % int(step) }
-func (step divBStep) run(sol *solution) {
+func (step negBStep) run(sol *Solution)      { sol.rb = -sol.rb }
+func (step addBRegAStep) run(sol *Solution)  { sol.rb += sol.ra }
+func (step addBRegCStep) run(sol *Solution)  { sol.rb += sol.rc }
+func (step subBRegAStep) run(sol *Solution)  { sol.rb -= sol.ra }
+func (step subBRegCStep) run(sol *Solution)  { sol.rb -= sol.rc }
+func (step addBValueStep) run(sol *Solution) { sol.rb += sol.values[step] }
+func (step subBValueStep) run(sol *Solution) { sol.rb -= sol.values[step] }
+func (step addBStep) run(sol *Solution)      { sol.rb += int(step) }
+func (step subBStep) run(sol *Solution)      { sol.rb -= int(step) }
+func (step modBStep) run(sol *Solution)      { sol.rb = (sol.rb + int(step)<<1) % int(step) }
+func (step divBStep) run(sol *Solution) {
 	if sol.ra < 0 {
 		sol.ra = -sol.ra / int(step)
 	} else {
@@ -179,7 +179,7 @@ func (step divBStep) run(sol *solution) {
 type exitStep struct{ err error }
 
 func (step exitStep) String() string    { return fmt.Sprintf("exit(%v)", step.err) }
-func (step exitStep) run(sol *solution) { sol.exit(step.err) }
+func (step exitStep) run(sol *Solution) { sol.exit(step.err) }
 
 type usedAStep struct{}
 type usedBStep struct{}
@@ -189,9 +189,9 @@ func (step usedAStep) String() string { return fmt.Sprintf("used? ra") }
 func (step usedBStep) String() string { return fmt.Sprintf("used? rb") }
 func (step usedCStep) String() string { return fmt.Sprintf("used? rc") }
 
-func (step usedAStep) run(sol *solution) { sol.ra = boolInt(sol.used[sol.ra]) }
-func (step usedBStep) run(sol *solution) { sol.ra = boolInt(sol.used[sol.rb]) }
-func (step usedCStep) run(sol *solution) { sol.ra = boolInt(sol.used[sol.rc]) }
+func (step usedAStep) run(sol *Solution) { sol.ra = boolInt(sol.used[sol.ra]) }
+func (step usedBStep) run(sol *Solution) { sol.ra = boolInt(sol.used[sol.rb]) }
+func (step usedCStep) run(sol *Solution) { sol.ra = boolInt(sol.used[sol.rc]) }
 
 type storeAStep byte
 type storeBStep byte
@@ -206,29 +206,29 @@ func (c storeCStep) String() string { return fmt.Sprintf("store %s, rc", string(
 func (c loadAStep) String() string  { return fmt.Sprintf("load ra, %s", string(c)) }
 func (c loadBStep) String() string  { return fmt.Sprintf("load rb, %s", string(c)) }
 func (c loadCStep) String() string  { return fmt.Sprintf("load rc, %s", string(c)) }
-func (c storeAStep) run(sol *solution) {
+func (c storeAStep) run(sol *Solution) {
 	sol.values[c] = sol.ra
 	sol.used[sol.ra] = true
 }
-func (c storeBStep) run(sol *solution) {
+func (c storeBStep) run(sol *Solution) {
 	sol.values[c] = sol.rb
 	sol.used[sol.rb] = true
 }
-func (c storeCStep) run(sol *solution) {
+func (c storeCStep) run(sol *Solution) {
 	sol.values[c] = sol.rc
 	sol.used[sol.rc] = true
 }
-func (c loadAStep) run(sol *solution) {
+func (c loadAStep) run(sol *Solution) {
 	sol.ra = sol.values[c]
 }
-func (c loadBStep) run(sol *solution) {
+func (c loadBStep) run(sol *Solution) {
 	sol.rb = sol.values[c]
 }
-func (c loadCStep) run(sol *solution) {
+func (c loadCStep) run(sol *Solution) {
 	sol.rc = sol.values[c]
 }
 
-func isStoreStep(step solutionStep) bool {
+func isStoreStep(step Step) bool {
 	switch step.(type) {
 	case storeAStep:
 		return true
@@ -287,79 +287,79 @@ func (step labelJNZStep) annotate() string    { return fmt.Sprintf("?-> :%s", st
 func (step labelForkStep) annotate() string   { return fmt.Sprintf("*-> :%s", string(step)) }
 func (step labelBranchStep) annotate() string { return fmt.Sprintf("/-> :%s", string(step)) }
 
-func (step jmpStep) run(sol *solution) {
+func (step jmpStep) run(sol *Solution) {
 	sol.stepi = int(step)
 }
-func (step jzStep) run(sol *solution) {
+func (step jzStep) run(sol *Solution) {
 	if sol.ra == 0 {
 		sol.stepi = int(step)
 	}
 }
-func (step jnzStep) run(sol *solution) {
+func (step jnzStep) run(sol *Solution) {
 	if sol.ra != 0 {
 		sol.stepi = int(step)
 	}
 }
 
-func (step relJMPStep) run(sol *solution) {
+func (step relJMPStep) run(sol *Solution) {
 	sol.stepi += int(step)
 }
-func (step relJZStep) run(sol *solution) {
+func (step relJZStep) run(sol *Solution) {
 	if sol.ra == 0 {
 		sol.stepi += int(step)
 	}
 }
-func (step relJNZStep) run(sol *solution) {
+func (step relJNZStep) run(sol *Solution) {
 	if sol.ra != 0 {
 		sol.stepi += int(step)
 	}
 }
 
-func (step labelJmpStep) run(sol *solution) {
+func (step labelJmpStep) run(sol *Solution) {
 	sol.exit(fmt.Errorf("unresolved label jump :%s", string(step)))
 }
-func (step labelJZStep) run(sol *solution) {
+func (step labelJZStep) run(sol *Solution) {
 	sol.exit(fmt.Errorf("unresolved label jump :%s", string(step)))
 }
-func (step labelJNZStep) run(sol *solution) {
+func (step labelJNZStep) run(sol *Solution) {
 	sol.exit(fmt.Errorf("unresolved label jump :%s", string(step)))
 }
 
-func (step forkStep) run(sol *solution) {
+func (step forkStep) run(sol *Solution) {
 	child := sol.copy()
 	child.stepi = int(step)
 	sol.emit(child)
 }
-func (step relForkStep) run(sol *solution) {
+func (step relForkStep) run(sol *Solution) {
 	child := sol.copy()
 	child.stepi += int(step)
 	sol.emit(child)
 }
-func (step labelForkStep) run(sol *solution) {
+func (step labelForkStep) run(sol *Solution) {
 	sol.exit(fmt.Errorf("unresolved label jump :%s", string(step)))
 }
-func (step branchStep) run(sol *solution) {
+func (step branchStep) run(sol *Solution) {
 	child := sol.copy()
 	sol.emit(child)
 	sol.stepi = int(step)
 }
-func (step relBranchStep) run(sol *solution) {
+func (step relBranchStep) run(sol *Solution) {
 	child := sol.copy()
 	sol.emit(child)
 	sol.stepi += int(step)
 }
-func (step labelBranchStep) run(sol *solution) {
+func (step labelBranchStep) run(sol *Solution) {
 	sol.exit(fmt.Errorf("unresolved label jump :%s", string(step)))
 }
 
-func (step relFZStep) run(sol *solution) {
+func (step relFZStep) run(sol *Solution) {
 	if sol.ra == 0 {
 		child := sol.copy()
 		child.stepi += int(step)
 		sol.emit(child)
 	}
 }
-func (step relFNZStep) run(sol *solution) {
+func (step relFNZStep) run(sol *Solution) {
 	if sol.ra != 0 {
 		child := sol.copy()
 		child.stepi += int(step)
@@ -367,14 +367,14 @@ func (step relFNZStep) run(sol *solution) {
 	}
 }
 
-func (step relBZStep) run(sol *solution) {
+func (step relBZStep) run(sol *Solution) {
 	if sol.ra == 0 {
 		child := sol.copy()
 		sol.emit(child)
 		sol.stepi += int(step)
 	}
 }
-func (step relBNZStep) run(sol *solution) {
+func (step relBNZStep) run(sol *Solution) {
 	if sol.ra != 0 {
 		child := sol.copy()
 		sol.emit(child)
@@ -382,38 +382,38 @@ func (step relBNZStep) run(sol *solution) {
 	}
 }
 
-func (step labelJmpStep) resolveLabels(labels map[string]int) solutionStep {
+func (step labelJmpStep) resolveLabels(labels map[string]int) Step {
 	if addr, ok := labels[string(step)]; ok {
 		return jmpStep(addr)
 	}
 	return nil
 }
-func (step labelJZStep) resolveLabels(labels map[string]int) solutionStep {
+func (step labelJZStep) resolveLabels(labels map[string]int) Step {
 	if addr, ok := labels[string(step)]; ok {
 		return jzStep(addr)
 	}
 	return nil
 }
-func (step labelJNZStep) resolveLabels(labels map[string]int) solutionStep {
+func (step labelJNZStep) resolveLabels(labels map[string]int) Step {
 	if addr, ok := labels[string(step)]; ok {
 		return jnzStep(addr)
 	}
 	return nil
 }
-func (step labelForkStep) resolveLabels(labels map[string]int) solutionStep {
+func (step labelForkStep) resolveLabels(labels map[string]int) Step {
 	if addr, ok := labels[string(step)]; ok {
 		return forkStep(addr)
 	}
 	return nil
 }
-func (step labelBranchStep) resolveLabels(labels map[string]int) solutionStep {
+func (step labelBranchStep) resolveLabels(labels map[string]int) Step {
 	if addr, ok := labels[string(step)]; ok {
 		return branchStep(addr)
 	}
 	return nil
 }
 
-func isForkStep(step solutionStep) bool {
+func isForkStep(step Step) bool {
 	switch step.(type) {
 	case forkStep:
 		return true
@@ -443,7 +443,7 @@ func isForkStep(step solutionStep) bool {
 var errDeadFork = errors.New("dead fork")
 
 type forkAltStep struct {
-	alt       *goGen
+	alt       *StepGen
 	name      string
 	altLabel  string
 	contLabel string
@@ -456,15 +456,15 @@ func (step forkAltStep) String() string {
 	}
 	return fmt.Sprintf("forkAlt :%s", step.name)
 }
-func (step forkAltStep) run(sol *solution) {
+func (step forkAltStep) run(sol *Solution) {
 	panic(fmt.Sprintf("unexpanded forkAlt :%s", step.name))
 }
 func (step forkAltStep) expandStep(
 	addr int,
-	parts [][]solutionStep,
+	parts [][]Step,
 	labels map[string]int,
 	annotate annoFunc,
-) (int, [][]solutionStep, map[string]int) {
+) (int, [][]Step, map[string]int) {
 	// expands to:
 	// fork :$name:cont
 	// :$name:alt
@@ -482,7 +482,7 @@ func (step forkAltStep) expandStep(
 		annotate(addr, labelForkStep(step.contLabel).annotate())
 	}
 
-	forkPart := []solutionStep{
+	forkPart := []Step{
 		labelForkStep(step.contLabel)}
 	addr, parts = addr+1, append(parts, forkPart)
 
@@ -495,7 +495,7 @@ func (step forkAltStep) expandStep(
 
 	altAddr := addr
 	addr, parts, labels = expandSteps(addr, step.alt.steps, parts, labels, annotate)
-	addr, parts = addr+1, append(parts, []solutionStep{
+	addr, parts = addr+1, append(parts, []Step{
 		exitStep{errDeadFork}})
 
 	forkPart[0] = relForkStep(addr - altAddr)
@@ -513,20 +513,20 @@ func (step forkAltStep) expandStep(
 type finishStep string
 
 func (step finishStep) String() string    { return fmt.Sprintf("HALT :%s", string(step)) }
-func (step finishStep) run(sol *solution) { sol.exit(nil) }
+func (step finishStep) run(sol *Solution) { sol.exit(nil) }
 func (step finishStep) labelName() string { return string(step) }
 func (step finishStep) expandStep(
 	addr int,
-	parts [][]solutionStep,
+	parts [][]Step,
 	labels map[string]int,
 	annotate annoFunc,
-) (int, [][]solutionStep, map[string]int) {
+) (int, [][]Step, map[string]int) {
 	if annotate != nil {
 		annotate(addr,
 			fmt.Sprintf(":%s", string(step)),
 			"Normal Exit")
 	}
-	return addr + 1, append(parts, []solutionStep{exitStep{nil}}), labels
+	return addr + 1, append(parts, []Step{exitStep{nil}}), labels
 }
 
 type loopBStep struct {
@@ -537,7 +537,7 @@ type loopBStep struct {
 func (step loopBStep) String() string {
 	return fmt.Sprintf("loop %+d rb < %v", step.offset, step.max)
 }
-func (step loopBStep) run(sol *solution) {
+func (step loopBStep) run(sol *Solution) {
 	sol.rb++
 	if sol.rb < step.max {
 		sol.stepi += step.offset
@@ -558,16 +558,16 @@ func (step rangeStep) String() string {
 	}
 	return fmt.Sprintf(":%s range [%d, %d]", step.label, step.min, step.max)
 }
-func (step rangeStep) run(sol *solution) {
+func (step rangeStep) run(sol *Solution) {
 	sol.exit(fmt.Errorf("unexpanded %v", step))
 }
 
 func (step rangeStep) expandStep(
 	addr int,
-	parts [][]solutionStep,
+	parts [][]Step,
 	labels map[string]int,
 	annotate annoFunc,
-) (int, [][]solutionStep, map[string]int) {
+) (int, [][]Step, map[string]int) {
 	if annotate != nil && step.label != "" {
 		annotate(addr,
 			fmt.Sprintf(":%s", step.label),
@@ -575,7 +575,7 @@ func (step rangeStep) expandStep(
 		annotate(addr+1, fmt.Sprintf(":%s:body", step.label))
 		annotate(addr+7, fmt.Sprintf(":%s:cont", step.label))
 	}
-	return addr + 7, append(parts, []solutionStep{
+	return addr + 7, append(parts, []Step{
 		setBStep(step.min),       // 0: :LABEL rb = $min
 		usedBStep{},              // 1: :LABEL:body used? rb
 		relBZStep(4),             // 2: bz +4

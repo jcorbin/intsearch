@@ -7,6 +7,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/jcorbin/intsearch/runnable"
 	"github.com/jcorbin/intsearch/word"
 )
 
@@ -38,13 +39,13 @@ var (
 
 	first bool
 	prob  word.Problem
-	srch  search
-	gg    *goGen
+	srch  runnable.Search
+	gg    *runnable.StepGen
 	gen   word.SolutionGen
 )
 
 func logf(format string, args ...interface{}) {
-	dec := gg.decorate(args)
+	dec := gg.Decorate(args)
 	if len(dec) > 0 {
 		format = fmt.Sprintf("%s  // %s", format, strings.Join(dec, ", "))
 	}
@@ -52,12 +53,12 @@ func logf(format string, args ...interface{}) {
 	fmt.Println()
 }
 
-func dump(sol *solution) bool {
+func dump(sol *runnable.Solution) bool {
 	var mess string
-	if sol.err == nil {
+	if err := sol.Err(); err == nil {
 		mess = "=== Solution"
-	} else if isVerifyError(sol.err) {
-		mess = fmt.Sprintf("!!! %s", sol.err)
+	} else if _, is := err.(runnable.VerifyError); is {
+		mess = fmt.Sprintf("!!! %s", err)
 	} else if *debug || *dumpAll {
 		mess = "--- Dead end"
 	}
@@ -70,81 +71,72 @@ func dump(sol *solution) bool {
 	} else {
 		fmt.Println()
 	}
-	logf("%s: %v %s", mess, sol, sol.letterMapping())
+	logf("%s: %v %s", mess, sol, sol.LetterMapping())
 	printTrace(sol)
 	return false
 }
 
-func printTrace(sol *solution) {
-	for i, soli := range sol.trace {
-		var step solutionStep
-		if soli.stepi < len(soli.steps) {
-			step = soli.steps[soli.stepi]
-		}
-
+func printTrace(sol *runnable.Solution) {
+	for i, soli := range sol.Trace() {
 		trail := "//"
-		if label := gg.labelFor(soli.stepi); len(label) > 0 {
-			trail = fmt.Sprintf("// %-40s %s", soli.letterMapping(), label)
-		} else if mapping := soli.letterMapping(); len(mapping) > 0 {
+		if label := gg.LabelFor(soli); len(label) > 0 {
+			trail = fmt.Sprintf("// %-40s %s", soli.LetterMapping(), label)
+		} else if mapping := soli.LetterMapping(); len(mapping) > 0 {
 			trail = fmt.Sprintf("// %s", mapping)
 		}
 
-		fmt.Printf("... %3v: ra:%-3v rb:%-3v rc:%-3v done:%v err:%v -- @%-3v %-20v  %s\n",
-			i,
-			soli.ra, soli.rb, soli.rc,
-			soli.done, soli.err,
-			soli.stepi, step,
-			trail)
+		fmt.Printf("... %3v: %s  %s\n", i, soli.PaddedString(), trail)
 	}
 }
 
 func traceFailures() {
-	metrics := newMetricWatcher()
-	watcher := watchers([]searchWatcher{
+	metrics := runnable.NewMetricWatcher()
+	watcher := runnable.Watchers([]runnable.SearchWatcher{
 		metrics,
-		newTraceWatcher(),
+		runnable.NewTraceWatcher(),
 	})
 	first = true
-	srch.run(gg.searchInit, dump, watcher)
+	srch.Run(gg.SearchInit, dump, watcher)
 	fmt.Printf("\nsearch metrics: %+v\n", metrics)
 }
 
 func debugRun() {
-	metrics := newMetricWatcher()
-	watcher := watchers([]searchWatcher{
+	metrics := runnable.NewMetricWatcher()
+	watcher := runnable.Watchers([]runnable.SearchWatcher{
 		metrics,
-		newTraceWatcher(),
-		debugWatcher{
-			logf: logf,
+		runnable.NewTraceWatcher(),
+		runnable.DebugWatcher{
+			Logf: logf,
 		},
 	})
 	first = true
-	srch.run(gg.searchInit, dump, watcher)
+	srch.Run(gg.SearchInit, dump, watcher)
 	fmt.Printf("\nsearch metrics: %+v\n", metrics)
 }
 
-func findOne() *solution {
-	metrics := newMetricWatcher()
-	watcher := searchWatcher(metrics)
+func findOne() *runnable.Solution {
+	metrics := runnable.NewMetricWatcher()
+	watcher := runnable.SearchWatcher(metrics)
 
 	if *trace {
-		watcher = watchers([]searchWatcher{
+		watcher = runnable.Watchers([]runnable.SearchWatcher{
 			metrics,
-			newTraceWatcher(),
+			runnable.NewTraceWatcher(),
 		})
 	}
 
 	failed := false
-	var theSol *solution
+	var theSol *runnable.Solution
 	first = true
-	srch.run(
-		gg.searchInit,
-		func(sol *solution) bool {
-			if isVerifyError(sol.err) {
+	srch.Run(
+		gg.SearchInit,
+		func(sol *runnable.Solution) bool {
+			err := sol.Err()
+			if _, is := err.(runnable.VerifyError); is {
 				failed = true
 				return false
 			}
-			if sol.err != nil {
+			if err != nil {
 				return false
 			}
 			if theSol != nil {
@@ -192,10 +184,10 @@ func main() {
 	// - dumping program benefits from annotations
 	// - as do program traces
 	// - the debug watcher always traces
-	gg = newGoGen(word.NewPlanProblem(&prob, annotated))
+	gg = runnable.NewStepGen(word.NewPlanProblem(&prob, annotated))
 
 	if *dumpProg {
-		gen = gg.loggedGen()
+		gen = gg.LoggedGen()
 	} else {
 		gen = gg
 	}
@@ -205,8 +197,8 @@ func main() {
 	if *dumpProg {
 		fmt.Println()
 		fmt.Printf("//// Compiled Program Dump\n")
-		for i, step := range gg.steps {
-			label := gg.labelFor(i)
+		for i, step := range gg.Steps() {
+			label := gg.LabelAt(i)
 			if label == "" {
 				fmt.Printf("%v: %v\n", i, step)
 			} else {
@@ -222,8 +214,8 @@ func main() {
 	}
 
 	if sol := findOne(); sol != nil {
-		logf("found: %v", sol.letterMapping())
-		sol.printCheck(logf)
+		logf("found: %v", sol.LetterMapping())
+		sol.PrintCheck(logf)
 		printTrace(sol)
 	} else {
 		logf("found no solutions, re-running with trace")

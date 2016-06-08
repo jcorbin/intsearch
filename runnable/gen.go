@@ -1,4 +1,4 @@
-package main
+package runnable
 
 import (
 	"errors"
@@ -15,20 +15,18 @@ var (
 	errNoChoices   = errors.New("no choices left")
 )
 
-type verifyError string
+// VerifyError is the error returned if final verification fails.
+type VerifyError string
 
-func isVerifyError(err error) bool {
-	_, is := err.(verifyError)
-	return is
-}
-
-func (ve verifyError) Error() string {
+func (ve VerifyError) Error() string {
 	return fmt.Sprintf("verify failed: %s", string(ve))
 }
 
-type goGen struct {
+// StepGen implements a word.SolutionGen that builds a program listing of Steps
+// that will progress the solution state.
+type StepGen struct {
 	*word.PlanProblem
-	steps       []solutionStep
+	steps       []Step
 	carryPrior  *word.Column
 	carrySaved  bool
 	carryValid  bool
@@ -37,15 +35,16 @@ type goGen struct {
 	addrAnnos   map[int][]string
 }
 
-func newGoGen(prob *word.PlanProblem) *goGen {
+// NewStepGen creates a new step generator for a given problem about to be planned.
+func NewStepGen(prob *word.PlanProblem) *StepGen {
 	n := 0
 	for _, w := range prob.Words {
 		n += len(w)
 	}
-	gg := &goGen{
+	gg := &StepGen{
 		PlanProblem: prob,
 		usedSymbols: make(map[string]struct{}, 3*len(prob.Letters)),
-		steps:       make([]solutionStep, 0, n*50),
+		steps:       make([]Step, 0, n*50),
 	}
 	if prob.Annotated {
 		gg.addrAnnos = make(map[int][]string)
@@ -53,11 +52,16 @@ func newGoGen(prob *word.PlanProblem) *goGen {
 	return gg
 }
 
-func (gg *goGen) copy() *goGen {
-	alt := &goGen{
+// Steps returns the slice of steps generated/compiled so far.
+func (gg *StepGen) Steps() []Step {
+	return gg.steps
+}
+
+func (gg *StepGen) copy() *StepGen {
+	alt := &StepGen{
 		PlanProblem: gg.PlanProblem,
 		usedSymbols: gg.usedSymbols,
-		steps:       make([]solutionStep, 0, cap(gg.steps)),
+		steps:       make([]Step, 0, cap(gg.steps)),
 	}
 	// TODO: carry state copy... but whither column
 	return alt
@@ -73,21 +77,32 @@ func fallFact(x, y int) int {
 	return z
 }
 
-func (gg *goGen) searchInit(emit emitFunc) int {
+// SearchInit initializes the frontier with a solution with:
+// - zero state
+// - the planned problem
+// - the compiled steps from the plan
+// - the passed emit function for use by future fork and branch steps
+//
+// The returned sanity limit is based on the pessimistic assumption that every
+// step will be ran a factorial number of times (a pathological brute force).
+func (gg *StepGen) SearchInit(emit EmitFunc) int {
 	emit(newSolution(&gg.PlanProblem.Problem, gg.steps, emit))
 	// worst case, we have to run every step for every possible brute force solution
 	numBrute := fallFact(gg.Base, len(gg.Letters))
 	return numBrute * len(gg.steps)
 }
 
-func (gg *goGen) loggedGen() word.SolutionGen {
+// LoggedGen is a convenience that will create a new word.LogGen for the same
+// problem, and wrap bundle it up with the StepGen into a word.MultiGen.
+func (gg *StepGen) LoggedGen() word.SolutionGen {
 	return word.MultiGen([]word.SolutionGen{
 		word.NewLogGen(gg.PlanProblem),
 		gg,
 	})
 }
 
-func (gg *goGen) labelFor(i int) string {
+// LabelAt returns any annotations for the given address, joined by a ", ".
+func (gg *StepGen) LabelAt(i int) string {
 	labels := gg.annosFor(i)
 	if len(labels) == 0 {
 		return ""
@@ -95,7 +110,13 @@ func (gg *goGen) labelFor(i int) string {
 	return strings.Join(labels, ", ")
 }
 
-func (gg *goGen) annosFor(addr int) []string {
+// LabelFor returns any annotations for the given solution's current step,
+// joined by a ", ".
+func (gg *StepGen) LabelFor(sol *Solution) string {
+	return gg.LabelAt(sol.stepi)
+}
+
+func (gg *StepGen) annosFor(addr int) []string {
 	if gg.addrAnnos == nil {
 		return nil
 	}
@@ -108,27 +129,31 @@ func (gg *goGen) annosFor(addr int) []string {
 	return nil
 }
 
-func (gg *goGen) decorate(args []interface{}) []string {
+// Decorate returns a list of any annotations knows for a any of the Solution
+// arguments.
+func (gg *StepGen) Decorate(args []interface{}) []string {
 	if gg.addrAnnos == nil {
 		return nil
 	}
 	var dec []string
 	for _, arg := range args {
-		if sol, ok := arg.(*solution); ok {
+		if sol, ok := arg.(*Solution); ok {
 			dec = append(dec, gg.annosFor(sol.stepi)...)
 		}
 	}
 	return dec
 }
 
-func (gg *goGen) Logf(format string, args ...interface{}) error {
+// Logf does nothing.
+func (gg *StepGen) Logf(format string, args ...interface{}) error {
 	return nil
 }
 
-func (gg *goGen) Init(desc string) {
+// Init does nothing.
+func (gg *StepGen) Init(desc string) {
 }
 
-func (gg *goGen) Fork(prob *word.PlanProblem, name, altLabel, contLabel string) word.SolutionGen {
+func (gg *StepGen) Fork(prob *word.PlanProblem, name, altLabel, contLabel string) word.SolutionGen {
 	if altLabel != "" {
 		altLabel = gg.gensym("%s:alt", altLabel)
 	}
@@ -146,7 +171,7 @@ func (gg *goGen) Fork(prob *word.PlanProblem, name, altLabel, contLabel string) 
 	return alt
 }
 
-func (gg *goGen) Fix(c byte, v int) {
+func (gg *StepGen) Fix(c byte, v int) {
 	if gg.addrAnnos != nil {
 		gg.steps = append(gg.steps,
 			labelStep(gg.gensym("fix(%s)", string(c))))
@@ -156,7 +181,7 @@ func (gg *goGen) Fix(c byte, v int) {
 		storeAStep(c))
 }
 
-func (gg *goGen) stashCarry(col *word.Column) {
+func (gg *StepGen) stashCarry(col *word.Column) {
 	if gg.carryPrior == col && (col == nil || gg.carrySaved) {
 		return
 	}
@@ -180,14 +205,14 @@ func (gg *goGen) stashCarry(col *word.Column) {
 	gg.carryPrior = col
 }
 
-func (gg *goGen) saveCarry(col *word.Column) {
+func (gg *StepGen) saveCarry(col *word.Column) {
 	if !gg.carryValid {
 		gg.ensureCarry(col)
 	}
 	gg.stashCarry(col)
 }
 
-func (gg *goGen) ComputeSum(col *word.Column) {
+func (gg *StepGen) ComputeSum(col *word.Column) {
 	// Given:
 	//   carry + a + b = c (mod base)
 	// Solve for c:
@@ -197,7 +222,7 @@ func (gg *goGen) ComputeSum(col *word.Column) {
 	gg.carryValid = false
 	gg.carrySaved = false
 
-	steps := make([]solutionStep, 0, 12)
+	steps := make([]Step, 0, 12)
 	if gg.addrAnnos != nil {
 		steps = append(steps,
 			labelStep(gg.gensym("computeSum(%s)", col.Label())))
@@ -227,15 +252,15 @@ func (gg *goGen) ComputeSum(col *word.Column) {
 	gg.checkAfterCompute(col, c)
 }
 
-func (gg *goGen) ComputeFirstSummand(col *word.Column) {
+func (gg *StepGen) ComputeFirstSummand(col *word.Column) {
 	gg.computeSummand(col, col.Chars[0], col.Chars[1], col.Chars[2])
 }
 
-func (gg *goGen) ComputeSecondSummand(col *word.Column) {
+func (gg *StepGen) ComputeSecondSummand(col *word.Column) {
 	gg.computeSummand(col, col.Chars[1], col.Chars[0], col.Chars[2])
 }
 
-func (gg *goGen) computeSummand(col *word.Column, a, b, c byte) {
+func (gg *StepGen) computeSummand(col *word.Column, a, b, c byte) {
 	// Given:
 	//   carry + a + b = c (mod base)
 	// Solve for a:
@@ -248,7 +273,7 @@ func (gg *goGen) computeSummand(col *word.Column, a, b, c byte) {
 	gg.carryValid = false
 	gg.carrySaved = false
 
-	steps := make([]solutionStep, 0, 10)
+	steps := make([]Step, 0, 10)
 	if gg.addrAnnos != nil {
 		steps = append(steps,
 			labelStep(gg.gensym("computeSummand(%s)", col.Label())))
@@ -293,14 +318,14 @@ func (gg *goGen) computeSummand(col *word.Column, a, b, c byte) {
 	gg.checkAfterCompute(col, a)
 }
 
-func (gg *goGen) checkAfterCompute(col *word.Column, c byte) {
+func (gg *StepGen) checkAfterCompute(col *word.Column, c byte) {
 	if c == gg.Words[0][0] || c == gg.Words[1][0] || c == gg.Words[2][0] {
 		gg.checkInitialLetter(col, c)
 	}
 	gg.checkFixedCarry(col)
 }
 
-func (gg *goGen) checkInitialLetter(col *word.Column, c byte) {
+func (gg *StepGen) checkInitialLetter(col *word.Column, c byte) {
 	if gg.carryValid {
 		gg.stashCarry(col)
 		gg.carryValid = false
@@ -315,7 +340,7 @@ func (gg *goGen) checkInitialLetter(col *word.Column, c byte) {
 		exitStep{errCheckFailed})
 }
 
-func (gg *goGen) checkFixedCarry(col *word.Column) {
+func (gg *StepGen) checkFixedCarry(col *word.Column) {
 	switch col.Carry {
 	case word.CarryZero:
 		fallthrough
@@ -344,7 +369,7 @@ func (gg *goGen) checkFixedCarry(col *word.Column) {
 	}
 }
 
-func (gg *goGen) ChooseRange(c byte, min, max int) {
+func (gg *StepGen) ChooseRange(c byte, min, max int) {
 	gg.stashCarry(gg.carryPrior)
 	gg.carryValid = false
 	label := ""
@@ -357,7 +382,7 @@ func (gg *goGen) ChooseRange(c byte, min, max int) {
 	)
 }
 
-func (gg *goGen) restoreCarry(col *word.Column) bool {
+func (gg *StepGen) restoreCarry(col *word.Column) bool {
 	if col != gg.carryPrior {
 		return false
 	}
@@ -376,7 +401,7 @@ func (gg *goGen) restoreCarry(col *word.Column) bool {
 	return true
 }
 
-func (gg *goGen) ensureCarry(col *word.Column) {
+func (gg *StepGen) ensureCarry(col *word.Column) {
 	if col == nil {
 		if gg.addrAnnos != nil {
 			gg.steps = append(gg.steps,
@@ -423,7 +448,7 @@ func (gg *goGen) ensureCarry(col *word.Column) {
 		gg.steps = append(gg.steps,
 			labelStep(gg.gensym("computeCarry(%s)", col.Label())))
 	}
-	steps := make([]solutionStep, 0, 3)
+	steps := make([]Step, 0, 3)
 	if c1 != 0 {
 		steps = append(steps, addAValueStep(c1))
 	}
@@ -438,7 +463,7 @@ func (gg *goGen) ensureCarry(col *word.Column) {
 	gg.carryValid = true
 }
 
-func (gg *goGen) Check(err error) {
+func (gg *StepGen) Check(err error) {
 	if gg.addrAnnos == nil {
 		gg.doVerify("", err)
 	} else {
@@ -446,7 +471,7 @@ func (gg *goGen) Check(err error) {
 	}
 }
 
-func (gg *goGen) CheckColumn(col *word.Column, err error) {
+func (gg *StepGen) CheckColumn(col *word.Column, err error) {
 	if err == nil {
 		err = errCheckFailed
 	}
@@ -457,7 +482,7 @@ func (gg *goGen) CheckColumn(col *word.Column, err error) {
 		gg.steps = append(gg.steps,
 			labelStep(gg.gensym("checkColumn(%s)", col.Label())))
 	}
-	steps := make([]solutionStep, 0, 9)
+	steps := make([]Step, 0, 9)
 
 	n := 0
 	if a != 0 {
@@ -490,7 +515,7 @@ func (gg *goGen) CheckColumn(col *word.Column, err error) {
 	gg.steps = append(gg.steps, steps...)
 }
 
-func (gg *goGen) Verify() {
+func (gg *StepGen) Verify() {
 	if gg.addrAnnos == nil {
 		gg.doVerify("", nil)
 	} else {
@@ -498,7 +523,7 @@ func (gg *goGen) Verify() {
 	}
 }
 
-func (gg *goGen) doVerify(name string, err error) {
+func (gg *StepGen) doVerify(name string, err error) {
 	if name != "" {
 		name = gg.gensym(name)
 	}
@@ -509,7 +534,7 @@ func (gg *goGen) doVerify(name string, err error) {
 	gg.verifyColumns(name, err)
 }
 
-func (gg *goGen) verifyColumns(name string, err error) {
+func (gg *StepGen) verifyColumns(name string, err error) {
 	// verify columns from bottom up
 	for i := len(gg.Columns) - 1; i >= 0; i-- {
 		if gg.Columns[i].Unknown > 0 {
@@ -518,7 +543,7 @@ func (gg *goGen) verifyColumns(name string, err error) {
 		col := &gg.Columns[i]
 		colErr := err
 		if colErr == nil {
-			colErr = verifyError(col.Label())
+			colErr = VerifyError(col.Label())
 		}
 		gg.CheckColumn(col, colErr)
 	}
@@ -534,16 +559,16 @@ func (gg *goGen) verifyColumns(name string, err error) {
 	// final carry must be 0
 	finErr := err
 	if finErr == nil {
-		finErr = verifyError("final carry must be 0")
+		finErr = VerifyError("final carry must be 0")
 	}
 	gg.steps = append(gg.steps,
 		relJZStep(1),
 		exitStep{finErr})
 }
 
-func (gg *goGen) verifyInitialLetters(name string, err error) {
+func (gg *StepGen) verifyInitialLetters(name string, err error) {
 	if err == nil {
-		err = verifyError("initial letter cannot be zero")
+		err = VerifyError("initial letter cannot be zero")
 	}
 	if name != "" {
 		gg.steps = append(gg.steps, labelStep(gg.gensym("%s:initialLetters", name)))
@@ -556,9 +581,9 @@ func (gg *goGen) verifyInitialLetters(name string, err error) {
 	}
 }
 
-func (gg *goGen) verifyDuplicateLetters(name string, err error) {
+func (gg *StepGen) verifyDuplicateLetters(name string, err error) {
 	if err == nil {
-		err = verifyError("duplicate valued character")
+		err = VerifyError("duplicate valued character")
 	}
 	if name != "" {
 		gg.steps = append(gg.steps, labelStep(gg.gensym("%s:duplicateLetters", name)))
@@ -583,9 +608,9 @@ func (gg *goGen) verifyDuplicateLetters(name string, err error) {
 	}
 }
 
-func (gg *goGen) verifyLettersNonNegative(name string, err error) {
+func (gg *StepGen) verifyLettersNonNegative(name string, err error) {
 	if err == nil {
-		err = verifyError("negative valued character")
+		err = VerifyError("negative valued character")
 	}
 	if name != "" {
 		gg.steps = append(gg.steps, labelStep(gg.gensym("%s:allLettersNonNegative", name)))
@@ -602,7 +627,7 @@ func (gg *goGen) verifyLettersNonNegative(name string, err error) {
 	}
 }
 
-func (gg *goGen) Finish() {
+func (gg *StepGen) Finish() {
 	lastStep := gg.steps[len(gg.steps)-1]
 	if _, isFinish := lastStep.(finishStep); isFinish {
 		panic("double goGen.finish")
@@ -610,23 +635,23 @@ func (gg *goGen) Finish() {
 	gg.steps = append(gg.steps, finishStep(gg.gensym("finish")))
 }
 
-func (gg *goGen) Finalize() {
+func (gg *StepGen) Finalize() {
 	gg.compile()
 }
 
-func (gg *goGen) takeAnnotation(addr int, annos ...string) {
+func (gg *StepGen) takeAnnotation(addr int, annos ...string) {
 	gg.addrAnnos[addr] = append(gg.addrAnnos[addr], annos...)
 }
 
-func (gg *goGen) compile() {
-	var parts [][]solutionStep
+func (gg *StepGen) compile() {
+	var parts [][]Step
 	var addr int
 	var annotate annoFunc
 	if gg.addrAnnos != nil {
 		annotate = gg.takeAnnotation
 	}
 	addr, parts, gg.labels = expandSteps(addr, gg.steps, nil, gg.labels, annotate)
-	steps := make([]solutionStep, 0, addr)
+	steps := make([]Step, 0, addr)
 	for _, part := range parts {
 		steps = append(steps, part...)
 	}
@@ -638,7 +663,7 @@ func (gg *goGen) compile() {
 	gg.steps, gg.labels = resolveLabels(steps, gg.labels)
 }
 
-func (gg *goGen) gensym(format string, args ...interface{}) string {
+func (gg *StepGen) gensym(format string, args ...interface{}) string {
 	name := fmt.Sprintf(format, args...)
 
 	if _, used := gg.usedSymbols[name]; !used {
@@ -657,7 +682,7 @@ func (gg *goGen) gensym(format string, args ...interface{}) string {
 	}
 }
 
-func printLastKSteps(k int, steps []solutionStep) {
+func printLastKSteps(k int, steps []Step) {
 	i := len(steps) - k - 1
 	if i < 0 {
 		i = 0
