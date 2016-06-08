@@ -1,28 +1,30 @@
-package main
+package word
 
 import (
 	"fmt"
 	"strings"
-
-	"github.com/jcorbin/intsearch/word"
 )
 
-type logGen struct {
-	*word.PlanProblem
+// LogGen implements a log observability SolutionGen that prints informative
+// messages.  A prefix is provided that grows with fork context.
+type LogGen struct {
+	*PlanProblem
 	prefix   string
 	step     int
 	branches []int
 }
 
-func newLogGen(prob *word.PlanProblem) *logGen {
-	return &logGen{
+// NewLogGen creates a new LogGen for a given problem being planned.
+func NewLogGen(prob *PlanProblem) *LogGen {
+	return &LogGen{
 		PlanProblem: prob,
 		prefix:      "",
 		branches:    make([]int, 0, len(prob.Letters)),
 	}
 }
 
-func (lg *logGen) Logf(format string, args ...interface{}) error {
+// Logf simply formats and prints the passed message with an added prefix.
+func (lg *LogGen) Logf(format string, args ...interface{}) error {
 	if len(lg.prefix) == 0 {
 		format = fmt.Sprintf("// %s\n", format)
 	} else {
@@ -32,13 +34,14 @@ func (lg *logGen) Logf(format string, args ...interface{}) error {
 	return err
 }
 
-func (lg *logGen) stepf(format string, args ...interface{}) {
+func (lg *LogGen) stepf(format string, args ...interface{}) {
 	lg.step++
 	format = fmt.Sprintf("step[%v]: %s", lg.step, format)
 	lg.Logf(format, args...)
 }
 
-func (lg *logGen) Init(desc string) {
+// Init prints a summary block describing the problem to be solved.
+func (lg *LogGen) Init(desc string) {
 	var w int
 	for _, word := range lg.Words {
 		if len(word) > w {
@@ -59,7 +62,10 @@ func (lg *logGen) Init(desc string) {
 	lg.Logf("")
 }
 
-func (lg *logGen) Fork(prob *word.PlanProblem, name, alt, cont string) word.SolutionGen {
+// Fork changes the current prefix to be the cont string, while returing a new
+// LogGen whose prefix is the alt string.  Additionally the prefixes have a
+// level of indent that increases with repeated calls to Fork.
+func (lg *LogGen) Fork(prob *PlanProblem, name, alt, cont string) SolutionGen {
 	if alt == "" {
 		alt = fmt.Sprintf("%s:alt", name)
 	}
@@ -71,7 +77,7 @@ func (lg *logGen) Fork(prob *word.PlanProblem, name, alt, cont string) word.Solu
 		n++
 	}
 	lg.prefix = fmt.Sprintf("%s%s", strings.Repeat(" ", n), cont)
-	return &logGen{
+	return &LogGen{
 		PlanProblem: prob,
 		prefix:      fmt.Sprintf("%s%s", strings.Repeat(" ", n+2), alt),
 		step:        lg.step,
@@ -79,11 +85,13 @@ func (lg *logGen) Fork(prob *word.PlanProblem, name, alt, cont string) word.Solu
 	}
 }
 
-func (lg *logGen) Fix(c byte, v int) {
+// Fix prints a step log noting the fixed character.
+func (lg *LogGen) Fix(c byte, v int) {
 	lg.stepf("fix %v = %v", string(c), v)
 }
 
-func (lg *logGen) ComputeSum(col *word.Column) {
+// ComputeSum prints a step log noting the formula to be computed.
+func (lg *LogGen) ComputeSum(col *Column) {
 	a, b, c := col.Chars[0], col.Chars[1], col.Chars[2]
 	if a != 0 && b != 0 {
 		lg.stepf("compute %v = %v + %v + carry (mod %v)", string(c), string(a), string(b), lg.Base)
@@ -96,15 +104,17 @@ func (lg *logGen) ComputeSum(col *word.Column) {
 	}
 }
 
-func (lg *logGen) ComputeFirstSummand(col *word.Column) {
+// ComputeFirstSummand prints a step log noting the formula to be computed.
+func (lg *LogGen) ComputeFirstSummand(col *Column) {
 	lg.computeSummand(col.Chars[0], col.Chars[1], col.Chars[2])
 }
 
-func (lg *logGen) ComputeSecondSummand(col *word.Column) {
+// ComputeSecondSummand prints a step log noting the formula to be computed.
+func (lg *LogGen) ComputeSecondSummand(col *Column) {
 	lg.computeSummand(col.Chars[1], col.Chars[0], col.Chars[2])
 }
 
-func (lg *logGen) computeSummand(a, b, c byte) {
+func (lg *LogGen) computeSummand(a, b, c byte) {
 	if b != 0 && c != 0 {
 		lg.stepf("compute %v = %v - %v - carry (mod %v)", string(a), string(b), string(c), lg.Base)
 	} else if b != 0 {
@@ -116,7 +126,8 @@ func (lg *logGen) computeSummand(a, b, c byte) {
 	}
 }
 
-func (lg *logGen) ChooseRange(c byte, min, max int) {
+// ChooseRange prints a step log noting the range of futures to be explored.
+func (lg *LogGen) ChooseRange(c byte, min, max int) {
 	N := max - min
 	R := lg.Base - len(lg.Known)
 	if R < N {
@@ -126,23 +137,30 @@ func (lg *logGen) ChooseRange(c byte, min, max int) {
 	lg.stepf("choose %v (branch by %v)", string(c), N)
 }
 
-func (lg *logGen) CheckColumn(col *word.Column, err error) {
+// CheckColumn prints a step log noting the column to be checked.
+func (lg *LogGen) CheckColumn(col *Column, err error) {
 	lg.stepf("check column: %s", col.Label())
 }
 
-func (lg *logGen) Verify() {
+// Verify prints a step log noting the verification phase.
+func (lg *LogGen) Verify() {
 	lg.stepf("verify")
 }
 
-func (lg *logGen) Check(err error) {
+// Check prints a step log noting the overall check.
+func (lg *LogGen) Check(err error) {
 	lg.stepf("check")
 }
 
-func (lg *logGen) Finish() {
+// Finish prints a step log noting the end of this future; in other words every
+// path in the tree created by Fork will end in a Finish.
+func (lg *LogGen) Finish() {
 	lg.stepf("finish")
 }
 
-func (lg *logGen) Finalize() {
+// Finalize prints final information once the entire plan is all done; this
+// happens once all Fork branches have been Finished.
+func (lg *LogGen) Finalize() {
 	branches := 1
 	for _, b := range lg.branches {
 		branches *= b

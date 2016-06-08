@@ -82,7 +82,7 @@ func (gg *goGen) searchInit(emit emitFunc) int {
 
 func (gg *goGen) loggedGen() word.SolutionGen {
 	return word.MultiGen([]word.SolutionGen{
-		newLogGen(gg.PlanProblem),
+		word.NewLogGen(gg.PlanProblem),
 		gg,
 	})
 }
