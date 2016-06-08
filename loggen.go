@@ -8,15 +8,15 @@ import (
 )
 
 type logGen struct {
-	*planProblem
+	*word.PlanProblem
 	prefix   string
 	step     int
 	branches []int
 }
 
-func newLogGen(prob *planProblem) *logGen {
+func newLogGen(prob *word.PlanProblem) *logGen {
 	return &logGen{
-		planProblem: prob,
+		PlanProblem: prob,
 		prefix:      "",
 		branches:    make([]int, 0, len(prob.Letters)),
 	}
@@ -59,7 +59,7 @@ func (lg *logGen) Init(desc string) {
 	lg.Logf("")
 }
 
-func (lg *logGen) Fork(prob *planProblem, name, alt, cont string) solutionGen {
+func (lg *logGen) Fork(prob *word.PlanProblem, name, alt, cont string) word.SolutionGen {
 	if alt == "" {
 		alt = fmt.Sprintf("%s:alt", name)
 	}
@@ -72,7 +72,7 @@ func (lg *logGen) Fork(prob *planProblem, name, alt, cont string) solutionGen {
 	}
 	lg.prefix = fmt.Sprintf("%s%s", strings.Repeat(" ", n), cont)
 	return &logGen{
-		planProblem: prob,
+		PlanProblem: prob,
 		prefix:      fmt.Sprintf("%s%s", strings.Repeat(" ", n+2), alt),
 		step:        lg.step,
 		branches:    lg.branches,
@@ -118,7 +118,7 @@ func (lg *logGen) computeSummand(a, b, c byte) {
 
 func (lg *logGen) ChooseRange(c byte, min, max int) {
 	N := max - min
-	R := lg.Base - len(lg.known)
+	R := lg.Base - len(lg.Known)
 	if R < N {
 		N = R
 	}

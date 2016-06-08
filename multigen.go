@@ -2,7 +2,7 @@ package main
 
 import "github.com/jcorbin/intsearch/word"
 
-type multiGen []solutionGen
+type multiGen []word.SolutionGen
 
 func (mg multiGen) Logf(format string, args ...interface{}) error {
 	for _, gen := range mg {
@@ -17,8 +17,8 @@ func (mg multiGen) Init(desc string) {
 	}
 }
 
-func (mg multiGen) Fork(prob *planProblem, name, alt, cont string) solutionGen {
-	altGen := make([]solutionGen, len(mg))
+func (mg multiGen) Fork(prob *word.PlanProblem, name, alt, cont string) word.SolutionGen {
+	altGen := make([]word.SolutionGen, len(mg))
 	for i, gen := range mg {
 		altGen[i] = gen.Fork(prob, name, alt, cont)
 	}

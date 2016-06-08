@@ -40,7 +40,7 @@ var (
 	prob  word.Problem
 	srch  search
 	gg    *goGen
-	gen   solutionGen
+	gen   word.SolutionGen
 )
 
 func logf(format string, args ...interface{}) {
@@ -192,7 +192,7 @@ func main() {
 	// - dumping program benefits from annotations
 	// - as do program traces
 	// - the debug watcher always traces
-	gg = newGoGen(newPlanProblem(&prob, annotated))
+	gg = newGoGen(word.NewPlanProblem(&prob, annotated))
 
 	if *dumpProg {
 		gen = gg.loggedGen()
@@ -200,7 +200,7 @@ func main() {
 		gen = gg
 	}
 
-	planf(gg.planProblem, gen, *verify)
+	planf(gg.PlanProblem, gen, *verify)
 
 	if *dumpProg {
 		fmt.Println()

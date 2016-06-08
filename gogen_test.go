@@ -60,8 +60,8 @@ func runGogenTest(t *testing.T, planf planFunc, w1, w2, w3 string) {
 		t.Logf(format, args...)
 	}
 
-	gg = newGoGen(newPlanProblem(&prob, false))
-	planf(gg.planProblem, gg, true)
+	gg = newGoGen(word.NewPlanProblem(&prob, false))
+	planf(gg.PlanProblem, gg, true)
 
 	numGood := 0
 
@@ -91,8 +91,8 @@ func runGogenTest(t *testing.T, planf planFunc, w1, w2, w3 string) {
 	}
 
 	if t.Failed() {
-		gg = newGoGen(newPlanProblem(&prob, true))
-		planf(gg.planProblem, gg.loggedGen(), true)
+		gg = newGoGen(word.NewPlanProblem(&prob, true))
+		planf(gg.PlanProblem, gg.loggedGen(), true)
 		srch.run(gg.searchInit, resultFunc, watchers([]searchWatcher{
 			traces,
 			debugWatcher{
@@ -108,8 +108,8 @@ func benchGogenPlan(b *testing.B, planf planFunc, w1, w2, w3 string) {
 		b.Fatalf("setup failed: %v", err)
 	}
 	for n := 0; n < b.N; n++ {
-		gg := newGoGen(newPlanProblem(&prob, false))
-		planf(gg.planProblem, gg, false)
+		gg := newGoGen(word.NewPlanProblem(&prob, false))
+		planf(gg.PlanProblem, gg, false)
 	}
 }
 
@@ -119,8 +119,8 @@ func benchGogenRun(b *testing.B, planf planFunc, w1, w2, w3 string) {
 		b.Fatalf("setup failed: %v", err)
 	}
 
-	gg := newGoGen(newPlanProblem(&prob, false))
-	planf(gg.planProblem, gg, false)
+	gg := newGoGen(word.NewPlanProblem(&prob, false))
+	planf(gg.PlanProblem, gg, false)
 
 	for n := 0; n < b.N; n++ {
 		var srch search

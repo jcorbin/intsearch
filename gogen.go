@@ -27,7 +27,7 @@ func (ve verifyError) Error() string {
 }
 
 type goGen struct {
-	*planProblem
+	*word.PlanProblem
 	steps       []solutionStep
 	carryPrior  *word.Column
 	carrySaved  bool
@@ -37,17 +37,17 @@ type goGen struct {
 	addrAnnos   map[int][]string
 }
 
-func newGoGen(prob *planProblem) *goGen {
+func newGoGen(prob *word.PlanProblem) *goGen {
 	n := 0
 	for _, w := range prob.Words {
 		n += len(w)
 	}
 	gg := &goGen{
-		planProblem: prob,
+		PlanProblem: prob,
 		usedSymbols: make(map[string]struct{}, 3*len(prob.Letters)),
 		steps:       make([]solutionStep, 0, n*50),
 	}
-	if prob.annotated {
+	if prob.Annotated {
 		gg.addrAnnos = make(map[int][]string)
 	}
 	return gg
@@ -55,7 +55,7 @@ func newGoGen(prob *planProblem) *goGen {
 
 func (gg *goGen) copy() *goGen {
 	alt := &goGen{
-		planProblem: gg.planProblem,
+		PlanProblem: gg.PlanProblem,
 		usedSymbols: gg.usedSymbols,
 		steps:       make([]solutionStep, 0, cap(gg.steps)),
 	}
@@ -74,15 +74,15 @@ func fallFact(x, y int) int {
 }
 
 func (gg *goGen) searchInit(emit emitFunc) int {
-	emit(newSolution(&gg.planProblem.Problem, gg.steps, emit))
+	emit(newSolution(&gg.PlanProblem.Problem, gg.steps, emit))
 	// worst case, we have to run every step for every possible brute force solution
 	numBrute := fallFact(gg.Base, len(gg.Letters))
 	return numBrute * len(gg.steps)
 }
 
-func (gg *goGen) loggedGen() solutionGen {
-	return multiGen([]solutionGen{
-		newLogGen(gg.planProblem),
+func (gg *goGen) loggedGen() word.SolutionGen {
+	return multiGen([]word.SolutionGen{
+		newLogGen(gg.PlanProblem),
 		gg,
 	})
 }
@@ -128,7 +128,7 @@ func (gg *goGen) Logf(format string, args ...interface{}) error {
 func (gg *goGen) Init(desc string) {
 }
 
-func (gg *goGen) Fork(prob *planProblem, name, altLabel, contLabel string) solutionGen {
+func (gg *goGen) Fork(prob *word.PlanProblem, name, altLabel, contLabel string) word.SolutionGen {
 	if altLabel != "" {
 		altLabel = gg.gensym("%s:alt", altLabel)
 	}
@@ -136,7 +136,7 @@ func (gg *goGen) Fork(prob *planProblem, name, altLabel, contLabel string) solut
 		contLabel = gg.gensym("%s:cont", contLabel)
 	}
 	alt := gg.copy()
-	alt.planProblem = prob
+	alt.PlanProblem = prob
 	gg.steps = append(gg.steps, forkAltStep{
 		alt:       alt,
 		name:      name,
@@ -409,12 +409,12 @@ func (gg *goGen) ensureCarry(col *word.Column) {
 	}
 
 	c1 := col.Chars[0]
-	if c1 != 0 && !gg.known[c1] {
+	if c1 != 0 && !gg.Known[c1] {
 		log.Fatalf("cannot compute carry from unknown c1 for column %v", col)
 	}
 
 	c2 := col.Chars[1]
-	if c2 != 0 && !gg.known[c2] {
+	if c2 != 0 && !gg.Known[c2] {
 		log.Fatalf("cannot compute carry from unknown c2 for column %v", col)
 	}
 
@@ -511,11 +511,11 @@ func (gg *goGen) doVerify(name string, err error) {
 
 func (gg *goGen) verifyColumns(name string, err error) {
 	// verify columns from bottom up
-	for i := len(gg.columns) - 1; i >= 0; i-- {
-		if gg.columns[i].Unknown > 0 {
+	for i := len(gg.Columns) - 1; i >= 0; i-- {
+		if gg.Columns[i].Unknown > 0 {
 			return
 		}
-		col := &gg.columns[i]
+		col := &gg.Columns[i]
 		colErr := err
 		if colErr == nil {
 			colErr = verifyError(col.Label())
@@ -565,11 +565,11 @@ func (gg *goGen) verifyDuplicateLetters(name string, err error) {
 	}
 	letters := gg.SortedLetters()
 	for i, c := range letters {
-		if !gg.known[c] {
+		if !gg.Known[c] {
 			continue
 		}
 		for j, d := range letters {
-			if !gg.known[d] {
+			if !gg.Known[d] {
 				continue
 			}
 			if j > i {
@@ -591,7 +591,7 @@ func (gg *goGen) verifyLettersNonNegative(name string, err error) {
 		gg.steps = append(gg.steps, labelStep(gg.gensym("%s:allLettersNonNegative", name)))
 	}
 	for _, c := range gg.SortedLetters() {
-		if !gg.known[c] {
+		if !gg.Known[c] {
 			continue
 		}
 		gg.steps = append(gg.steps,
