@@ -121,14 +121,14 @@ func (gg *goGen) decorate(args []interface{}) []string {
 	return dec
 }
 
-func (gg *goGen) logf(format string, args ...interface{}) error {
+func (gg *goGen) Logf(format string, args ...interface{}) error {
 	return nil
 }
 
-func (gg *goGen) init(desc string) {
+func (gg *goGen) Init(desc string) {
 }
 
-func (gg *goGen) fork(prob *planProblem, name, altLabel, contLabel string) solutionGen {
+func (gg *goGen) Fork(prob *planProblem, name, altLabel, contLabel string) solutionGen {
 	if altLabel != "" {
 		altLabel = gg.gensym("%s:alt", altLabel)
 	}
@@ -146,7 +146,7 @@ func (gg *goGen) fork(prob *planProblem, name, altLabel, contLabel string) solut
 	return alt
 }
 
-func (gg *goGen) fix(c byte, v int) {
+func (gg *goGen) Fix(c byte, v int) {
 	if gg.addrAnnos != nil {
 		gg.steps = append(gg.steps,
 			labelStep(gg.gensym("fix(%s)", string(c))))
@@ -187,7 +187,7 @@ func (gg *goGen) saveCarry(col *word.Column) {
 	gg.stashCarry(col)
 }
 
-func (gg *goGen) computeSum(col *word.Column) {
+func (gg *goGen) ComputeSum(col *word.Column) {
 	// Given:
 	//   carry + a + b = c (mod base)
 	// Solve for c:
@@ -227,11 +227,11 @@ func (gg *goGen) computeSum(col *word.Column) {
 	gg.checkAfterCompute(col, c)
 }
 
-func (gg *goGen) computeFirstSummand(col *word.Column) {
+func (gg *goGen) ComputeFirstSummand(col *word.Column) {
 	gg.computeSummand(col, col.Chars[0], col.Chars[1], col.Chars[2])
 }
 
-func (gg *goGen) computeSecondSummand(col *word.Column) {
+func (gg *goGen) ComputeSecondSummand(col *word.Column) {
 	gg.computeSummand(col, col.Chars[1], col.Chars[0], col.Chars[2])
 }
 
@@ -344,7 +344,7 @@ func (gg *goGen) checkFixedCarry(col *word.Column) {
 	}
 }
 
-func (gg *goGen) chooseRange(c byte, min, max int) {
+func (gg *goGen) ChooseRange(c byte, min, max int) {
 	gg.stashCarry(gg.carryPrior)
 	gg.carryValid = false
 	label := ""
@@ -438,7 +438,7 @@ func (gg *goGen) ensureCarry(col *word.Column) {
 	gg.carryValid = true
 }
 
-func (gg *goGen) check(err error) {
+func (gg *goGen) Check(err error) {
 	if gg.addrAnnos == nil {
 		gg.doVerify("", err)
 	} else {
@@ -446,7 +446,7 @@ func (gg *goGen) check(err error) {
 	}
 }
 
-func (gg *goGen) checkColumn(col *word.Column, err error) {
+func (gg *goGen) CheckColumn(col *word.Column, err error) {
 	if err == nil {
 		err = errCheckFailed
 	}
@@ -490,7 +490,7 @@ func (gg *goGen) checkColumn(col *word.Column, err error) {
 	gg.steps = append(gg.steps, steps...)
 }
 
-func (gg *goGen) verify() {
+func (gg *goGen) Verify() {
 	if gg.addrAnnos == nil {
 		gg.doVerify("", nil)
 	} else {
@@ -520,7 +520,7 @@ func (gg *goGen) verifyColumns(name string, err error) {
 		if colErr == nil {
 			colErr = verifyError(col.Label())
 		}
-		gg.checkColumn(col, colErr)
+		gg.CheckColumn(col, colErr)
 	}
 
 	// final carry may be constant by construction
@@ -602,7 +602,7 @@ func (gg *goGen) verifyLettersNonNegative(name string, err error) {
 	}
 }
 
-func (gg *goGen) finish() {
+func (gg *goGen) Finish() {
 	lastStep := gg.steps[len(gg.steps)-1]
 	if _, isFinish := lastStep.(finishStep); isFinish {
 		panic("double goGen.finish")
@@ -610,7 +610,7 @@ func (gg *goGen) finish() {
 	gg.steps = append(gg.steps, finishStep(gg.gensym("finish")))
 }
 
-func (gg *goGen) finalize() {
+func (gg *goGen) Finalize() {
 	gg.compile()
 }
 

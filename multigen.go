@@ -4,83 +4,83 @@ import "github.com/jcorbin/intsearch/word"
 
 type multiGen []solutionGen
 
-func (mg multiGen) logf(format string, args ...interface{}) error {
+func (mg multiGen) Logf(format string, args ...interface{}) error {
 	for _, gen := range mg {
-		gen.logf(format, args...)
+		gen.Logf(format, args...)
 	}
 	return nil // TODO: multiError fwiw
 }
 
-func (mg multiGen) init(desc string) {
+func (mg multiGen) Init(desc string) {
 	for _, gen := range mg {
-		gen.init(desc)
+		gen.Init(desc)
 	}
 }
 
-func (mg multiGen) fork(prob *planProblem, name, alt, cont string) solutionGen {
+func (mg multiGen) Fork(prob *planProblem, name, alt, cont string) solutionGen {
 	altGen := make([]solutionGen, len(mg))
 	for i, gen := range mg {
-		altGen[i] = gen.fork(prob, name, alt, cont)
+		altGen[i] = gen.Fork(prob, name, alt, cont)
 	}
 	return multiGen(altGen)
 }
 
-func (mg multiGen) fix(c byte, v int) {
+func (mg multiGen) Fix(c byte, v int) {
 	for _, gen := range mg {
-		gen.fix(c, v)
+		gen.Fix(c, v)
 	}
 }
 
-func (mg multiGen) computeSum(col *word.Column) {
+func (mg multiGen) ComputeSum(col *word.Column) {
 	for _, gen := range mg {
-		gen.computeSum(col)
+		gen.ComputeSum(col)
 	}
 }
 
-func (mg multiGen) computeFirstSummand(col *word.Column) {
+func (mg multiGen) ComputeFirstSummand(col *word.Column) {
 	for _, gen := range mg {
-		gen.computeFirstSummand(col)
+		gen.ComputeFirstSummand(col)
 	}
 }
 
-func (mg multiGen) computeSecondSummand(col *word.Column) {
+func (mg multiGen) ComputeSecondSummand(col *word.Column) {
 	for _, gen := range mg {
-		gen.computeSecondSummand(col)
+		gen.ComputeSecondSummand(col)
 	}
 }
 
-func (mg multiGen) chooseRange(c byte, min, max int) {
+func (mg multiGen) ChooseRange(c byte, min, max int) {
 	for _, gen := range mg {
-		gen.chooseRange(c, min, max)
+		gen.ChooseRange(c, min, max)
 	}
 }
 
-func (mg multiGen) checkColumn(col *word.Column, err error) {
+func (mg multiGen) CheckColumn(col *word.Column, err error) {
 	for _, gen := range mg {
-		gen.checkColumn(col, err)
+		gen.CheckColumn(col, err)
 	}
 }
 
-func (mg multiGen) verify() {
+func (mg multiGen) Verify() {
 	for _, gen := range mg {
-		gen.verify()
+		gen.Verify()
 	}
 }
 
-func (mg multiGen) check(err error) {
+func (mg multiGen) Check(err error) {
 	for _, gen := range mg {
-		gen.check(err)
+		gen.Check(err)
 	}
 }
 
-func (mg multiGen) finish() {
+func (mg multiGen) Finish() {
 	for _, gen := range mg {
-		gen.finish()
+		gen.Finish()
 	}
 }
 
-func (mg multiGen) finalize() {
+func (mg multiGen) Finalize() {
 	for _, gen := range mg {
-		gen.finalize()
+		gen.Finalize()
 	}
 }

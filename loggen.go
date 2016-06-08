@@ -22,7 +22,7 @@ func newLogGen(prob *planProblem) *logGen {
 	}
 }
 
-func (lg *logGen) logf(format string, args ...interface{}) error {
+func (lg *logGen) Logf(format string, args ...interface{}) error {
 	if len(lg.prefix) == 0 {
 		format = fmt.Sprintf("// %s\n", format)
 	} else {
@@ -35,10 +35,10 @@ func (lg *logGen) logf(format string, args ...interface{}) error {
 func (lg *logGen) stepf(format string, args ...interface{}) {
 	lg.step++
 	format = fmt.Sprintf("step[%v]: %s", lg.step, format)
-	lg.logf(format, args...)
+	lg.Logf(format, args...)
 }
 
-func (lg *logGen) init(desc string) {
+func (lg *logGen) Init(desc string) {
 	var w int
 	for _, word := range lg.Words {
 		if len(word) > w {
@@ -49,17 +49,17 @@ func (lg *logGen) init(desc string) {
 	for i, c := range lg.SortedLetters() {
 		letters[i] = string(c)
 	}
-	lg.logf("Problem:")
-	lg.logf("  %s%v", strings.Repeat(" ", w-len(lg.Words[0])), string(lg.Words[0]))
-	lg.logf("+ %s%v", strings.Repeat(" ", w-len(lg.Words[1])), string(lg.Words[1]))
-	lg.logf("= %s%v", strings.Repeat(" ", w-len(lg.Words[2])), string(lg.Words[2]))
-	lg.logf("base: %v", lg.Base)
-	lg.logf("letters: %v", letters)
-	lg.logf("method: %s", desc)
-	lg.logf("")
+	lg.Logf("Problem:")
+	lg.Logf("  %s%v", strings.Repeat(" ", w-len(lg.Words[0])), string(lg.Words[0]))
+	lg.Logf("+ %s%v", strings.Repeat(" ", w-len(lg.Words[1])), string(lg.Words[1]))
+	lg.Logf("= %s%v", strings.Repeat(" ", w-len(lg.Words[2])), string(lg.Words[2]))
+	lg.Logf("base: %v", lg.Base)
+	lg.Logf("letters: %v", letters)
+	lg.Logf("method: %s", desc)
+	lg.Logf("")
 }
 
-func (lg *logGen) fork(prob *planProblem, name, alt, cont string) solutionGen {
+func (lg *logGen) Fork(prob *planProblem, name, alt, cont string) solutionGen {
 	if alt == "" {
 		alt = fmt.Sprintf("%s:alt", name)
 	}
@@ -79,11 +79,11 @@ func (lg *logGen) fork(prob *planProblem, name, alt, cont string) solutionGen {
 	}
 }
 
-func (lg *logGen) fix(c byte, v int) {
+func (lg *logGen) Fix(c byte, v int) {
 	lg.stepf("fix %v = %v", string(c), v)
 }
 
-func (lg *logGen) computeSum(col *word.Column) {
+func (lg *logGen) ComputeSum(col *word.Column) {
 	a, b, c := col.Chars[0], col.Chars[1], col.Chars[2]
 	if a != 0 && b != 0 {
 		lg.stepf("compute %v = %v + %v + carry (mod %v)", string(c), string(a), string(b), lg.Base)
@@ -96,11 +96,11 @@ func (lg *logGen) computeSum(col *word.Column) {
 	}
 }
 
-func (lg *logGen) computeFirstSummand(col *word.Column) {
+func (lg *logGen) ComputeFirstSummand(col *word.Column) {
 	lg.computeSummand(col.Chars[0], col.Chars[1], col.Chars[2])
 }
 
-func (lg *logGen) computeSecondSummand(col *word.Column) {
+func (lg *logGen) ComputeSecondSummand(col *word.Column) {
 	lg.computeSummand(col.Chars[1], col.Chars[0], col.Chars[2])
 }
 
@@ -116,7 +116,7 @@ func (lg *logGen) computeSummand(a, b, c byte) {
 	}
 }
 
-func (lg *logGen) chooseRange(c byte, min, max int) {
+func (lg *logGen) ChooseRange(c byte, min, max int) {
 	N := max - min
 	R := lg.Base - len(lg.known)
 	if R < N {
@@ -126,27 +126,27 @@ func (lg *logGen) chooseRange(c byte, min, max int) {
 	lg.stepf("choose %v (branch by %v)", string(c), N)
 }
 
-func (lg *logGen) checkColumn(col *word.Column, err error) {
+func (lg *logGen) CheckColumn(col *word.Column, err error) {
 	lg.stepf("check column: %s", col.Label())
 }
 
-func (lg *logGen) verify() {
+func (lg *logGen) Verify() {
 	lg.stepf("verify")
 }
 
-func (lg *logGen) check(err error) {
+func (lg *logGen) Check(err error) {
 	lg.stepf("check")
 }
 
-func (lg *logGen) finish() {
+func (lg *logGen) Finish() {
 	lg.stepf("finish")
 }
 
-func (lg *logGen) finalize() {
+func (lg *logGen) Finalize() {
 	branches := 1
 	for _, b := range lg.branches {
 		branches *= b
 	}
 
-	lg.logf("Total Branches: %v", branches)
+	lg.Logf("Total Branches: %v", branches)
 }

@@ -11,20 +11,20 @@ import (
 type planFunc func(*planProblem, solutionGen, bool)
 
 func planNaiveBrute(prob *planProblem, gen solutionGen, verified bool) {
-	gen.init("naive brute force")
+	gen.Init("naive brute force")
 	for _, c := range prob.SortedLetters() {
 		prob.chooseRange(gen, c, 0, prob.Base-1)
 	}
-	gen.check(errCheckFailed)
+	gen.Check(errCheckFailed)
 	if verified {
-		gen.verify()
+		gen.Verify()
 	}
-	gen.finish()
-	gen.finalize()
+	gen.Finish()
+	gen.Finalize()
 }
 
 func planPrunedBrute(prob *planProblem, gen solutionGen, verified bool) {
-	gen.init("pruned brute force")
+	gen.Init("pruned brute force")
 	var mins [256]int
 	for _, word := range prob.Words {
 		mins[word[0]] = 1
@@ -39,24 +39,24 @@ func planPrunedBrute(prob *planProblem, gen solutionGen, verified bool) {
 		prob.checkColumn(gen, col)
 	}
 	if verified {
-		gen.verify()
+		gen.Verify()
 	}
-	gen.finish()
-	gen.finalize()
+	gen.Finish()
+	gen.Finalize()
 }
 
 func planTopDown(prob *planProblem, gen solutionGen, verified bool) {
-	gen.init("top down")
+	gen.Init("top down")
 	if !prob.procTopDown(gen, &prob.columns[0], verified) {
 		panic("unable to plan top down")
 	}
-	gen.finalize()
+	gen.Finalize()
 }
 
 func planBottomUp(prob *planProblem, gen solutionGen, verified bool) {
-	gen.init("bottom up")
+	gen.Init("bottom up")
 	prob.procBottomUp(gen, verified)
-	gen.finalize()
+	gen.Finalize()
 }
 
 type planProblemPool struct {
@@ -87,19 +87,19 @@ type planProblem struct {
 }
 
 type solutionGen interface {
-	logf(string, ...interface{}) error
-	init(desc string)
-	fork(prob *planProblem, name, alt, cont string) solutionGen
-	fix(c byte, v int)
-	computeSum(col *word.Column)
-	computeFirstSummand(col *word.Column)
-	computeSecondSummand(col *word.Column)
-	chooseRange(c byte, min, max int)
-	checkColumn(col *word.Column, err error)
-	check(err error)
-	finish()
-	verify()
-	finalize()
+	Logf(string, ...interface{}) error
+	Init(desc string)
+	Fork(prob *planProblem, name, alt, cont string) solutionGen
+	Fix(c byte, v int)
+	ComputeSum(col *word.Column)
+	ComputeFirstSummand(col *word.Column)
+	ComputeSecondSummand(col *word.Column)
+	ChooseRange(c byte, min, max int)
+	CheckColumn(col *word.Column, err error)
+	Check(err error)
+	Finish()
+	Verify()
+	Finalize()
 }
 
 func newPlanProblem(p *word.Problem, annotated bool) *planProblem {
@@ -235,9 +235,9 @@ func (prob *planProblem) procTopDown(gen solutionGen, col *word.Column, verified
 	if col.Prior == nil {
 		prob.solveColumn(gen, col)
 		if verified {
-			gen.verify()
+			gen.Verify()
 		}
-		gen.finish()
+		gen.Finish()
 		return true
 	}
 
@@ -259,7 +259,7 @@ func (prob *planProblem) assumeCarrySolveColumn(
 	var label, altLabel, contLabel string
 	if prob.annotated {
 		label = col.Label()
-		gen.logf("assumeCarrySolveColumn: %s", label)
+		gen.Logf("assumeCarrySolveColumn: %s", label)
 		label = fmt.Sprintf("assumeCarry(%s)", label)
 	}
 
@@ -272,7 +272,7 @@ func (prob *planProblem) assumeCarrySolveColumn(
 		altLabel = fmt.Sprintf("assumeCarry(%s)", altCol.Label())
 		contLabel = fmt.Sprintf("assumeCarry(%s)", col.Label())
 	}
-	altGen := gen.fork(altProb, label, altLabel, contLabel)
+	altGen := gen.Fork(altProb, label, altLabel, contLabel)
 
 	altProb.solveColumn(altGen, altCol)
 	if !andThen(altProb, altGen, altCol.Prior) {
@@ -298,14 +298,14 @@ func (prob *planProblem) procBottomUp(gen solutionGen, verified bool) {
 		prob.solveColumn(gen, &prob.columns[i])
 	}
 	if verified {
-		gen.verify()
+		gen.Verify()
 	}
-	gen.finish()
+	gen.Finish()
 }
 
 func (prob *planProblem) checkColumn(gen solutionGen, col *word.Column) bool {
 	if !col.Solved {
-		gen.checkColumn(col, nil)
+		gen.CheckColumn(col, nil)
 		col.Solved = true
 		col.Carry = word.CarryComputed
 	}
@@ -347,7 +347,7 @@ func (prob *planProblem) fix(gen solutionGen, c byte, v int) {
 	for _, col := range prob.letCols[c] {
 		col.Fixed++
 	}
-	gen.fix(c, v)
+	gen.Fix(c, v)
 }
 
 func (prob *planProblem) solveSingularColumn(gen solutionGen, col *word.Column) bool {
@@ -435,7 +435,7 @@ func (prob *planProblem) chooseBest(gen solutionGen, col *word.Column) bool {
 }
 
 func (prob *planProblem) chooseRange(gen solutionGen, c byte, min, max int) {
-	gen.chooseRange(c, min, max)
+	gen.ChooseRange(c, min, max)
 	prob.markKnown(c)
 }
 
@@ -451,7 +451,7 @@ func (prob *planProblem) solveColumnFromPrior(gen solutionGen, col *word.Column)
 	}
 
 	if prob.annotated {
-		gen.logf("solveFromPrior: %s", col.Label())
+		gen.Logf("solveFromPrior: %s", col.Label())
 	}
 
 	for u := col.Unknown; u > 1; u = col.Unknown {
@@ -465,15 +465,15 @@ func (prob *planProblem) solveColumnFromPrior(gen solutionGen, col *word.Column)
 	}
 
 	if c := col.Chars[0]; c != 0 && !prob.known[c] {
-		gen.computeFirstSummand(col)
+		gen.ComputeFirstSummand(col)
 		col.Carry = word.CarryComputed
 		prob.markKnown(c)
 	} else if c := col.Chars[1]; c != 0 && !prob.known[c] {
-		gen.computeSecondSummand(col)
+		gen.ComputeSecondSummand(col)
 		col.Carry = word.CarryComputed
 		prob.markKnown(c)
 	} else if c := col.Chars[2]; c != 0 && !prob.known[c] {
-		gen.computeSum(col)
+		gen.ComputeSum(col)
 		col.Carry = word.CarryComputed
 		prob.markKnown(c)
 	} else {
