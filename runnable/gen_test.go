@@ -11,43 +11,43 @@ import (
 
 type planFunc func(*word.PlanProblem, word.SolutionGen, bool)
 
-func TestGogen_prunedBrute(t *testing.T) {
-	runGogenTest(t, word.PlanPrunedBrute, "send", "more", "money")
+func TestStepGen_prunedBrute(t *testing.T) {
+	runStepGenTest(t, word.PlanPrunedBrute, "send", "more", "money")
 }
 
-func BenchmarkGogenPlan_prunedBrute(b *testing.B) {
-	benchGogenPlan(b, word.PlanPrunedBrute, "send", "more", "money")
+func BenchmarkStepGenPlan_prunedBrute(b *testing.B) {
+	benchStepGenPlan(b, word.PlanPrunedBrute, "send", "more", "money")
 }
 
-func BenchmarkGogenRun_prunedBrute(b *testing.B) {
-	benchGogenRun(b, word.PlanPrunedBrute, "send", "more", "money")
+func BenchmarkStepGenRun_prunedBrute(b *testing.B) {
+	benchStepGenRun(b, word.PlanPrunedBrute, "send", "more", "money")
 }
 
-func TestGogen_bottomUp(t *testing.T) {
-	runGogenTest(t, word.PlanBottomUp, "send", "more", "money")
+func TestStepGen_bottomUp(t *testing.T) {
+	runStepGenTest(t, word.PlanBottomUp, "send", "more", "money")
 }
 
-func BenchmarkGogenPlan_bottomUp(b *testing.B) {
-	benchGogenPlan(b, word.PlanBottomUp, "send", "more", "money")
+func BenchmarkStepGenPlan_bottomUp(b *testing.B) {
+	benchStepGenPlan(b, word.PlanBottomUp, "send", "more", "money")
 }
 
-func BenchmarkGogenRun_bottomUp(b *testing.B) {
-	benchGogenRun(b, word.PlanBottomUp, "send", "more", "money")
+func BenchmarkStepGenRun_bottomUp(b *testing.B) {
+	benchStepGenRun(b, word.PlanBottomUp, "send", "more", "money")
 }
 
-func TestGogen_topDown(t *testing.T) {
-	runGogenTest(t, word.PlanTopDown, "send", "more", "money")
+func TestStepGen_topDown(t *testing.T) {
+	runStepGenTest(t, word.PlanTopDown, "send", "more", "money")
 }
 
-func BenchmarkGogenPlan_topDown(b *testing.B) {
-	benchGogenPlan(b, word.PlanTopDown, "send", "more", "money")
+func BenchmarkStepGenPlan_topDown(b *testing.B) {
+	benchStepGenPlan(b, word.PlanTopDown, "send", "more", "money")
 }
 
-func BenchmarkGogenRun_topDown(b *testing.B) {
-	benchGogenRun(b, word.PlanTopDown, "send", "more", "money")
+func BenchmarkStepGenRun_topDown(b *testing.B) {
+	benchStepGenRun(b, word.PlanTopDown, "send", "more", "money")
 }
 
-func runGogenTest(t *testing.T, planf word.PlanFunc, w1, w2, w3 string) {
+func runStepGenTest(t *testing.T, planf word.PlanFunc, w1, w2, w3 string) {
 	var prob word.Problem
 	if err := prob.Setup(w1, w2, w3); err != nil {
 		t.Fatalf("setup failed: %v", err)
@@ -105,7 +105,7 @@ func runGogenTest(t *testing.T, planf word.PlanFunc, w1, w2, w3 string) {
 	}
 }
 
-func benchGogenPlan(b *testing.B, planf word.PlanFunc, w1, w2, w3 string) {
+func benchStepGenPlan(b *testing.B, planf word.PlanFunc, w1, w2, w3 string) {
 	var prob word.Problem
 	if err := prob.Setup(w1, w2, w3); err != nil {
 		b.Fatalf("setup failed: %v", err)
@@ -116,7 +116,7 @@ func benchGogenPlan(b *testing.B, planf word.PlanFunc, w1, w2, w3 string) {
 	}
 }
 
-func benchGogenRun(b *testing.B, planf word.PlanFunc, w1, w2, w3 string) {
+func benchStepGenRun(b *testing.B, planf word.PlanFunc, w1, w2, w3 string) {
 	var prob word.Problem
 	if err := prob.Setup(w1, w2, w3); err != nil {
 		b.Fatalf("setup failed: %v", err)

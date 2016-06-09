@@ -630,7 +630,7 @@ func (gg *StepGen) verifyLettersNonNegative(name string, err error) {
 func (gg *StepGen) Finish() {
 	lastStep := gg.steps[len(gg.steps)-1]
 	if _, isFinish := lastStep.(finishStep); isFinish {
-		panic("double goGen.finish")
+		panic("double StepGen.finish")
 	}
 	gg.steps = append(gg.steps, finishStep(gg.gensym("finish")))
 }
