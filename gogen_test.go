@@ -108,7 +108,6 @@ func benchGogenPlan(b *testing.B, planf planFunc, w1, w2, w3 string) {
 	for n := 0; n < b.N; n++ {
 		gg := newGoGen(newPlanProblem(&prob, false))
 		planf(gg.planProblem, gg, false)
-		gg.compile()
 	}
 }
 
@@ -120,7 +119,6 @@ func benchGogenRun(b *testing.B, planf planFunc, w1, w2, w3 string) {
 
 	gg := newGoGen(newPlanProblem(&prob, false))
 	planf(gg.planProblem, gg, false)
-	gg.compile()
 
 	for n := 0; n < b.N; n++ {
 		var srch search
