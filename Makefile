@@ -14,7 +14,10 @@ clean:
 
 .PHONY: lint
 lint: generate
-	for pkg in; do find $$pkg -maxdepth 1 -type f -name '*.go' -not -name '*_string.go' | xargs golint; done
+	for pkg in $(PACKAGES); do \
+		find $$pkg -maxdepth 1 -type f -name '*.go' -not -name '*_string.go' -not -name '*_test.go' | xargs golint; \
+		find $$pkg -maxdepth 1 -type f -name '*.go' -name '*_test.go' | xargs golint; \
+	done
 	go vet $(PACKAGES)
 
 .PHONY: test
