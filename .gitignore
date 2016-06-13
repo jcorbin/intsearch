@@ -2,3 +2,4 @@ intsearch
 intsearch.test*
 *.prof
 *_string.go
+vendor/
