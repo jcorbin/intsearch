@@ -183,7 +183,10 @@ func main() {
 
 	gen := word.SolutionGen(gg)
 	if *dumpProg {
-		gen = gg.LoggedGen()
+		gen = word.MultiGen([]word.SolutionGen{
+			word.NewLogGen(gg.PlanProblem),
+			gen,
+		})
 	}
 
 	planf(gg.PlanProblem, gen, *verify)

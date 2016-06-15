@@ -95,7 +95,10 @@ func runStepGenTest(t *testing.T, planf word.PlanFunc, w1, w2, w3 string) {
 
 	if t.Failed() {
 		gg = runnable.NewStepGen(word.NewPlanProblem(&prob, true))
-		planf(gg.PlanProblem, gg.LoggedGen(), true)
+		planf(gg.PlanProblem, word.MultiGen([]word.SolutionGen{
+			word.NewLogGen(gg.PlanProblem),
+			gg,
+		}), true)
 		srch.Run(gg.SearchInit, resultFunc, runnable.Watchers([]runnable.SearchWatcher{
 			traces,
 			runnable.DebugWatcher{

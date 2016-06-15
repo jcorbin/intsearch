@@ -85,15 +85,6 @@ func (gg *StepGen) SearchInit(emit EmitFunc) int {
 	return numBrute * len(gg.steps)
 }
 
-// LoggedGen is a convenience that will create a new word.LogGen for the same
-// problem, and wrap bundle it up with the StepGen into a word.MultiGen.
-func (gg *StepGen) LoggedGen() word.SolutionGen {
-	return word.MultiGen([]word.SolutionGen{
-		word.NewLogGen(gg.PlanProblem),
-		gg,
-	})
-}
-
 // LabelAt returns any annotations for the given address, joined by a ", ".
 func (gg *StepGen) LabelAt(i int) string {
 	labels := gg.annosFor(i)
