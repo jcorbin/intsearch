@@ -160,11 +160,12 @@ func (lg *LogGen) Finish() {
 
 // Finalize prints final information once the entire plan is all done; this
 // happens once all Fork branches have been Finished.
-func (lg *LogGen) Finalize() {
+func (lg *LogGen) Finalize() Plan {
 	branches := 1
 	for _, b := range lg.branches {
 		branches *= b
 	}
 
 	lg.Logf("Total Branches: %v", branches)
+	return nil
 }

@@ -654,8 +654,9 @@ func (gg *StepGen) Finish() {
 
 // Finalize compiles the generated steps (performs expansion and label
 // resolution).
-func (gg *StepGen) Finalize() {
+func (gg *StepGen) Finalize() word.Plan {
 	gg.compile()
+	return nil
 }
 
 func (gg *StepGen) takeAnnotation(addr int, annos ...string) {

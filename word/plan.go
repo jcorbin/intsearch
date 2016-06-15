@@ -7,6 +7,13 @@ import (
 
 var errBruteCheckFailed = errors.New("check failed")
 
+// Plan is a concrete plan that can be ran to find one or more solutions to a
+// problem.
+type Plan interface {
+	Decorate(args ...interface{}) []string
+	Run(Resultor)
+}
+
 // PlanFunc is the type of a concrete solution strategy.  The function should:
 // - call gen.Init
 // - use some combinatino of gen method calls to solve every column, or at
@@ -15,13 +22,13 @@ var errBruteCheckFailed = errors.New("check failed")
 //   alternates)
 // - call gen.Finish (also call .Finish on any Fork'd alternates)
 // - call gen.Finalize
-type PlanFunc func(*PlanProblem, SolutionGen, bool)
+type PlanFunc func(*PlanProblem, SolutionGen, bool) Plan
 
 // PlanNaiveBrute implements the most naive (factorial in the number of letters
 // branching factor) strategy:
 // - gen.ChooseRange for every letter (in naive sorted order)
 // - gen.Check to filter
-func PlanNaiveBrute(prob *PlanProblem, gen SolutionGen, verified bool) {
+func PlanNaiveBrute(prob *PlanProblem, gen SolutionGen, verified bool) Plan {
 	gen.Init("naive brute force")
 	for _, c := range prob.SortedLetters() {
 		prob.ChooseRange(gen, c, 0, prob.Base-1)
@@ -31,7 +38,7 @@ func PlanNaiveBrute(prob *PlanProblem, gen SolutionGen, verified bool) {
 		gen.Verify()
 	}
 	gen.Finish()
-	gen.Finalize()
+	return gen.Finalize()
 }
 
 // PlanPrunedBrute implements a sane brute force search:
@@ -41,7 +48,7 @@ func PlanNaiveBrute(prob *PlanProblem, gen SolutionGen, verified bool) {
 //
 // This strategy wins over naive brute since there is a drastic search space
 // reduction as we move from column to column.
-func PlanPrunedBrute(prob *PlanProblem, gen SolutionGen, verified bool) {
+func PlanPrunedBrute(prob *PlanProblem, gen SolutionGen, verified bool) Plan {
 	gen.Init("pruned brute force")
 	var mins [256]int
 	for _, word := range prob.Words {
@@ -60,7 +67,7 @@ func PlanPrunedBrute(prob *PlanProblem, gen SolutionGen, verified bool) {
 		gen.Verify()
 	}
 	gen.Finish()
-	gen.Finalize()
+	return gen.Finalize()
 }
 
 // PlanBottomUp implements a right-to-left (bottom-up) solver:
@@ -70,7 +77,7 @@ func PlanPrunedBrute(prob *PlanProblem, gen SolutionGen, verified bool) {
 //
 // This strategy wins over pruned brute because it avoids many high branching
 // factor choices, instead performing a direct computation when possible.
-func PlanBottomUp(prob *PlanProblem, gen SolutionGen, verified bool) {
+func PlanBottomUp(prob *PlanProblem, gen SolutionGen, verified bool) Plan {
 	gen.Init("bottom up")
 	for i := len(prob.Columns) - 1; i >= 0; i-- {
 		col := &prob.Columns[i]
@@ -82,7 +89,7 @@ func PlanBottomUp(prob *PlanProblem, gen SolutionGen, verified bool) {
 		gen.Verify()
 	}
 	gen.Finish()
-	gen.Finalize()
+	return gen.Finalize()
 }
 
 // PlanTopDown implements a left-to-right (top-down) solver:
@@ -99,7 +106,7 @@ func PlanBottomUp(prob *PlanProblem, gen SolutionGen, verified bool) {
 //   branches of bottom up
 // - furthermore initial letter choices cannot be zero, causing all subsequent
 //   range choices to be reduced by 1
-func PlanTopDown(prob *PlanProblem, gen SolutionGen, verified bool) {
+func PlanTopDown(prob *PlanProblem, gen SolutionGen, verified bool) Plan {
 	var proc func(prob *PlanProblem, gen SolutionGen, col *Column) bool
 	proc = func(prob *PlanProblem, gen SolutionGen, col *Column) bool {
 		if col.Prior == nil {
@@ -121,5 +128,5 @@ func PlanTopDown(prob *PlanProblem, gen SolutionGen, verified bool) {
 	if !proc(prob, gen, &prob.Columns[0]) {
 		panic("unable to plan top down")
 	}
-	gen.Finalize()
+	return gen.Finalize()
 }

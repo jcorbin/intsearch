@@ -91,9 +91,18 @@ func (mg MultiGen) Finish() {
 	}
 }
 
-// Finalize calls each gen's Finalize method.
-func (mg MultiGen) Finalize() {
+// Finalize calls each gen's Finalize method, and returns the only non-nil
+// plan; panics if more than one gen.Finalize() returns a non-nil plan.
+func (mg MultiGen) Finalize() Plan {
+	var plan Plan
 	for _, gen := range mg {
-		gen.Finalize()
+		p := gen.Finalize()
+		if p != nil {
+			if plan != nil {
+				panic("more than one concrete plan")
+			}
+			plan = p
+		}
 	}
+	return plan
 }

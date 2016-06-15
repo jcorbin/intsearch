@@ -47,7 +47,7 @@ type SolutionGen interface {
 	Check(err error)
 	Finish()
 	Verify()
-	Finalize()
+	Finalize() Plan
 }
 
 // NewPlanProblem creates a new planning state for a given problem.
