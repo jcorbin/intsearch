@@ -48,44 +48,43 @@ func BenchmarkStepGenRun_topDown(b *testing.B) {
 }
 
 func runStepGenTest(t *testing.T, planf word.PlanFunc, w1, w2, w3 string) {
-	var prob word.Problem
+	var (
+		prob word.Problem
+		plan word.Plan
+	)
 	if err := prob.Setup(w1, w2, w3); err != nil {
 		t.Fatalf("setup failed: %v", err)
 	}
 
-	var gg *runnable.StepGen
-
 	logf := func(format string, args ...interface{}) {
-		dec := gg.Decorate(args)
+		dec := plan.Decorate(args)
 		if len(dec) > 0 {
 			format = fmt.Sprintf("%s  // %s", format, strings.Join(dec, ", "))
 		}
 		t.Logf(format, args...)
 	}
 
-	gg = runnable.NewStepGen(word.NewPlanProblem(&prob, false))
-	planf(gg.PlanProblem, gg, true)
+	gg := runnable.NewStepGen(word.NewPlanProblem(&prob, false))
+	plan = planf(gg.PlanProblem, gg, true)
 
 	numGood := 0
 
 	// TODO: restore over word.Plan
 	// traces := runnable.NewTraceWatcher()
 
-	resultFunc := func(sol *runnable.Solution) bool {
-		if _, is := sol.Err().(word.VerifyError); is {
+	plan.Run(word.ResultFunc(func(sol word.Solution) bool {
+		err := sol.Check()
+		if _, is := err.(word.VerifyError); is {
 			logf("!!! invalid solution found: %v %s", sol, word.SolutionMapping(sol))
 			// for _, soli := range sol.Trace() {
 			// 	soli.Dump(logf)
 			// }
 			t.Fail()
-		} else if sol.Err() == nil {
+		} else if sol.Check() == nil {
 			numGood++
 		}
 		return false
-	}
-
-	var srch runnable.Search
-	srch.Run(gg.SearchInit, resultFunc)
+	}))
 
 	if numGood == 0 {
 		t.Logf("didn't find any solution")
@@ -123,25 +122,25 @@ func benchStepGenPlan(b *testing.B, planf word.PlanFunc, w1, w2, w3 string) {
 }
 
 func benchStepGenRun(b *testing.B, planf word.PlanFunc, w1, w2, w3 string) {
-	var prob word.Problem
+	var (
+		prob word.Problem
+		plan word.Plan
+	)
 	if err := prob.Setup(w1, w2, w3); err != nil {
 		b.Fatalf("setup failed: %v", err)
 	}
 
 	gg := runnable.NewStepGen(word.NewPlanProblem(&prob, false))
-	planf(gg.PlanProblem, gg, false)
+	plan = planf(gg.PlanProblem, gg, false)
 
 	for n := 0; n < b.N; n++ {
-		var srch runnable.Search
 		numGood := 0
-		srch.Run(
-			gg.SearchInit,
-			func(sol *runnable.Solution) bool {
-				if sol.Err() == nil {
-					numGood++
-				}
-				return false
-			})
+		plan.Run(word.ResultFunc(func(sol word.Solution) bool {
+			if sol.Check() == nil {
+				numGood++
+			}
+			return false
+		}))
 		if numGood == 0 {
 			b.Fatalf("didn't find any solution")
 		} else if numGood > 1 {

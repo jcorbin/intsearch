@@ -115,7 +115,7 @@ func (gg *StepGen) annosFor(addr int) []string {
 
 // Decorate returns a list of any annotations knows for a any of the Solution
 // arguments.
-func (gg *StepGen) Decorate(args []interface{}) []string {
+func (gg *StepGen) Decorate(args ...interface{}) []string {
 	if gg.addrAnnos == nil {
 		return nil
 	}
@@ -656,7 +656,9 @@ func (gg *StepGen) Finish() {
 // resolution).
 func (gg *StepGen) Finalize() word.Plan {
 	gg.compile()
-	return nil
+	return &SearchPlan{
+		gg,
+	}
 }
 
 func (gg *StepGen) takeAnnotation(addr int, annos ...string) {

@@ -1,5 +1,21 @@
 package runnable
 
+import "github.com/jcorbin/intsearch/word"
+
+// SearchPlan implements word.Plan by running the generated steps.
+type SearchPlan struct {
+	*StepGen
+}
+
+// Run runs the generated steps.
+func (sp *SearchPlan) Run(res word.Resultor) {
+	var srch Search
+	srch.Run(sp.SearchInit, func(sol *Solution) bool {
+		res.Result(sol)
+		return false
+	})
+}
+
 // EmitFunc is a state-sink function that should will the passed solution for
 // eventual exploration.
 type EmitFunc func(*Solution)

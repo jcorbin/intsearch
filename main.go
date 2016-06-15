@@ -38,12 +38,11 @@ var (
 		strings.Join(planStrategyNames(), ", ")))
 
 	prob word.Problem
-	srch runnable.Search
-	gg   *runnable.StepGen
+	plan word.Plan
 )
 
 func logf(format string, args ...interface{}) {
-	dec := gg.Decorate(args)
+	dec := plan.Decorate(args...)
 	if len(dec) > 0 {
 		format = fmt.Sprintf("%s  // %s", format, strings.Join(dec, ", "))
 	}
@@ -85,10 +84,7 @@ func traceFailures() {
 	// 	metrics,
 	// 	runnable.NewTraceWatcher(),
 	// })
-	var dmp dumper
-	srch.Run(gg.SearchInit, func(sol *runnable.Solution) bool {
-		return dmp.Result(sol)
-	})
+	plan.Run(&dumper{})
 	// fmt.Printf("\nsearch metrics: %+v\n", metrics)
 }
 
@@ -102,10 +98,7 @@ func debugRun() {
 	// 		Logf: logf,
 	// 	},
 	// })
-	var dmp dumper
-	srch.Run(gg.SearchInit, func(sol *runnable.Solution) bool {
-		return dmp.Result(sol)
-	})
+	plan.Run(&dumper{})
 	// fmt.Printf("\nsearch metrics: %+v\n", metrics)
 }
 
@@ -122,24 +115,22 @@ func findOne() word.Solution {
 
 	failed := false
 	var theSol word.Solution
-	srch.Run(
-		gg.SearchInit,
-		func(sol *runnable.Solution) bool {
-			err := sol.Check()
-			if _, is := err.(word.VerifyError); is {
-				failed = true
-				return false
-			}
-			if err != nil {
-				return false
-			}
-			if theSol != nil {
-				failed = true
-				return false
-			}
-			theSol = sol
-			return true
-		})
+	plan.Run(word.ResultFunc(func(sol word.Solution) bool {
+		err := sol.Check()
+		if _, is := err.(word.VerifyError); is {
+			failed = true
+			return false
+		}
+		if err != nil {
+			return false
+		}
+		if theSol != nil {
+			failed = true
+			return false
+		}
+		theSol = sol
+		return true
+	}))
 	// fmt.Printf("search metrics: %+v\n", metrics)
 	if !failed {
 		return theSol
@@ -177,7 +168,7 @@ func main() {
 	// - dumping program benefits from annotations
 	// - as do program traces
 	// - the debug watcher always traces
-	gg = runnable.NewStepGen(word.NewPlanProblem(&prob, annotated))
+	gg := runnable.NewStepGen(word.NewPlanProblem(&prob, annotated))
 
 	gen := word.SolutionGen(gg)
 	if *dumpProg {
@@ -187,7 +178,7 @@ func main() {
 		})
 	}
 
-	planf(gg.PlanProblem, gen, *verify)
+	plan = planf(gg.PlanProblem, gen, *verify)
 
 	if *dumpProg {
 		fmt.Println()
