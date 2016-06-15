@@ -74,9 +74,9 @@ func runStepGenTest(t *testing.T, planf word.PlanFunc, w1, w2, w3 string) {
 	resultFunc := func(sol *runnable.Solution) bool {
 		if _, is := sol.Err().(word.VerifyError); is {
 			logf("!!! invalid solution found: %v %s", sol, word.SolutionMapping(sol))
-			for _, soli := range sol.Trace() {
-				soli.Dump(logf)
-			}
+			// for _, soli := range sol.Trace() {
+			// 	soli.Dump(logf)
+			// }
 			t.Fail()
 		} else if sol.Err() == nil {
 			numGood++

@@ -21,13 +21,6 @@ func (sp *solutionPool) Get() *Solution {
 }
 
 func (sp *solutionPool) Put(sol *Solution) {
-	if sol.trace != nil {
-		for i := range sol.trace {
-			// sp.Put(sol.trace[i]) XXX useful?
-			sol.trace[i] = nil
-		}
-		sol.trace = sol.trace[:0]
-	}
 	sp.Pool.Put(sol)
 }
 
@@ -294,7 +287,6 @@ type Solution struct {
 	ra, rb, rc int
 	done       bool
 	err        error
-	trace      []*Solution
 }
 
 func newSolution(prob *word.Problem, steps []Step, emit func(*Solution)) *Solution {
@@ -349,18 +341,6 @@ func (sol *Solution) Dump(logf func(string, ...interface{})) {
 // Err returns any execution error.
 func (sol *Solution) Err() error {
 	return sol.err
-}
-
-// Trace returns any execution trace collected so far.
-func (sol *Solution) Trace() []word.Solution {
-	if len(sol.trace) == 0 {
-		return nil
-	}
-	trc := make([]word.Solution, len(sol.trace))
-	for i, soli := range sol.trace {
-		trc[i] = soli
-	}
-	return trc
 }
 
 func (sol *Solution) String() string {

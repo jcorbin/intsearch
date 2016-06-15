@@ -23,7 +23,6 @@ type Solution interface {
 	ValueOf(byte) (int, bool)
 	Check() error
 	Dump(logf func(string, ...interface{}))
-	Trace() []Solution
 }
 
 // SolutionMapping returns a string describing a solution's letter

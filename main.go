@@ -74,10 +74,7 @@ func (dmp *dumper) Result(sol word.Solution) bool {
 		fmt.Println()
 	}
 	sol.Dump(logf)
-	for _, soli := range sol.Trace() {
-		soli.Dump(logf)
-	}
-
+	// TODO: restore trace print
 	return false
 }
 
@@ -214,9 +211,10 @@ func main() {
 	if sol := findOne(); sol != nil {
 		logf("found: %v", word.SolutionMapping(sol))
 		word.SolutionCheck(sol, logf)
-		for _, soli := range sol.Trace() {
-			soli.Dump(logf)
-		}
+		// TODO: restore
+		// for _, soli := range sol.Trace() {
+		// 	soli.Dump(logf)
+		// }
 	} else {
 		logf("found no solutions, re-running with trace")
 		traceFailures()
