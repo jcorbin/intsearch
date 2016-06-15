@@ -53,9 +53,9 @@ func logf(format string, args ...interface{}) {
 	fmt.Println()
 }
 
-func dump(sol *runnable.Solution) bool {
+func dump(sol word.Solution) bool {
 	var mess string
-	if err := sol.Err(); err == nil {
+	if err := sol.Check(); err == nil {
 		mess = "=== Solution"
 	} else if _, is := err.(runnable.VerifyError); is {
 		mess = fmt.Sprintf("!!! %s", err)
@@ -71,22 +71,12 @@ func dump(sol *runnable.Solution) bool {
 	} else {
 		fmt.Println()
 	}
-	logf("%s: %v %s", mess, sol, sol.LetterMapping())
-	printTrace(sol)
-	return false
-}
-
-func printTrace(sol *runnable.Solution) {
-	for i, soli := range sol.Trace() {
-		trail := "//"
-		if label := gg.LabelFor(soli); len(label) > 0 {
-			trail = fmt.Sprintf("// %-40s %s", soli.LetterMapping(), label)
-		} else if mapping := soli.LetterMapping(); len(mapping) > 0 {
-			trail = fmt.Sprintf("// %s", mapping)
-		}
-
-		fmt.Printf("... %3v: %s  %s\n", i, soli.PaddedString(), trail)
+	sol.Dump(logf)
+	for _, soli := range sol.Trace() {
+		soli.Dump(logf)
 	}
+
+	return false
 }
 
 func traceFailures() {
@@ -96,7 +86,9 @@ func traceFailures() {
 		runnable.NewTraceWatcher(),
 	})
 	first = true
-	srch.Run(gg.SearchInit, dump, watcher)
+	srch.Run(gg.SearchInit, func(sol *runnable.Solution) bool {
+		return dump(sol)
+	}, watcher)
 	fmt.Printf("\nsearch metrics: %+v\n", metrics)
 }
 
@@ -110,11 +102,13 @@ func debugRun() {
 		},
 	})
 	first = true
-	srch.Run(gg.SearchInit, dump, watcher)
+	srch.Run(gg.SearchInit, func(sol *runnable.Solution) bool {
+		return dump(sol)
+	}, watcher)
 	fmt.Printf("\nsearch metrics: %+v\n", metrics)
 }
 
-func findOne() *runnable.Solution {
+func findOne() word.Solution {
 	metrics := runnable.NewMetricWatcher()
 	watcher := runnable.SearchWatcher(metrics)
 
@@ -126,12 +120,12 @@ func findOne() *runnable.Solution {
 	}
 
 	failed := false
-	var theSol *runnable.Solution
+	var theSol word.Solution
 	first = true
 	srch.Run(
 		gg.SearchInit,
 		func(sol *runnable.Solution) bool {
-			err := sol.Err()
+			err := sol.Check()
 			if _, is := err.(runnable.VerifyError); is {
 				failed = true
 				return false
@@ -214,9 +208,11 @@ func main() {
 	}
 
 	if sol := findOne(); sol != nil {
-		logf("found: %v", sol.LetterMapping())
-		sol.PrintCheck(logf)
-		printTrace(sol)
+		logf("found: %v", word.SolutionMapping(sol))
+		word.SolutionCheck(sol, logf)
+		for _, soli := range sol.Trace() {
+			soli.Dump(logf)
+		}
 	} else {
 		logf("found no solutions, re-running with trace")
 		traceFailures()

@@ -2,7 +2,6 @@ package runnable
 
 import (
 	"fmt"
-	"strings"
 	"sync"
 
 	"github.com/jcorbin/intsearch/word"
@@ -311,14 +310,57 @@ func newSolution(prob *word.Problem, steps []Step, emit func(*Solution)) *Soluti
 	return &sol
 }
 
+// Problem returns the associated problem.
+func (sol *Solution) Problem() *word.Problem {
+	return sol.prob
+}
+
+// ValueOf returns the value of a single letter, and whether or not it is
+// actually known.
+func (sol *Solution) ValueOf(c byte) (v int, known bool) {
+	v = sol.values[c]
+	known = v >= 0 && sol.used[v]
+	return
+}
+
+// Check returns any solution error, or word.ErrSolutionNotDone if not done.
+func (sol *Solution) Check() error {
+	if sol.err != nil {
+		return sol.err
+	}
+	if !sol.done {
+		return word.ErrSolutionNotDone
+	}
+	return nil
+}
+
+// Dump dumps the solution to a formatter.
+func (sol *Solution) Dump(logf func(string, ...interface{})) {
+	var last Step
+	if sol.stepi > 0 {
+		last = sol.steps[sol.stepi-1]
+	}
+	logf("... %v", sol)
+	if isStoreStep(last) {
+		logf("... %s", word.SolutionMapping(sol))
+	}
+}
+
 // Err returns any execution error.
 func (sol *Solution) Err() error {
 	return sol.err
 }
 
 // Trace returns any execution trace collected so far.
-func (sol *Solution) Trace() []*Solution {
-	return sol.trace
+func (sol *Solution) Trace() []word.Solution {
+	if len(sol.trace) == 0 {
+		return nil
+	}
+	trc := make([]word.Solution, len(sol.trace))
+	for i, soli := range sol.trace {
+		trc[i] = soli
+	}
+	return trc
 }
 
 func (sol *Solution) String() string {
@@ -347,22 +389,6 @@ func (sol *Solution) PaddedString() string {
 	)
 }
 
-// PrintCheck prints a simple double check of the solution.
-func (sol *Solution) PrintCheck(printf func(string, ...interface{})) {
-	ns := sol.Numbers()
-	check := ns[0]+ns[1] == ns[2]
-	printf("Check: %v", check)
-	marks := []string{" ", "+", "="}
-	rels := []string{"==", "==", "=="}
-	if !check {
-		rels[2] = "!="
-	}
-	for i, word := range sol.prob.Words {
-		pad := strings.Repeat(" ", len(sol.prob.Words[2])-len(word))
-		printf("  %s%s %s == %s%v", marks[i], pad, word, pad, ns[i])
-	}
-}
-
 // Numbers returns 3 numbers computed for the solution (as determined by the
 // letter mapping).
 func (sol *Solution) Numbers() [3]int {
@@ -376,18 +402,6 @@ func (sol *Solution) Numbers() [3]int {
 		ns[i] = n
 	}
 	return ns
-}
-
-// LetterMapping returns a string describing the letter mapping like "x:1 y:2 z:3".
-func (sol *Solution) LetterMapping() string {
-	parts := make([]string, 0, len(sol.prob.Letters))
-	for _, c := range sol.prob.SortedLetters() {
-		v := sol.values[c]
-		if v >= 0 && sol.used[v] {
-			parts = append(parts, fmt.Sprintf("%s:%v", string(c), v))
-		}
-	}
-	return strings.Join(parts, " ")
 }
 
 // Step runs a single step against the solution, and returns true if the

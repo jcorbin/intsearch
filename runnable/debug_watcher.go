@@ -23,10 +23,5 @@ func (wat DebugWatcher) BeforeStep(srch Searcher, sol *Solution) {
 // - if the last step stored a new letter, the new mapping is printed.
 // - if the last step was a fork, then the frontier size is printed.
 func (wat DebugWatcher) Stepped(srch Searcher, sol *Solution) {
-	wat.Logf("... %v", sol)
-	if isStoreStep(sol.steps[sol.stepi-1]) {
-		wat.Logf("... %s", sol.LetterMapping())
-	} else if isForkStep(sol.steps[sol.stepi-1]) {
-		wat.Logf("... len(frontier) == %v", srch.FrontierSize())
-	}
+	sol.Dump(wat.Logf)
 }
