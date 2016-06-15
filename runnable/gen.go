@@ -62,30 +62,22 @@ func (gg *StepGen) copy() *StepGen {
 
 // LabelAt returns any annotations for the given address, joined by a ", ".
 func (gg *StepGen) LabelAt(i int) string {
-	labels := gg.annosFor(i)
-	if len(labels) == 0 {
+	if i > len(gg.steps) {
+		return "INVALID"
+	}
+	if gg.addrAnnos == nil {
 		return ""
 	}
-	return strings.Join(labels, ", ")
+	if annos := gg.addrAnnos[i]; len(annos) > 0 {
+		return strings.Join(annos, ", ")
+	}
+	return ""
 }
 
 // LabelFor returns any annotations for the given solution's current step,
 // joined by a ", ".
 func (gg *StepGen) LabelFor(sol *Solution) string {
 	return gg.LabelAt(sol.stepi)
-}
-
-func (gg *StepGen) annosFor(addr int) []string {
-	if gg.addrAnnos == nil {
-		return nil
-	}
-	if addr > len(gg.steps) {
-		return []string{"INVALID"}
-	}
-	if annos, ok := gg.addrAnnos[addr]; ok {
-		return annos
-	}
-	return nil
 }
 
 // Decorate returns a list of any annotations knows for a any of the Solution
@@ -97,7 +89,11 @@ func (gg *StepGen) Decorate(args ...interface{}) []string {
 	var dec []string
 	for _, arg := range args {
 		if sol, ok := arg.(*Solution); ok {
-			dec = append(dec, gg.annosFor(sol.stepi)...)
+			if addr := sol.stepi; addr > len(gg.steps) {
+				dec = append(dec, "INVALID")
+			} else if annos := gg.addrAnnos[addr]; len(annos) > 0 {
+				dec = append(dec, annos...)
+			}
 		}
 	}
 	return dec
