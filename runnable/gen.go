@@ -80,25 +80,6 @@ func (gg *StepGen) LabelFor(sol *Solution) string {
 	return gg.LabelAt(sol.stepi)
 }
 
-// Decorate returns a list of any annotations knows for a any of the Solution
-// arguments.
-func (gg *StepGen) Decorate(args ...interface{}) []string {
-	if gg.addrAnnos == nil {
-		return nil
-	}
-	var dec []string
-	for _, arg := range args {
-		if sol, ok := arg.(*Solution); ok {
-			if addr := sol.stepi; addr > len(gg.steps) {
-				dec = append(dec, "INVALID")
-			} else if annos := gg.addrAnnos[addr]; len(annos) > 0 {
-				dec = append(dec, annos...)
-			}
-		}
-	}
-	return dec
-}
-
 // Logf does nothing.
 func (gg *StepGen) Logf(format string, args ...interface{}) error {
 	return nil

@@ -7,6 +7,24 @@ type SearchPlan struct {
 	*StepGen
 }
 
+// Decorate returns a list of any known annotations any Solution arguments.
+func (sp *SearchPlan) Decorate(args ...interface{}) []string {
+	if sp.addrAnnos == nil {
+		return nil
+	}
+	var dec []string
+	for _, arg := range args {
+		if sol, ok := arg.(*Solution); ok {
+			if addr := sol.stepi; addr > len(sp.steps) {
+				dec = append(dec, "INVALID")
+			} else if annos := sp.addrAnnos[addr]; len(annos) > 0 {
+				dec = append(dec, annos...)
+			}
+		}
+	}
+	return dec
+}
+
 // Run runs the generated steps.
 func (sp *SearchPlan) Run(res word.Resultor) {
 	run := searchRun{
