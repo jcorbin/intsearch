@@ -60,31 +60,6 @@ func (gg *StepGen) copy() *StepGen {
 	return alt
 }
 
-func fallFact(x, y int) int {
-	z := 1
-	for y > 0 {
-		z *= x
-		x--
-		y--
-	}
-	return z
-}
-
-// SearchInit initializes the frontier with a solution with:
-// - zero state
-// - the planned problem
-// - the compiled steps from the plan
-// - the passed emit function for use by future fork and branch steps
-//
-// The returned sanity limit is based on the pessimistic assumption that every
-// step will be ran a factorial number of times (a pathological brute force).
-func (gg *StepGen) SearchInit(emit EmitFunc) int {
-	emit(newSolution(&gg.PlanProblem.Problem, gg.steps, emit))
-	// worst case, we have to run every step for every possible brute force solution
-	numBrute := fallFact(gg.Base, len(gg.Letters))
-	return numBrute * len(gg.steps)
-}
-
 // LabelAt returns any annotations for the given address, joined by a ", ".
 func (gg *StepGen) LabelAt(i int) string {
 	labels := gg.annosFor(i)

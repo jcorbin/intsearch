@@ -10,10 +10,17 @@ type SearchPlan struct {
 // Run runs the generated steps.
 func (sp *SearchPlan) Run(res word.Resultor) {
 	var srch Search
-	srch.Run(sp.SearchInit, func(sol *Solution) bool {
-		res.Result(sol)
-		return false
-	})
+	srch.Run(
+		func(emit EmitFunc) int {
+			emit(newSolution(&sp.PlanProblem.Problem, sp.steps, emit))
+			// worst case, we have to run every step for every possible brute force solution
+			numBrute := fallFact(sp.Base, len(sp.Letters))
+			return numBrute * len(sp.steps)
+		},
+		func(sol *Solution) bool {
+			res.Result(sol)
+			return false
+		})
 }
 
 // EmitFunc is a state-sink function that should will the passed solution for
@@ -93,4 +100,14 @@ func (srch *searchRun) run() bool {
 		}
 	}
 	return true
+}
+
+func fallFact(x, y int) int {
+	z := 1
+	for y > 0 {
+		z *= x
+		x--
+		y--
+	}
+	return z
 }
