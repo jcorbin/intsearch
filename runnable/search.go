@@ -4,7 +4,9 @@ import "github.com/jcorbin/intsearch/word"
 
 // SearchPlan implements word.Plan by running the generated steps.
 type SearchPlan struct {
-	*StepGen
+	*word.Problem
+	steps     []Step
+	addrAnnos map[int][]string
 }
 
 // Decorate returns a list of any known annotations any Solution arguments.
@@ -34,7 +36,7 @@ func (sp *SearchPlan) Run(res word.Resultor) {
 		result:   res,
 		counter:  0,
 	}
-	run.expand(newSolution(&sp.PlanProblem.Problem, sp.steps, run.expand))
+	run.expand(newSolution(sp.Problem, sp.steps, run.expand))
 	run.run()
 }
 

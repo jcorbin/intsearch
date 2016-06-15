@@ -609,7 +609,9 @@ func (gg *StepGen) Finish() {
 func (gg *StepGen) Finalize() word.Plan {
 	gg.compile()
 	return &SearchPlan{
-		gg,
+		Problem:   &gg.PlanProblem.Problem,
+		steps:     gg.steps,
+		addrAnnos: gg.addrAnnos,
 	}
 }
 
