@@ -38,8 +38,18 @@ func (sp *SearchPlan) Run(res word.Resultor) {
 		result:   res,
 		counter:  0,
 	}
-	run.expand(newSolution(sp.Problem, sp.steps, run.expand))
-	run.run()
+	wat, _ := res.(word.Watcher)
+	if wat == nil {
+		run.expand(newSolution(sp.Problem, sp.steps, run.expand))
+		run.run()
+	} else {
+		watrun := searchRunWatch{
+			searchRun: run,
+			watcher:   wat,
+		}
+		watrun.expand(newSolution(sp.Problem, sp.steps, watrun.expand))
+		watrun.run()
+	}
 }
 
 type search struct {
@@ -74,6 +84,40 @@ func (srch *searchRun) run() bool {
 		}
 		srch.frontier = srch.frontier[1:]
 		if srch.result.Result(sol) {
+			break
+		}
+		sol.pool.Put(sol)
+	}
+	return true
+}
+
+type searchRunWatch struct {
+	searchRun
+	watcher word.Watcher
+}
+
+func (srch *searchRunWatch) expand(sol *Solution) {
+	if par := srch.current(); par != nil {
+		srch.watcher.Fork(par, sol)
+	} else {
+		srch.watcher.Fork(nil, sol)
+	}
+	srch.searchRun.expand(sol)
+}
+
+func (srch *searchRunWatch) run() bool {
+	for sol := srch.current(); sol != nil; sol = srch.current() {
+		srch.watcher.Before(sol)
+		for sol.Step() {
+			srch.counter++
+			srch.watcher.After(sol)
+			if srch.counter > srch.maxSteps {
+				return false
+			}
+			srch.watcher.Before(sol)
+		}
+		srch.frontier = srch.frontier[1:]
+		if srch.watcher.Result(sol) {
 			break
 		}
 		sol.pool.Put(sol)
