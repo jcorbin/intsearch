@@ -40,7 +40,6 @@ var (
 	prob word.Problem
 	srch runnable.Search
 	gg   *runnable.StepGen
-	gen  word.SolutionGen
 )
 
 func logf(format string, args ...interface{}) {
@@ -182,10 +181,9 @@ func main() {
 	// - the debug watcher always traces
 	gg = runnable.NewStepGen(word.NewPlanProblem(&prob, annotated))
 
+	gen := word.SolutionGen(gg)
 	if *dumpProg {
 		gen = gg.LoggedGen()
-	} else {
-		gen = gg
 	}
 
 	planf(gg.PlanProblem, gen, *verify)
