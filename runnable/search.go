@@ -13,20 +13,12 @@ func (sp *SearchPlan) Run(res word.Resultor) {
 		// large upper limit for the search execution: run every step for every
 		// possible brute force solution
 		maxSteps: fallFact(sp.Base, len(sp.Letters)) * len(sp.steps),
-		result: func(sol *Solution) bool {
-			res.Result(sol)
-			return false
-		},
-		counter: 0,
+		result:   res,
+		counter:  0,
 	}
 	run.expand(newSolution(&sp.PlanProblem.Problem, sp.steps, run.expand))
 	run.run()
 }
-
-// ResultFunc is a terminal state processing function.  If the result function
-// retains a reference to the solution, it should return true; otherwise the
-// solution object will be re-used after the result function finishes.
-type ResultFunc func(*Solution) bool
 
 type search struct {
 	frontier []*Solution
@@ -45,7 +37,7 @@ func (srch *search) expand(sol *Solution) {
 
 type searchRun struct {
 	search
-	result   ResultFunc
+	result   word.Resultor
 	maxSteps int
 	counter  int
 }
@@ -59,9 +51,10 @@ func (srch *searchRun) run() bool {
 			}
 		}
 		srch.frontier = srch.frontier[1:]
-		if !srch.result(sol) {
-			sol.pool.Put(sol)
+		if srch.result.Result(sol) {
+			break
 		}
+		sol.pool.Put(sol)
 	}
 	return true
 }
