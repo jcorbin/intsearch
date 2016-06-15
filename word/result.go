@@ -97,3 +97,31 @@ func (ws MultiWatcher) Fork(parent, child Solution) {
 		w.Fork(parent, child)
 	}
 }
+
+// MetricWatcher implements a Watcher that counts.
+type MetricWatcher struct {
+	// TODO: better metric support
+	Results int
+	Steps   int
+	Forks   int
+}
+
+// Result increments the Results counter.
+func (met *MetricWatcher) Result(sol Solution) bool {
+	met.Results++
+	return false
+}
+
+// Before does nothing.
+func (met *MetricWatcher) Before(sol Solution) {
+}
+
+// After increments the Steps counter.
+func (met *MetricWatcher) After(sol Solution) {
+	met.Steps++
+}
+
+// Fork increments the Forks counter and MaxFrontierLen gauge.
+func (met *MetricWatcher) Fork(parent, child Solution) {
+	met.Forks++
+}
