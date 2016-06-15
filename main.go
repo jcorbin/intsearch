@@ -82,44 +82,46 @@ func (dmp *dumper) Result(sol word.Solution) bool {
 }
 
 func traceFailures() {
-	metrics := runnable.NewMetricWatcher()
-	watcher := runnable.Watchers([]runnable.SearchWatcher{
-		metrics,
-		runnable.NewTraceWatcher(),
-	})
+	// TODO: restore over word.Plan
+	// metrics := runnable.NewMetricWatcher()
+	// watcher := runnable.Watchers([]runnable.SearchWatcher{
+	// 	metrics,
+	// 	runnable.NewTraceWatcher(),
+	// })
 	var dmp dumper
 	srch.Run(gg.SearchInit, func(sol *runnable.Solution) bool {
 		return dmp.Result(sol)
-	}, watcher)
-	fmt.Printf("\nsearch metrics: %+v\n", metrics)
+	})
+	// fmt.Printf("\nsearch metrics: %+v\n", metrics)
 }
 
 func debugRun() {
-	metrics := runnable.NewMetricWatcher()
-	watcher := runnable.Watchers([]runnable.SearchWatcher{
-		metrics,
-		runnable.NewTraceWatcher(),
-		runnable.DebugWatcher{
-			Logf: logf,
-		},
-	})
+	// TODO: restore over word.Plan
+	// metrics := runnable.NewMetricWatcher()
+	// watcher := runnable.Watchers([]runnable.SearchWatcher{
+	// 	metrics,
+	// 	runnable.NewTraceWatcher(),
+	// 	runnable.DebugWatcher{
+	// 		Logf: logf,
+	// 	},
+	// })
 	var dmp dumper
 	srch.Run(gg.SearchInit, func(sol *runnable.Solution) bool {
 		return dmp.Result(sol)
-	}, watcher)
-	fmt.Printf("\nsearch metrics: %+v\n", metrics)
+	})
+	// fmt.Printf("\nsearch metrics: %+v\n", metrics)
 }
 
 func findOne() word.Solution {
-	metrics := runnable.NewMetricWatcher()
-	watcher := runnable.SearchWatcher(metrics)
-
-	if *trace {
-		watcher = runnable.Watchers([]runnable.SearchWatcher{
-			metrics,
-			runnable.NewTraceWatcher(),
-		})
-	}
+	// TODO: restore over word.Plan
+	// metrics := runnable.NewMetricWatcher()
+	// watcher := runnable.SearchWatcher(metrics)
+	// if *trace {
+	// 	watcher = runnable.Watchers([]runnable.SearchWatcher{
+	// 		metrics,
+	// 		runnable.NewTraceWatcher(),
+	// 	})
+	// }
 
 	failed := false
 	var theSol word.Solution
@@ -140,9 +142,8 @@ func findOne() word.Solution {
 			}
 			theSol = sol
 			return true
-		},
-		watcher)
-	fmt.Printf("search metrics: %+v\n", metrics)
+		})
+	// fmt.Printf("search metrics: %+v\n", metrics)
 	if !failed {
 		return theSol
 	}

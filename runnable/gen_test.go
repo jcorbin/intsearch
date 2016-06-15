@@ -68,6 +68,9 @@ func runStepGenTest(t *testing.T, planf word.PlanFunc, w1, w2, w3 string) {
 
 	numGood := 0
 
+	// TODO: restore over word.Plan
+	// traces := runnable.NewTraceWatcher()
+
 	resultFunc := func(sol *runnable.Solution) bool {
 		if _, is := sol.Err().(word.VerifyError); is {
 			logf("!!! invalid solution found: %v %s", sol, word.SolutionMapping(sol))
@@ -82,8 +85,7 @@ func runStepGenTest(t *testing.T, planf word.PlanFunc, w1, w2, w3 string) {
 	}
 
 	var srch runnable.Search
-	traces := runnable.NewTraceWatcher()
-	srch.Run(gg.SearchInit, resultFunc, traces)
+	srch.Run(gg.SearchInit, resultFunc)
 
 	if numGood == 0 {
 		t.Logf("didn't find any solution")
@@ -93,19 +95,20 @@ func runStepGenTest(t *testing.T, planf word.PlanFunc, w1, w2, w3 string) {
 		t.Fail()
 	}
 
-	if t.Failed() {
-		gg = runnable.NewStepGen(word.NewPlanProblem(&prob, true))
-		planf(gg.PlanProblem, word.MultiGen([]word.SolutionGen{
-			word.NewLogGen(gg.PlanProblem),
-			gg,
-		}), true)
-		srch.Run(gg.SearchInit, resultFunc, runnable.Watchers([]runnable.SearchWatcher{
-			traces,
-			runnable.DebugWatcher{
-				Logf: logf,
-			},
-		}))
-	}
+	// TODO: restore over word.Plan
+	// if t.Failed() {
+	// 	gg = runnable.NewStepGen(word.NewPlanProblem(&prob, true))
+	// 	planf(gg.PlanProblem, word.MultiGen([]word.SolutionGen{
+	// 		word.NewLogGen(gg.PlanProblem),
+	// 		gg,
+	// 	}), true)
+	// 	runnable.Watchers([]runnable.SearchWatcher{
+	// 		traces,
+	// 		runnable.DebugWatcher{
+	// 			Logf: logf,
+	// 		},
+	// 	})
+	// }
 }
 
 func benchStepGenPlan(b *testing.B, planf word.PlanFunc, w1, w2, w3 string) {
@@ -138,8 +141,7 @@ func benchStepGenRun(b *testing.B, planf word.PlanFunc, w1, w2, w3 string) {
 					numGood++
 				}
 				return false
-			},
-			nil)
+			})
 		if numGood == 0 {
 			b.Fatalf("didn't find any solution")
 		} else if numGood > 1 {
