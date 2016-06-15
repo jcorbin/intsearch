@@ -33,7 +33,7 @@ var (
 	trace    = flag.Bool("trace", false, "trace results")
 	verify   = flag.Bool("verify", false, "generate code for extra verification")
 	debug    = flag.Bool("debug", false, "enable debug search watcher")
-	plan     = flag.String("plan", "bottomUp", fmt.Sprintf(
+	planName = flag.String("plan", "bottomUp", fmt.Sprintf(
 		"which plan strategy to use (%s)",
 		strings.Join(planStrategyNames(), ", ")))
 
@@ -163,11 +163,11 @@ func main() {
 		log.Fatalf("missing word3 argument")
 	}
 
-	planf, ok := planStrategies[*plan]
+	planf, ok := planStrategies[*planName]
 	if !ok {
 		log.Fatalf(
 			"invalid plan strategy %q, valid choices: %s",
-			plan, strings.Join(planStrategyNames(), ", "))
+			planName, strings.Join(planStrategyNames(), ", "))
 	}
 
 	if err := prob.Setup(word1, word2, word3); err != nil {
