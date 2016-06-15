@@ -37,11 +37,10 @@ var (
 		"which plan strategy to use (%s)",
 		strings.Join(planStrategyNames(), ", ")))
 
-	first bool
-	prob  word.Problem
-	srch  runnable.Search
-	gg    *runnable.StepGen
-	gen   word.SolutionGen
+	prob word.Problem
+	srch runnable.Search
+	gg   *runnable.StepGen
+	gen  word.SolutionGen
 )
 
 func logf(format string, args ...interface{}) {
@@ -53,7 +52,11 @@ func logf(format string, args ...interface{}) {
 	fmt.Println()
 }
 
-func dump(sol word.Solution) bool {
+type dumper struct {
+	cont bool
+}
+
+func (dmp *dumper) Result(sol word.Solution) bool {
 	var mess string
 	if err := sol.Check(); err == nil {
 		mess = "=== Solution"
@@ -66,8 +69,8 @@ func dump(sol word.Solution) bool {
 		return false
 	}
 
-	if first {
-		first = false
+	if !dmp.cont {
+		dmp.cont = true
 	} else {
 		fmt.Println()
 	}
@@ -85,9 +88,9 @@ func traceFailures() {
 		metrics,
 		runnable.NewTraceWatcher(),
 	})
-	first = true
+	var dmp dumper
 	srch.Run(gg.SearchInit, func(sol *runnable.Solution) bool {
-		return dump(sol)
+		return dmp.Result(sol)
 	}, watcher)
 	fmt.Printf("\nsearch metrics: %+v\n", metrics)
 }
@@ -101,9 +104,9 @@ func debugRun() {
 			Logf: logf,
 		},
 	})
-	first = true
+	var dmp dumper
 	srch.Run(gg.SearchInit, func(sol *runnable.Solution) bool {
-		return dump(sol)
+		return dmp.Result(sol)
 	}, watcher)
 	fmt.Printf("\nsearch metrics: %+v\n", metrics)
 }
@@ -121,7 +124,6 @@ func findOne() word.Solution {
 
 	failed := false
 	var theSol word.Solution
-	first = true
 	srch.Run(
 		gg.SearchInit,
 		func(sol *runnable.Solution) bool {
