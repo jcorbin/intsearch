@@ -15,13 +15,6 @@ var (
 	errNoChoices   = errors.New("no choices left")
 )
 
-// VerifyError is the error returned if final verification fails.
-type VerifyError string
-
-func (ve VerifyError) Error() string {
-	return fmt.Sprintf("verify failed: %s", string(ve))
-}
-
 // StepGen implements a word.SolutionGen that builds a program listing of Steps
 // that will progress the solution state.
 type StepGen struct {
@@ -575,7 +568,7 @@ func (gg *StepGen) verifyColumns(name string, err error) {
 		col := &gg.Columns[i]
 		colErr := err
 		if colErr == nil {
-			colErr = VerifyError(col.Label())
+			colErr = word.VerifyError(col.Label())
 		}
 		gg.CheckColumn(col, colErr)
 	}
@@ -591,7 +584,7 @@ func (gg *StepGen) verifyColumns(name string, err error) {
 	// final carry must be 0
 	finErr := err
 	if finErr == nil {
-		finErr = VerifyError("final carry must be 0")
+		finErr = word.VerifyError("final carry must be 0")
 	}
 	gg.steps = append(gg.steps,
 		relJZStep(1),
@@ -600,7 +593,7 @@ func (gg *StepGen) verifyColumns(name string, err error) {
 
 func (gg *StepGen) verifyInitialLetters(name string, err error) {
 	if err == nil {
-		err = VerifyError("initial letter cannot be zero")
+		err = word.VerifyError("initial letter cannot be zero")
 	}
 	if name != "" {
 		gg.steps = append(gg.steps, labelStep(gg.gensym("%s:initialLetters", name)))
@@ -615,7 +608,7 @@ func (gg *StepGen) verifyInitialLetters(name string, err error) {
 
 func (gg *StepGen) verifyDuplicateLetters(name string, err error) {
 	if err == nil {
-		err = VerifyError("duplicate valued character")
+		err = word.VerifyError("duplicate valued character")
 	}
 	if name != "" {
 		gg.steps = append(gg.steps, labelStep(gg.gensym("%s:duplicateLetters", name)))
@@ -642,7 +635,7 @@ func (gg *StepGen) verifyDuplicateLetters(name string, err error) {
 
 func (gg *StepGen) verifyLettersNonNegative(name string, err error) {
 	if err == nil {
-		err = VerifyError("negative valued character")
+		err = word.VerifyError("negative valued character")
 	}
 	if name != "" {
 		gg.steps = append(gg.steps, labelStep(gg.gensym("%s:allLettersNonNegative", name)))

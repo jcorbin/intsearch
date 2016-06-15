@@ -10,6 +10,13 @@ import (
 // complete.
 var ErrSolutionNotDone = errors.New("solution not complete")
 
+// VerifyError is the error returned if final verification fails.
+type VerifyError string
+
+func (ve VerifyError) Error() string {
+	return fmt.Sprintf("verify failed: %s", string(ve))
+}
+
 // Solution is implemented by all concrete plan solutions.
 type Solution interface {
 	Problem() *Problem

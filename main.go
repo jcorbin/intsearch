@@ -57,7 +57,7 @@ func dump(sol word.Solution) bool {
 	var mess string
 	if err := sol.Check(); err == nil {
 		mess = "=== Solution"
-	} else if _, is := err.(runnable.VerifyError); is {
+	} else if _, is := err.(word.VerifyError); is {
 		mess = fmt.Sprintf("!!! %s", err)
 	} else if *debug || *dumpAll {
 		mess = "--- Dead end"
@@ -126,7 +126,7 @@ func findOne() word.Solution {
 		gg.SearchInit,
 		func(sol *runnable.Solution) bool {
 			err := sol.Check()
-			if _, is := err.(runnable.VerifyError); is {
+			if _, is := err.(word.VerifyError); is {
 				failed = true
 				return false
 			}
