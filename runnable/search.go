@@ -9,18 +9,20 @@ type SearchPlan struct {
 
 // Run runs the generated steps.
 func (sp *SearchPlan) Run(res word.Resultor) {
-	var srch Search
-	srch.Run(
-		func(emit EmitFunc) int {
+	run := searchRun{
+		init: func(emit EmitFunc) int {
 			emit(newSolution(&sp.PlanProblem.Problem, sp.steps, emit))
 			// worst case, we have to run every step for every possible brute force solution
 			numBrute := fallFact(sp.Base, len(sp.Letters))
 			return numBrute * len(sp.steps)
 		},
-		func(sol *Solution) bool {
+		result: func(sol *Solution) bool {
 			res.Result(sol)
 			return false
-		})
+		},
+		counter: 0,
+	}
+	run.run()
 }
 
 // EmitFunc is a state-sink function that should will the passed solution for
@@ -38,47 +40,23 @@ type ResultFunc func(*Solution) bool
 // grounds of insanity.
 type InitFunc func(EmitFunc) int
 
-// Search is a simple serial searcher.
-type Search struct {
+type search struct {
 	frontier []*Solution
 }
 
-// FrontierSize returns the size of the search frontier; the number of deferred
-// partial solutions waiting for eventual exploration.
-func (srch *Search) FrontierSize() int {
-	return len(srch.frontier)
-}
-
-// Current returns the current solution being explored, or nil if the frontier
-// is empty.
-func (srch *Search) Current() *Solution {
+func (srch *search) current() *Solution {
 	if len(srch.frontier) > 0 {
 		return srch.frontier[0]
 	}
 	return nil
 }
 
-// Expand adds a solution to the frontier.
-func (srch *Search) Expand(sol *Solution) {
+func (srch *search) expand(sol *Solution) {
 	srch.frontier = append(srch.frontier, sol)
 }
 
-// Run starts a new search run:
-// - init is called to populate the frontier
-// - while there is a current solution, it is stepped until it terminates
-// - terminated solutions are passed to result
-func (srch *Search) Run(init InitFunc, result ResultFunc) bool {
-	run := searchRun{
-		Search:  *srch,
-		init:    init,
-		result:  result,
-		counter: 0,
-	}
-	return run.run()
-}
-
 type searchRun struct {
-	Search
+	search
 	init     InitFunc
 	result   ResultFunc
 	maxSteps int
@@ -86,8 +64,8 @@ type searchRun struct {
 }
 
 func (srch *searchRun) run() bool {
-	srch.maxSteps = srch.init(srch.Expand)
-	for sol := srch.Current(); sol != nil; sol = srch.Current() {
+	srch.maxSteps = srch.init(srch.expand)
+	for sol := srch.current(); sol != nil; sol = srch.current() {
 		for sol.Step() {
 			srch.counter++
 			if srch.counter > srch.maxSteps {
