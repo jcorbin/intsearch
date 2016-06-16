@@ -328,14 +328,26 @@ func (sol *Solution) Check() error {
 
 // Dump dumps the solution to a formatter.
 func (sol *Solution) Dump(logf func(string, ...interface{})) {
-	var last Step
-	if sol.stepi > 0 {
-		last = sol.steps[sol.stepi-1]
+	if !sol.done {
+		var last Step
+		if sol.stepi > 0 {
+			last = sol.steps[sol.stepi-1]
+		}
+		logf(sol.String())
+		if isStoreStep(last) {
+			logf(word.SolutionMapping(sol))
+		}
+		return
 	}
-	logf(sol.String())
-	if isStoreStep(last) {
-		logf(word.SolutionMapping(sol))
+
+	if err := sol.Check(); err == nil {
+		logf("Solution: %s", sol.String())
+	} else if _, is := err.(word.VerifyError); is {
+		logf("BROKEN: %s", sol.String())
+	} else {
+		logf("Dead end: %s", sol.String())
 	}
+	logf(word.SolutionMapping(sol))
 }
 
 // Err returns any execution error.
