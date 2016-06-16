@@ -56,51 +56,41 @@ type dumper struct {
 }
 
 func (dmp *dumper) Result(sol word.Solution) bool {
-	var mess string
-	if err := sol.Check(); err == nil {
-		mess = "=== Solution"
-	} else if _, is := err.(word.VerifyError); is {
-		mess = fmt.Sprintf("!!! %s", err)
-	} else if *debug || *dumpAll {
-		mess = "--- Dead end"
+	err := sol.Check()
+	_, broken := err.(word.VerifyError)
+	if err == nil || broken || *dumpAll {
+		if !dmp.cont {
+			dmp.cont = true
+		} else {
+			fmt.Println()
+		}
+		sol.Dump(logf)
 	}
-	if mess == "" {
-		return false
-	}
-
-	if !dmp.cont {
-		dmp.cont = true
-	} else {
-		fmt.Println()
-	}
-	sol.Dump(logf)
-	// TODO: restore trace print
 	return false
 }
 
 func traceFailures() {
-	// TODO: restore over word.Plan
-	// metrics := runnable.NewMetricWatcher()
-	// watcher := runnable.Watchers([]runnable.SearchWatcher{
-	// 	metrics,
-	// 	runnable.NewTraceWatcher(),
-	// })
-	plan.Run(&dumper{})
-	// fmt.Printf("\nsearch metrics: %+v\n", metrics)
+	var (
+		dmp dumper
+		met word.MetricWatcher
+	)
+	plan.Run(word.Watchers(
+		&met,
+		word.NewTraceWatcher(),
+		word.ResultWatcher{Resultor: &dmp},
+	))
+	fmt.Printf("\nsearch metrics: %+v\n", met)
 }
 
 func debugRun() {
-	// TODO: restore over word.Plan
-	// metrics := runnable.NewMetricWatcher()
-	// watcher := runnable.Watchers([]runnable.SearchWatcher{
-	// 	metrics,
-	// 	runnable.NewTraceWatcher(),
-	// 	runnable.DebugWatcher{
-	// 		Logf: logf,
-	// 	},
-	// })
-	plan.Run(&dumper{})
-	// fmt.Printf("\nsearch metrics: %+v\n", metrics)
+	var (
+		met word.MetricWatcher
+	)
+	plan.Run(word.Watchers(
+		&met,
+		word.NewDebugWatcher(logf),
+	))
+	fmt.Printf("\nsearch metrics: %+v\n", met)
 }
 
 var errMoreThanOneSolution = errors.New("more than one solution")
@@ -130,19 +120,25 @@ func (sr *singleResult) Result(sol word.Solution) bool {
 }
 
 func findOne() word.Solution {
-	// TODO: restore over word.Plan
-	// metrics := runnable.NewMetricWatcher()
-	// watcher := runnable.SearchWatcher(metrics)
-	// if *trace {
-	// 	watcher = runnable.Watchers([]runnable.SearchWatcher{
-	// 		metrics,
-	// 		runnable.NewTraceWatcher(),
-	// 	})
-	// }
+	var (
+		sr  singleResult
+		met word.MetricWatcher
+	)
 
-	var sr singleResult
-	plan.Run(&sr)
-	// fmt.Printf("search metrics: %+v\n", metrics)
+	if *trace {
+		plan.Run(word.Watchers(
+			&met,
+			word.NewTraceWatcher(),
+			word.ResultWatcher{Resultor: &sr},
+		))
+	} else {
+		plan.Run(word.Watchers(
+			&met,
+			word.ResultWatcher{Resultor: &sr},
+		))
+	}
+
+	fmt.Printf("search metrics: %+v\n", met)
 	if sr.err == nil {
 		return sr.sol
 	}
@@ -211,12 +207,8 @@ func main() {
 	}
 
 	if sol := findOne(); sol != nil {
-		logf("found: %v", word.SolutionMapping(sol))
+		sol.Dump(logf)
 		word.SolutionCheck(sol, logf)
-		// TODO: restore
-		// for _, soli := range sol.Trace() {
-		// 	soli.Dump(logf)
-		// }
 	} else {
 		logf("found no solutions, re-running with trace")
 		traceFailures()
