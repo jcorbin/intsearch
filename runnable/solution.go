@@ -335,7 +335,7 @@ func (sol *Solution) Dump(logf func(string, ...interface{})) {
 		}
 		logf(sol.String())
 		if isStoreStep(last) {
-			logf(word.SolutionMapping(sol))
+			logf("mapping: %s", word.SolutionMapping(sol))
 		}
 		return
 	}
@@ -347,7 +347,7 @@ func (sol *Solution) Dump(logf func(string, ...interface{})) {
 	} else {
 		logf("Dead end: %s", sol.String())
 	}
-	logf(word.SolutionMapping(sol))
+	word.SolutionDump(sol, logf)
 }
 
 // Err returns any execution error.
