@@ -17,7 +17,9 @@ func (sp *SearchPlan) Decorate(args ...interface{}) []string {
 	var dec []string
 	for _, arg := range args {
 		if sol, ok := arg.(*Solution); ok {
-			if addr := sol.stepi; addr > len(sp.steps) {
+			if sol == nil {
+				dec = append(dec, "NIL *Solution")
+			} else if addr := sol.stepi; addr > len(sp.steps) {
 				dec = append(dec, "INVALID")
 			} else if annos := sp.addrAnnos[addr]; len(annos) > 0 {
 				dec = append(dec, annos...)
