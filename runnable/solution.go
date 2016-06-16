@@ -332,9 +332,9 @@ func (sol *Solution) Dump(logf func(string, ...interface{})) {
 	if sol.stepi > 0 {
 		last = sol.steps[sol.stepi-1]
 	}
-	logf("... %v", sol)
+	logf(sol.String())
 	if isStoreStep(last) {
-		logf("... %s", word.SolutionMapping(sol))
+		logf(word.SolutionMapping(sol))
 	}
 }
 
