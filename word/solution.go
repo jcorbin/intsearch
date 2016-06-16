@@ -70,3 +70,24 @@ func SolutionCheck(sol Solution, printf func(string, ...interface{})) {
 		printf("  %s%s %s == %s%v", marks[i], pad, word, pad, ns[i])
 	}
 }
+
+// SolutionComplete returns true if all letters have a known value.
+func SolutionComplete(sol Solution) bool {
+	for _, c := range sol.Problem().SortedLetters() {
+		if _, known := sol.ValueOf(c); !known {
+			return false
+		}
+	}
+	return true
+}
+
+// SolutionDump dumps a solution to a log formatting function.
+func SolutionDump(sol Solution, logf func(string, ...interface{})) {
+	words := sol.Problem().Words
+	numbers := SolutionNumbers(sol)
+	logf("mapping: %s", SolutionMapping(sol))
+	if SolutionComplete(sol) {
+		logf("words:   %s + %s = %s", string(words[0]), string(words[1]), string(words[2]))
+		logf("numbers: %v + %v = %v", numbers[0], numbers[1], numbers[2])
+	}
+}
