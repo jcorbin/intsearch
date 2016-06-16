@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -102,6 +103,32 @@ func debugRun() {
 	// fmt.Printf("\nsearch metrics: %+v\n", metrics)
 }
 
+var errMoreThanOneSolution = errors.New("more than one solution")
+
+type singleResult struct {
+	sol word.Solution
+	err error
+}
+
+func (sr *singleResult) Result(sol word.Solution) bool {
+	if sr.err != nil {
+		return false
+	}
+	if err := sol.Check(); err != nil {
+		if _, is := err.(word.VerifyError); is {
+			sr.sol = sol
+			sr.err = err
+		}
+		return false
+	}
+	if sr.sol != nil {
+		sr.err = errMoreThanOneSolution
+		return false
+	}
+	sr.sol = sol
+	return true
+}
+
 func findOne() word.Solution {
 	// TODO: restore over word.Plan
 	// metrics := runnable.NewMetricWatcher()
@@ -113,25 +140,11 @@ func findOne() word.Solution {
 	// 	})
 	// }
 
-	failed := false
-	var theSol word.Solution
-	plan.Run(word.ResultFunc(func(sol word.Solution) bool {
-		if err := sol.Check(); err != nil {
-			if _, is := err.(word.VerifyError); is {
-				failed = true
-			}
-			return false
-		}
-		if theSol != nil {
-			failed = true
-			return false
-		}
-		theSol = sol
-		return true
-	}))
+	var sr singleResult
+	plan.Run(&sr)
 	// fmt.Printf("search metrics: %+v\n", metrics)
-	if !failed {
-		return theSol
+	if sr.err == nil {
+		return sr.sol
 	}
 	return nil
 }
