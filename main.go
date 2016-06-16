@@ -116,12 +116,10 @@ func findOne() word.Solution {
 	failed := false
 	var theSol word.Solution
 	plan.Run(word.ResultFunc(func(sol word.Solution) bool {
-		err := sol.Check()
-		if _, is := err.(word.VerifyError); is {
-			failed = true
-			return false
-		}
-		if err != nil {
+		if err := sol.Check(); err != nil {
+			if _, is := err.(word.VerifyError); is {
+				failed = true
+			}
 			return false
 		}
 		if theSol != nil {
