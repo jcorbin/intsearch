@@ -91,3 +91,56 @@ func SolutionDump(sol Solution, logf func(string, ...interface{})) {
 		logf("numbers: %v + %v = %v", numbers[0], numbers[1], numbers[2])
 	}
 }
+
+// CapturedSolution is a static copy of a solution.
+type CapturedSolution struct {
+	prob    *Problem
+	mapping map[byte]int
+	err     error
+	dump    []string
+}
+
+// CaptureSolution copies a solution into a static structure.
+func CaptureSolution(sol Solution) *CapturedSolution {
+	cs := &CapturedSolution{}
+	cs.Capture(sol)
+	return cs
+}
+
+// Capture captures the given solution's data, replacing any prior data.
+func (cs *CapturedSolution) Capture(sol Solution) {
+	cs.prob = sol.Problem()
+	cs.mapping = make(map[byte]int, len(cs.prob.Letters))
+	for c := range cs.prob.Letters {
+		if v, known := sol.ValueOf(c); known {
+			cs.mapping[c] = v
+		}
+	}
+	cs.err = sol.Check()
+	sol.Dump(func(format string, args ...interface{}) {
+		cs.dump = append(cs.dump, fmt.Sprintf(format, args...))
+	})
+}
+
+// Problem returns the problem.
+func (cs *CapturedSolution) Problem() *Problem {
+	return cs.prob
+}
+
+// ValueOf returns the value of the given byte, if known.
+func (cs *CapturedSolution) ValueOf(c byte) (v int, known bool) {
+	v, known = cs.mapping[c]
+	return
+}
+
+// Check returns any check error.
+func (cs *CapturedSolution) Check() error {
+	return cs.err
+}
+
+// Dump calls logf for each line of captured dump output.
+func (cs *CapturedSolution) Dump(logf func(string, ...interface{})) {
+	for _, s := range cs.dump {
+		logf(s)
+	}
+}
