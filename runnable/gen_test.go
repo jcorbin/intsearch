@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/jcorbin/intsearch/internal"
 	"github.com/jcorbin/intsearch/runnable"
 	"github.com/jcorbin/intsearch/word"
 )
@@ -68,24 +69,16 @@ func runStepGenTest(t *testing.T, planf word.PlanFunc, w1, w2, w3 string) {
 	plan = planf(gg.PlanProblem, gg, true)
 
 	numGood := 0
-
-	// TODO: restore over word.Plan
-	// traces := runnable.NewTraceWatcher()
-
 	plan.Run(word.ResultFunc(func(sol word.Solution) bool {
 		err := sol.Check()
 		if _, is := err.(word.VerifyError); is {
-			logf("!!! invalid solution found: %v %s", sol, word.SolutionMapping(sol))
-			// for _, soli := range sol.Trace() {
-			// 	soli.Dump(logf)
-			// }
+			sol.Dump(internal.PrefixedF(logf, "!!! invalid solution found:", "..."))
 			t.Fail()
 		} else if sol.Check() == nil {
 			numGood++
 		}
 		return false
 	}))
-
 	if numGood == 0 {
 		t.Logf("didn't find any solution")
 		t.Fail()
@@ -94,20 +87,14 @@ func runStepGenTest(t *testing.T, planf word.PlanFunc, w1, w2, w3 string) {
 		t.Fail()
 	}
 
-	// TODO: restore over word.Plan
-	// if t.Failed() {
-	// 	gg = runnable.NewStepGen(word.NewPlanProblem(&prob, true))
-	// 	planf(gg.PlanProblem, word.MultiGen([]word.SolutionGen{
-	// 		word.NewLogGen(gg.PlanProblem),
-	// 		gg,
-	// 	}), true)
-	// 	runnable.Watchers([]runnable.SearchWatcher{
-	// 		traces,
-	// 		runnable.DebugWatcher{
-	// 			Logf: logf,
-	// 		},
-	// 	})
-	// }
+	if t.Failed() {
+		gg = runnable.NewStepGen(word.NewPlanProblem(&prob, true))
+		plan = planf(gg.PlanProblem, word.MultiGen([]word.SolutionGen{
+			word.NewLogGen(gg.PlanProblem),
+			gg,
+		}), true)
+		plan.Run(word.NewDebugWatcher(logf))
+	}
 }
 
 func benchStepGenPlan(b *testing.B, planf word.PlanFunc, w1, w2, w3 string) {
