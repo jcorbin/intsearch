@@ -185,7 +185,7 @@ func main() {
 		})
 	}
 
-	plan = planf(gg.PlanProblem, gen, *verify)
+	plan = planf(gen, *verify)
 
 	if *dumpProg {
 		fmt.Println()

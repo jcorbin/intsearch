@@ -22,14 +22,15 @@ type Plan interface {
 //   alternates)
 // - call gen.Finish (also call .Finish on any Fork'd alternates)
 // - call gen.Finalize
-type PlanFunc func(*PlanProblem, SolutionGen, bool) Plan
+type PlanFunc func(SolutionGen, bool) Plan
 
 // PlanNaiveBrute implements the most naive (factorial in the number of letters
 // branching factor) strategy:
 // - gen.ChooseRange for every letter (in naive sorted order)
 // - gen.Check to filter
-func PlanNaiveBrute(prob *PlanProblem, gen SolutionGen, verified bool) Plan {
+func PlanNaiveBrute(gen SolutionGen, verified bool) Plan {
 	gen.Init("naive brute force")
+	prob := gen.Problem()
 	for _, c := range prob.SortedLetters() {
 		prob.ChooseRange(gen, c, 0, prob.Base-1)
 	}
@@ -48,8 +49,9 @@ func PlanNaiveBrute(prob *PlanProblem, gen SolutionGen, verified bool) Plan {
 //
 // This strategy wins over naive brute since there is a drastic search space
 // reduction as we move from column to column.
-func PlanPrunedBrute(prob *PlanProblem, gen SolutionGen, verified bool) Plan {
+func PlanPrunedBrute(gen SolutionGen, verified bool) Plan {
 	gen.Init("pruned brute force")
+	prob := gen.Problem()
 	var mins [256]int
 	for _, word := range prob.Words {
 		mins[word[0]] = 1
@@ -77,8 +79,9 @@ func PlanPrunedBrute(prob *PlanProblem, gen SolutionGen, verified bool) Plan {
 //
 // This strategy wins over pruned brute because it avoids many high branching
 // factor choices, instead performing a direct computation when possible.
-func PlanBottomUp(prob *PlanProblem, gen SolutionGen, verified bool) Plan {
+func PlanBottomUp(gen SolutionGen, verified bool) Plan {
 	gen.Init("bottom up")
+	prob := gen.Problem()
 	for i := len(prob.Columns) - 1; i >= 0; i-- {
 		col := &prob.Columns[i]
 		if !prob.MaySolveColumn(gen, col) {
@@ -106,7 +109,8 @@ func PlanBottomUp(prob *PlanProblem, gen SolutionGen, verified bool) Plan {
 //   branches of bottom up
 // - furthermore initial letter choices cannot be zero, causing all subsequent
 //   range choices to be reduced by 1
-func PlanTopDown(prob *PlanProblem, gen SolutionGen, verified bool) Plan {
+func PlanTopDown(gen SolutionGen, verified bool) Plan {
+	prob := gen.Problem()
 	var proc func(prob *PlanProblem, gen SolutionGen, col *Column) bool
 	proc = func(prob *PlanProblem, gen SolutionGen, col *Column) bool {
 		if col.Prior == nil {

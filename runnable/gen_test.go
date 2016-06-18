@@ -64,7 +64,7 @@ func runStepGenTest(t *testing.T, planf word.PlanFunc, w1, w2, w3 string) {
 	}
 
 	gg := runnable.NewStepGen(word.NewPlanProblem(&prob, false))
-	plan = planf(gg.PlanProblem, gg, true)
+	plan = planf(gg, true)
 
 	numGood := 0
 	plan.Run(word.ResultFunc(func(sol word.Solution) bool {
@@ -87,7 +87,7 @@ func runStepGenTest(t *testing.T, planf word.PlanFunc, w1, w2, w3 string) {
 
 	if t.Failed() {
 		gg = runnable.NewStepGen(word.NewPlanProblem(&prob, true))
-		plan = planf(gg.PlanProblem, word.MultiGen([]word.SolutionGen{
+		plan = planf(word.MultiGen([]word.SolutionGen{
 			word.NewLogGen(gg.PlanProblem),
 			gg,
 		}), true)
@@ -102,7 +102,7 @@ func benchStepGenPlan(b *testing.B, planf word.PlanFunc, w1, w2, w3 string) {
 	}
 	for n := 0; n < b.N; n++ {
 		gg := runnable.NewStepGen(word.NewPlanProblem(&prob, false))
-		planf(gg.PlanProblem, gg, false)
+		planf(gg, false)
 	}
 }
 
@@ -116,7 +116,7 @@ func benchStepGenRun(b *testing.B, planf word.PlanFunc, w1, w2, w3 string) {
 	}
 
 	gg := runnable.NewStepGen(word.NewPlanProblem(&prob, false))
-	plan = planf(gg.PlanProblem, gg, false)
+	plan = planf(gg, false)
 
 	for n := 0; n < b.N; n++ {
 		numGood := 0
