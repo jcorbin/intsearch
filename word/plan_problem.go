@@ -35,6 +35,7 @@ type PlanProblem struct {
 
 // SolutionGen is the interface implemented by plan execution engines.
 type SolutionGen interface {
+	Problem() *PlanProblem
 	Logf(string, ...interface{}) error
 	Init(desc string)
 	Fork(prob *PlanProblem, name, alt, cont string) SolutionGen

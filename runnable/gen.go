@@ -45,6 +45,11 @@ func NewStepGen(prob *word.PlanProblem) *StepGen {
 	return gg
 }
 
+// Problem returns the plan problem.
+func (gg *StepGen) Problem() *word.PlanProblem {
+	return gg.PlanProblem
+}
+
 // Steps returns the slice of steps generated/compiled so far.
 func (gg *StepGen) Steps() []Step {
 	return gg.steps

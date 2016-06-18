@@ -23,6 +23,11 @@ func NewLogGen(prob *PlanProblem) *LogGen {
 	}
 }
 
+// Problem returns the plan problem.
+func (lg *LogGen) Problem() *PlanProblem {
+	return lg.PlanProblem
+}
+
 // Logf simply formats and prints the passed message with an added prefix.
 func (lg *LogGen) Logf(format string, args ...interface{}) error {
 	if len(lg.prefix) == 0 {

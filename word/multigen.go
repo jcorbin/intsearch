@@ -4,6 +4,16 @@ package word
 // is to combine an observability gen with a primary concrete gen.
 type MultiGen []SolutionGen
 
+// Problem returns the first non-nil problem from a gen.
+func (mg MultiGen) Problem() *PlanProblem {
+	for _, gen := range mg {
+		if prob := gen.Problem(); prob != nil {
+			return prob
+		}
+	}
+	return nil
+}
+
 // Logf passes the log message to all gens.
 func (mg MultiGen) Logf(format string, args ...interface{}) error {
 	for _, gen := range mg {
