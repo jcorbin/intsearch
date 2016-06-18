@@ -10,8 +10,6 @@ import (
 	"github.com/jcorbin/intsearch/word"
 )
 
-type planFunc func(*word.PlanProblem, word.SolutionGen, bool)
-
 func TestStepGen_prunedBrute(t *testing.T) {
 	runStepGenTest(t, word.PlanPrunedBrute, "send", "more", "money")
 }
