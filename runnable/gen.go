@@ -314,17 +314,20 @@ func (gg *StepGen) checkFixedCarry(col *word.Column) {
 		return
 	}
 
-	if gg.addrAnnos != nil {
-		gg.steps = append(gg.steps,
-			labelStep(gg.gensym("checkFixedCarry(%s)", col.Label())))
-	}
-
 	switch col.Carry {
 	case word.CarryZero:
+		if gg.addrAnnos != nil {
+			gg.steps = append(gg.steps,
+				labelStep(gg.gensym("checkFixedCarry(%s)", col.Label())))
+		}
 		gg.steps = append(gg.steps,
 			relJZStep(1),
 			exitStep{errCheckFailed})
 	case word.CarryOne:
+		if gg.addrAnnos != nil {
+			gg.steps = append(gg.steps,
+				labelStep(gg.gensym("checkFixedCarry(%s)", col.Label())))
+		}
 		gg.steps = append(gg.steps,
 			relJNZStep(1),
 			exitStep{errCheckFailed})
