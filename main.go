@@ -171,16 +171,17 @@ func main() {
 		log.Fatalf("setup failed: %v", err)
 	}
 
-	annotated := *dumpProg || *trace || *debug
 	// - dumping program benefits from annotations
 	// - as do program traces
 	// - the debug watcher always traces
-	gg := runnable.NewStepGen(word.NewPlanProblem(&prob, annotated))
+	annotated := *dumpProg || *trace || *debug
+	planProb := word.NewPlanProblem(&prob, annotated)
 
-	gen := word.SolutionGen(gg)
+	gen := word.SolutionGen(runnable.NewStepGen(planProb))
+
 	if *dumpProg {
 		gen = word.MultiGen([]word.SolutionGen{
-			word.NewLogGen(gg.PlanProblem),
+			word.NewLogGen(planProb),
 			gen,
 		})
 	}
