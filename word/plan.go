@@ -10,6 +10,7 @@ var errBruteCheckFailed = errors.New("check failed")
 // Plan is a concrete plan that can be ran to find one or more solutions to a
 // problem.
 type Plan interface {
+	Dump(logf func(format string, args ...interface{}))
 	Decorate(args ...interface{}) []string
 	Run(Resultor)
 }

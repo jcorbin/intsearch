@@ -190,14 +190,10 @@ func main() {
 	if *dumpProg {
 		fmt.Println()
 		fmt.Printf("//// Compiled Program Dump\n")
-		for i, step := range gg.Steps() {
-			label := gg.LabelAt(i)
-			if label == "" {
-				fmt.Printf("%v: %v\n", i, step)
-			} else {
-				fmt.Printf("%v: %v  // %s\n", i, step, label)
-			}
-		}
+		plan.Dump(func(format string, args ...interface{}) {
+			fmt.Printf(format, args...)
+			fmt.Println()
+		})
 		fmt.Println()
 	}
 

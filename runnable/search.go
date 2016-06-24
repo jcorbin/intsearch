@@ -1,12 +1,31 @@
 package runnable
 
-import "github.com/jcorbin/intsearch/word"
+import (
+	"strings"
+
+	"github.com/jcorbin/intsearch/word"
+)
 
 // SearchPlan implements word.Plan by running the generated steps.
 type SearchPlan struct {
 	*word.Problem
 	steps     []Step
 	addrAnnos map[int][]string
+}
+
+// Dump prints the generated steps and any annotations.
+func (sp *SearchPlan) Dump(logf func(format string, args ...interface{})) {
+	for addr, step := range sp.steps {
+		var annos []string
+		if sp.addrAnnos != nil {
+			annos = sp.addrAnnos[addr]
+		}
+		if len(annos) > 0 {
+			logf("%04d: %v // %s", addr, step, strings.Join(annos, " "))
+		} else {
+			logf("%04d: %v", addr, step)
+		}
+	}
 }
 
 // Decorate returns a list of any known annotations any Solution arguments.
