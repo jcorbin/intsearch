@@ -19,6 +19,10 @@ var planStrategies = map[string]word.PlanFunc{
 	"topDown":     word.PlanTopDown,
 }
 
+var engines = map[string]word.EngineFunc{
+	"runnable": runnable.NewStepGen,
+}
+
 func planStrategyNames() []string {
 	var names []string
 	for name := range planStrategies {
@@ -28,12 +32,24 @@ func planStrategyNames() []string {
 	return names
 }
 
+func engineNames() []string {
+	var names []string
+	for name := range engines {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	return names
+}
+
 var (
-	dumpProg = flag.Bool("dumpProg", false, "dump the generated search program")
-	dumpAll  = flag.Bool("dumpAll", false, "dump all solutions")
-	trace    = flag.Bool("trace", false, "trace results")
-	verify   = flag.Bool("verify", false, "generate code for extra verification")
-	debug    = flag.Bool("debug", false, "enable debug search watcher")
+	dumpProg   = flag.Bool("dumpProg", false, "dump the generated search program")
+	dumpAll    = flag.Bool("dumpAll", false, "dump all solutions")
+	trace      = flag.Bool("trace", false, "trace results")
+	verify     = flag.Bool("verify", false, "generate code for extra verification")
+	debug      = flag.Bool("debug", false, "enable debug search watcher")
+	engineName = flag.String("engine", "runnable", fmt.Sprintf(
+		"which engine to use (%s)",
+		strings.Join(engineNames(), ", ")))
 	planName = flag.String("plan", "bottomUp", fmt.Sprintf(
 		"which plan strategy to use (%s)",
 		strings.Join(planStrategyNames(), ", ")))
@@ -167,6 +183,13 @@ func main() {
 			planName, strings.Join(planStrategyNames(), ", "))
 	}
 
+	enginef, ok := engines[*engineName]
+	if !ok {
+		log.Fatalf(
+			"invalid engine %q, valid choices: %s",
+			engineName, strings.Join(engineNames(), ", "))
+	}
+
 	if err := prob.Setup(word1, word2, word3); err != nil {
 		log.Fatalf("setup failed: %v", err)
 	}
@@ -176,8 +199,7 @@ func main() {
 	// - the debug watcher always traces
 	annotated := *dumpProg || *trace || *debug
 	planProb := word.NewPlanProblem(&prob, annotated)
-
-	gen := word.SolutionGen(runnable.NewStepGen(planProb))
+	gen := enginef(planProb)
 
 	if *dumpProg {
 		gen = word.MultiGen([]word.SolutionGen{
