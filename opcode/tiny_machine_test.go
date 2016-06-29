@@ -25,16 +25,21 @@ func TestTinyMachine_RunAll(t *testing.T) {
 	mach, err := opcode.NewTinyMachine(as.Bytes(), false)
 	require.NoError(t, err)
 
+	bs := make([]byte, 0, 10)
 	res := machRes{
-		T:  t,
-		bs: make([]byte, 0, 10),
+		T: t,
+		collect: func(mach opcode.Machine) {
+			var buf [1]byte
+			require.Equal(t, 1, mach.CopyMemory(1, buf[:]))
+			bs = append(bs, buf[0])
+		},
 	}
 	final := mach.RunAll(&res)
 	if final != nil {
 		t.Logf("machine check error: %v", final.Check())
 	}
 	require.Nil(t, final, "machine check error")
-	assert.Equal(t, []byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}, res.bs)
+	assert.Equal(t, []byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}, bs)
 
 	if t.Failed() {
 		mach.Reset()
@@ -44,17 +49,10 @@ func TestTinyMachine_RunAll(t *testing.T) {
 
 type machRes struct {
 	*testing.T
-	bs       []byte
+	collect  func(opcode.Machine)
 	state    interface{}
 	beforeOp opcode.Op
 	afterOp  opcode.Op
-}
-
-func (res *machRes) collect(mach opcode.Machine) [1]byte {
-	var buf [1]byte
-	require.Equal(res.T, 1, mach.CopyMemory(1, buf[:]))
-	res.bs = append(res.bs, buf[0])
-	return buf
 }
 
 func (res *machRes) Result(mach opcode.Machine) bool {
@@ -77,3 +75,14 @@ func (res *machRes) After(mach opcode.Machine) {
 
 func (res *machRes) Emit(action string, parent, child opcode.Machine) {
 }
+
+// TODO
+// func TestTinyMachine_collatz(t *testing.T) {
+// 	min := 1
+// 	max := 10
+
+// 	as := opcode.NewAssembler()
+
+// 	var mach opcode.TinyMachine
+// 	require.NoError(t, mach.Load(as.Bytes(), false))
+// }
