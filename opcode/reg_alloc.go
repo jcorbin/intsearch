@@ -1,5 +1,7 @@
 package opcode
 
+import "fmt"
+
 // RegisterAllocator assigns labels to registers with an LRU re-use strategy.
 type RegisterAllocator struct {
 	max    byte
@@ -47,6 +49,7 @@ func (ra *RegisterAllocator) LabelOf(b byte) string {
 
 // Assigned returns true if the register is assigned.
 func (ra *RegisterAllocator) Assigned(b byte) bool {
+	defer ra.check("assigned(%q)", string(b))()
 	for _, r := range ra.assign {
 		if b == r {
 			return true
@@ -59,6 +62,7 @@ func (ra *RegisterAllocator) Assigned(b byte) bool {
 // assigned.  If it wasn't assigned, the returned register will be 0.  If it
 // was assigned, its place in the LRU ordering is freshened.
 func (ra *RegisterAllocator) Get(key string) (r byte, defined bool) {
+	defer ra.check("get(%q)", key)()
 	r, defined = ra.assign[key]
 	if defined {
 		ra.order = moveback(key, ra.order)
@@ -69,6 +73,7 @@ func (ra *RegisterAllocator) Get(key string) (r byte, defined bool) {
 // Take returns the register assigned to a label, possibly after having
 // assigned a free register, or stolen the oldest one.
 func (ra *RegisterAllocator) Take(key string) byte {
+	defer ra.check("take(%q)", key)()
 	if r, defined := ra.Get(key); defined {
 		return r
 	}
@@ -88,6 +93,7 @@ func (ra *RegisterAllocator) Take(key string) byte {
 // Reassign freshesns and relabels a register; if oldKey isn't assigned,
 // Reassign just calls Take.
 func (ra *RegisterAllocator) Reassign(oldKey, newKey string) byte {
+	defer ra.check("reassign(%q, %q)", oldKey, newKey)()
 	// TODO: inline free, and add a fast path for re-assigning the latest
 	// register.
 	r := ra.Free(oldKey)
@@ -101,6 +107,7 @@ func (ra *RegisterAllocator) Reassign(oldKey, newKey string) byte {
 
 // Free deletes any assignment for the given key.
 func (ra *RegisterAllocator) Free(key string) byte {
+	defer ra.check("free(%q)", key)()
 	r, defined := ra.assign[key]
 	if !defined {
 		return 0
@@ -111,6 +118,7 @@ func (ra *RegisterAllocator) Free(key string) byte {
 }
 
 func (ra *RegisterAllocator) steal(newKey string) byte {
+	defer ra.check("steal(%q)", newKey)()
 	oldKey := ra.order[0]
 	r := ra.assign[oldKey]
 	if r == 0 {
@@ -123,6 +131,21 @@ func (ra *RegisterAllocator) steal(newKey string) byte {
 	ra.assign[newKey] = r
 	ra.order[len(ra.order)-1] = newKey
 	return r
+}
+
+func (ra *RegisterAllocator) check(name string, args ...interface{}) func() {
+	if len(args) > 0 {
+		name = fmt.Sprintf(name, args...)
+	}
+	if len(ra.order) != len(ra.assign) {
+		panic(fmt.Sprintf("before %s: %v vs %v", name, ra.order, ra.assign))
+	}
+	return func() {
+		if len(ra.order) != len(ra.assign) {
+			panic(fmt.Sprintf("after %s: %v vs %v", name, ra.order, ra.assign))
+		}
+		// fmt.Printf("okay after %s: %v vs %v\n", name, ra.order, ra.assign)
+	}
 }
 
 func moveback(s string, ss []string) []string {
