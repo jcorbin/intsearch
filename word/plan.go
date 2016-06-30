@@ -15,6 +15,9 @@ type Plan interface {
 	Run(Resultor)
 }
 
+// EngineFunc is the type of a SolutionGen creating function.
+type EngineFunc func(*PlanProblem) SolutionGen
+
 // PlanFunc is the type of a concrete solution strategy.  The function should:
 // - call gen.Init
 // - use some combinatino of gen method calls to solve every column, or at
