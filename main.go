@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/jcorbin/intsearch/opcode"
 	"github.com/jcorbin/intsearch/runnable"
 	"github.com/jcorbin/intsearch/word"
 )
@@ -21,6 +22,7 @@ var planStrategies = map[string]word.PlanFunc{
 
 var engines = map[string]word.EngineFunc{
 	"runnable": runnable.NewStepGen,
+	"opcode":   opcode.NewCodeGen,
 }
 
 func planStrategyNames() []string {
