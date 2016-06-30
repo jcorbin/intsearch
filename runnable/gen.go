@@ -29,7 +29,7 @@ type StepGen struct {
 }
 
 // NewStepGen creates a new step generator for a given problem about to be planned.
-func NewStepGen(prob *word.PlanProblem) *StepGen {
+func NewStepGen(prob *word.PlanProblem) word.SolutionGen {
 	n := 0
 	for _, w := range prob.Words {
 		n += len(w)
