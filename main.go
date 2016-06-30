@@ -85,19 +85,6 @@ func (dmp *dumper) Result(sol word.Solution) bool {
 	return false
 }
 
-func traceFailures() {
-	var (
-		dmp dumper
-		met word.MetricWatcher
-	)
-	plan.Run(word.Watchers(
-		&met,
-		word.NewTraceWatcher(),
-		word.ResultWatcher{Resultor: &dmp},
-	))
-	fmt.Printf("\nsearch metrics: %+v\n", met)
-}
-
 func debugRun() {
 	var (
 		met word.MetricWatcher
@@ -229,7 +216,6 @@ func main() {
 		sol.Dump(logf)
 		word.SolutionCheck(sol, logf)
 	} else {
-		logf("found no solutions, re-running with trace")
-		traceFailures()
+		logf("found no solutions, re-running with debug")
 	}
 }
