@@ -9,6 +9,7 @@ import (
 // messages.  A prefix is provided that grows with fork context.
 type LogGen struct {
 	*PlanProblem
+	outf     func(format string, args ...interface{})
 	prefix   string
 	step     int
 	branches []int
@@ -16,8 +17,18 @@ type LogGen struct {
 
 // NewLogGen creates a new LogGen for a given problem being planned.
 func NewLogGen(prob *PlanProblem) *LogGen {
+	return NewLogGenF(prob, func(format string, args ...interface{}) {
+		fmt.Printf(format, args...)
+		fmt.Println()
+	})
+}
+
+// NewLogGenF creates a new LogGen for a given problem being planned, and a
+// specific logf-like function.
+func NewLogGenF(prob *PlanProblem, outf func(format string, args ...interface{})) *LogGen {
 	return &LogGen{
 		PlanProblem: prob,
+		outf:        outf,
 		prefix:      "",
 		branches:    make([]int, 0, len(prob.Letters)),
 	}
@@ -31,12 +42,12 @@ func (lg *LogGen) Problem() *PlanProblem {
 // Logf simply formats and prints the passed message with an added prefix.
 func (lg *LogGen) Logf(format string, args ...interface{}) error {
 	if len(lg.prefix) == 0 {
-		format = fmt.Sprintf("// %s\n", format)
+		format = fmt.Sprintf("// %s", format)
 	} else {
-		format = fmt.Sprintf("// %s> %s\n", lg.prefix, format)
+		format = fmt.Sprintf("// %s> %s", lg.prefix, format)
 	}
-	_, err := fmt.Printf(format, args...)
-	return err
+	lg.outf(format, args...)
+	return nil
 }
 
 func (lg *LogGen) stepf(format string, args ...interface{}) {
@@ -84,6 +95,7 @@ func (lg *LogGen) Fork(prob *PlanProblem, name, alt, cont string) SolutionGen {
 	lg.prefix = fmt.Sprintf("%s%s", strings.Repeat(" ", n), cont)
 	return &LogGen{
 		PlanProblem: prob,
+		outf:        lg.outf,
 		prefix:      fmt.Sprintf("%s%s", strings.Repeat(" ", n+2), alt),
 		step:        lg.step,
 		branches:    lg.branches,
