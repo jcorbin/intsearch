@@ -35,22 +35,25 @@ func RunGenTest(
 	gen := genf(word.NewPlanProblem(&prob, false))
 	plan = planf(gen, true)
 
-	numGood := 0
+	var sols []word.Solution
 	plan.Run(word.ResultFunc(func(sol word.Solution) bool {
 		err := sol.Check()
 		if _, is := err.(word.VerifyError); is {
 			sol.Dump(internal.PrefixedF(logf, "!!! invalid solution found:", "..."))
 			t.Fail()
 		} else if sol.Check() == nil {
-			numGood++
+			sols = append(sols, word.CaptureSolution(sol))
 		}
 		return false
 	}))
-	if numGood == 0 {
+	if len(sols) == 0 {
 		t.Logf("didn't find any solution")
 		t.Fail()
-	} else if numGood > 1 {
-		t.Logf("found too many solutions: %v", numGood)
+	} else if len(sols) > 1 {
+		t.Logf("found too many solutions: %v", len(sols))
+		for i, sol := range sols {
+			sol.Dump(internal.PrefixedF(t.Logf, fmt.Sprintf("sol[%d]", i), "...   "))
+		}
 		t.Fail()
 	}
 
