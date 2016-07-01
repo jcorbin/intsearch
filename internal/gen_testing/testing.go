@@ -1,6 +1,7 @@
 package gen_testing
 
 import (
+	"flag"
 	"fmt"
 	"strings"
 	"testing"
@@ -8,6 +9,8 @@ import (
 	"github.com/jcorbin/intsearch/internal"
 	"github.com/jcorbin/intsearch/word"
 )
+
+var debug = flag.Bool("debug", false, "debug failed solutions")
 
 // RunGenTest tests a SolutionGen against a particular planner.
 func RunGenTest(
@@ -57,7 +60,8 @@ func RunGenTest(
 		t.Fail()
 	}
 
-	if t.Failed() {
+	if t.Failed() && *debug {
+		t.Logf("re-running in debug mode")
 		gen = genf(word.NewPlanProblem(&prob, false))
 		plan = planf(word.MultiGen([]word.SolutionGen{
 			word.NewLogGenF(gen.Problem(), t.Logf),
