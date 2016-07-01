@@ -57,7 +57,7 @@ func RunGenTest(
 	if t.Failed() {
 		gen = genf(word.NewPlanProblem(&prob, false))
 		plan = planf(word.MultiGen([]word.SolutionGen{
-			word.NewLogGen(gen.Problem()),
+			word.NewLogGenF(gen.Problem(), t.Logf),
 			gen,
 		}), true)
 		plan.Run(word.NewDebugWatcher(logf))
