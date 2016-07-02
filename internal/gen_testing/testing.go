@@ -11,6 +11,7 @@ import (
 )
 
 var debug = flag.Bool("debug", false, "debug failed solutions")
+var trace = flag.Bool("traceSol", false, "trace solutions")
 
 // RunGenTest tests a SolutionGen against a particular planner.
 func RunGenTest(
@@ -46,14 +47,21 @@ func RunGenTest(
 	res := word.ResultFunc(func(sol word.Solution) bool {
 		err := sol.Check()
 		if _, is := err.(word.VerifyError); is {
-			sol.Dump(internal.PrefixedF(logf, "!!! invalid solution found:", "..."))
+			sol.Dump(internal.PrefixedF(logf, "!!!> invalid solution found:", "..."))
 			t.Fail()
 		} else if sol.Check() == nil {
 			sols = append(sols, word.CaptureSolution(sol))
 		}
 		return false
 	})
-	plan.Run(res)
+	if *trace {
+		plan.Run(word.Watchers(
+			word.NewTraceWatcher(),
+			word.ResultWatcher{res},
+		))
+	} else {
+		plan.Run(res)
+	}
 
 	if len(sols) == 0 {
 		t.Logf("didn't find any solution")
