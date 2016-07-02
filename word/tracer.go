@@ -57,7 +57,7 @@ func (trc *TraceWatcher) Before(sol Solution) {
 func (trc *TraceWatcher) takeDump(sol Solution) []string {
 	t := trc.Trace[sol]
 	sol.Dump(func(format string, args ...interface{}) {
-		format = fmt.Sprintf("[%04d]: %s", len(t), format)
+		format = fmt.Sprintf("%04d> %s", len(t), format)
 		t = append(t, fmt.Sprintf(format, args...))
 	})
 	trc.Trace[sol] = t
@@ -71,9 +71,11 @@ func (trc *TraceWatcher) After(sol Solution) {
 // Fork copies the parent trace for the child, and adds a fork marker to both.
 func (trc *TraceWatcher) Fork(parent, child Solution) {
 	t := trc.Trace[parent]
-	t = append(t, " FORK : Parent")
+	i := len(t)
+
+	t = append(t, fmt.Sprintf("%04d* %s", i, "FORK : Parent"))
 	trc.Trace[parent] = t
 	t = append([]string(nil), t...)
-	t[len(t)-1] = " FORK : Child"
+	t[len(t)-1] = fmt.Sprintf("%04d* %s", i, "FORK : Child")
 	trc.Trace[child] = t
 }
