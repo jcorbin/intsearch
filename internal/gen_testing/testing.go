@@ -28,7 +28,10 @@ func RunGenTest(
 	}
 
 	logf := func(format string, args ...interface{}) {
-		dec := plan.Decorate(args)
+		var dec []string
+		if len(args) > 0 {
+			dec = plan.Decorate(args)
+		}
 		if len(dec) > 0 {
 			format = fmt.Sprintf("%s  // %s", format, strings.Join(dec, ", "))
 		}
