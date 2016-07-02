@@ -45,11 +45,6 @@ type ResultWatcher struct {
 	Resultor
 }
 
-// Result calls the wrapped resultor.Result.
-func (rw ResultWatcher) Result(sol Solution) bool {
-	return rw.Resultor.Result(sol)
-}
-
 // Before does nothing.
 func (rw ResultWatcher) Before(_ Solution) {
 }
