@@ -42,7 +42,8 @@ func RunGenTest(
 	plan = planf(gen, true)
 
 	var sols []word.Solution
-	plan.Run(word.ResultFunc(func(sol word.Solution) bool {
+
+	res := word.ResultFunc(func(sol word.Solution) bool {
 		err := sol.Check()
 		if _, is := err.(word.VerifyError); is {
 			sol.Dump(internal.PrefixedF(logf, "!!! invalid solution found:", "..."))
@@ -51,7 +52,9 @@ func RunGenTest(
 			sols = append(sols, word.CaptureSolution(sol))
 		}
 		return false
-	}))
+	})
+	plan.Run(res)
+
 	if len(sols) == 0 {
 		t.Logf("didn't find any solution")
 		t.Fail()
