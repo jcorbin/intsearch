@@ -56,10 +56,13 @@ func (trc *TraceWatcher) Before(sol Solution) {
 
 func (trc *TraceWatcher) takeDump(sol Solution) []string {
 	t := trc.Trace[sol]
-	sol.Dump(func(format string, args ...interface{}) {
-		format = fmt.Sprintf("%04d> %s", len(t), format)
-		t = append(t, fmt.Sprintf(format, args...))
-	})
+
+	sol.Dump(internal.ElidedF(
+		func(format string, args ...interface{}) {
+			t = append(t, fmt.Sprintf(format, args...))
+		},
+		fmt.Sprintf("%04d>", len(t))))
+
 	trc.Trace[sol] = t
 	return t
 }
