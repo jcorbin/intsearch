@@ -33,6 +33,28 @@ func PrefixedF(
 	}).outf
 }
 
+// ElidedF creates a simple PrefixedF where the first prefix is given,
+// and all the rest are "...    " with enough spaces to align with the fist
+// prefix.
+//
+// For example:
+//     myf := ElidedF(log.Printf, "something")
+//     myf("one")
+//     myf("two")
+//     myf("three")
+//
+// Would output:
+//     something one
+//     ...       two
+//     ...       three
+func ElidedF(
+	logf func(string, ...interface{}),
+	prefix string,
+) func(string, ...interface{}) {
+	return PrefixedF(logf, prefix,
+		fmt.Sprintf("% -*s", len(prefix), "..."))
+}
+
 type prefixf struct {
 	logf     func(string, ...interface{})
 	prefixes []string

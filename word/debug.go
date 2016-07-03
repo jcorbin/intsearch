@@ -88,34 +88,26 @@ func NewDebugWatcher(logf func(string, ...interface{})) *DebugWatcher {
 
 // Result prints a "=== ..." line.
 func (dbg *DebugWatcher) Result(sol Solution) bool {
-	id := dbg.getOrAddID(nil, sol)
-	sol.Dump(internal.PrefixedF(dbg.Logf,
-		fmt.Sprintf("=== %v", id),
-		fmt.Sprintf("... %v", id)))
+	sol.Dump(internal.ElidedF(dbg.Logf,
+		fmt.Sprintf("=== %v", dbg.getOrAddID(nil, sol))))
 	delete(dbg.idOf, sol)
 	return false
 }
 
 // Before prints a "--> ..." line.
 func (dbg *DebugWatcher) Before(sol Solution) {
-	id := dbg.getOrAddID(nil, sol)
-	sol.Dump(internal.PrefixedF(dbg.Logf,
-		fmt.Sprintf("--> %v", id),
-		fmt.Sprintf("... %v", id)))
+	sol.Dump(internal.ElidedF(dbg.Logf,
+		fmt.Sprintf("--> %v", dbg.getOrAddID(nil, sol))))
 }
 
 // After prints a "<-- ..." line.
 func (dbg *DebugWatcher) After(sol Solution) {
-	id := dbg.getOrAddID(nil, sol)
-	sol.Dump(internal.PrefixedF(dbg.Logf,
-		fmt.Sprintf("<-- %v", id),
-		fmt.Sprintf("... %v", id)))
+	sol.Dump(internal.ElidedF(dbg.Logf,
+		fmt.Sprintf("<-- %v", dbg.getOrAddID(nil, sol))))
 }
 
 // Fork prints a "+++ ..." line.
 func (dbg *DebugWatcher) Fork(parent, child Solution) {
-	id := dbg.getOrAddID(parent, child)
-	child.Dump(internal.PrefixedF(dbg.Logf,
-		fmt.Sprintf("+++ %v", id),
-		fmt.Sprintf("... %v", id)))
+	child.Dump(internal.ElidedF(dbg.Logf,
+		fmt.Sprintf("+++ %v", dbg.getOrAddID(parent, child))))
 }
