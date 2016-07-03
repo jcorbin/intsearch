@@ -1,6 +1,10 @@
 package word
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/jcorbin/intsearch/internal"
+)
 
 // TracedSolution is a captured solution with a trace.
 type TracedSolution struct {
@@ -23,18 +27,23 @@ func (ts *TracedSolution) Dump(logf func(string, ...interface{})) {
 
 // TraceWatcher implements a Watcher that collects solution traces.
 type TraceWatcher struct {
+	debugger
 	Trace map[Solution][]string
 }
 
 // NewTraceWatcher creates a new trace watcher.
 func NewTraceWatcher() *TraceWatcher {
 	return &TraceWatcher{
+		debugger: debugger{
+			idOf: make(map[Solution]debugID),
+		},
 		Trace: make(map[Solution][]string),
 	}
 }
 
 // Result removes the associated trace.
 func (trc *TraceWatcher) Result(sol Solution) bool {
+	delete(trc.idOf, sol)
 	delete(trc.Trace, sol)
 	return false
 }
@@ -55,30 +64,28 @@ func (trc *TraceWatcher) Before(sol Solution) {
 }
 
 func (trc *TraceWatcher) takeDump(sol Solution) []string {
+	id := trc.getOrAddID(nil, sol)
 	t := trc.Trace[sol]
-
 	sol.Dump(internal.ElidedF(
 		func(format string, args ...interface{}) {
 			t = append(t, fmt.Sprintf(format, args...))
 		},
-		fmt.Sprintf("%04d>", len(t))))
-
+		fmt.Sprintf("%04d %v>", len(t), id)))
 	trc.Trace[sol] = t
 	return t
 }
 
-// After does nothing.
-func (trc *TraceWatcher) After(sol Solution) {
-}
-
 // Fork copies the parent trace for the child, and adds a fork marker to both.
 func (trc *TraceWatcher) Fork(parent, child Solution) {
+	pid := trc.getOrAddID(nil, parent)
+	cid := trc.getOrAddID(parent, child)
+
 	t := trc.Trace[parent]
 	i := len(t)
-
-	t = append(t, fmt.Sprintf("%04d* %s", i, "FORK : Parent"))
+	t = append(t, fmt.Sprintf("%04d %v> forked %v", i, pid, cid))
 	trc.Trace[parent] = t
+
 	t = append([]string(nil), t...)
-	t[len(t)-1] = fmt.Sprintf("%04d* %s", i, "FORK : Child")
+	t[len(t)-1] = fmt.Sprintf("%04d %v> forked from %v", i, cid, pid)
 	trc.Trace[child] = t
 }
