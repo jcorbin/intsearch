@@ -26,22 +26,14 @@ func (di debugID) String() string {
 	return fmt.Sprintf("%v:%v:%v", di[0], di[1], di[2])
 }
 
-// DebugWatcher implements a Watcher that prints a debug log.
-type DebugWatcher struct {
-	Logf func(string, ...interface{})
+// debugger implements a Watcher that manages an id mapping ids for each
+// outstanding solution.
+type debugger struct {
 	id   uint64
 	idOf map[Solution]debugID
 }
 
-// NewDebugWatcher returns a new debug watcher.
-func NewDebugWatcher(logf func(string, ...interface{})) *DebugWatcher {
-	return &DebugWatcher{
-		Logf: logf,
-		idOf: make(map[Solution]debugID),
-	}
-}
-
-func (dbg *DebugWatcher) getOrAddID(parent, child Solution) debugID {
+func (dbg *debugger) getOrAddID(parent, child Solution) debugID {
 	id, defined := dbg.idOf[child]
 	if !defined {
 		if parent == nil {
@@ -55,6 +47,43 @@ func (dbg *DebugWatcher) getOrAddID(parent, child Solution) debugID {
 		dbg.idOf[child] = id
 	}
 	return id
+}
+
+// Result removes any id mapping.
+func (dbg *debugger) Result(sol Solution) bool {
+	delete(dbg.idOf, sol)
+	return false
+}
+
+// Before adds an id mapping, if none exists.
+func (dbg *debugger) Before(sol Solution) {
+	dbg.getOrAddID(nil, sol)
+}
+
+// After adds an id mapping, if none exists.
+func (dbg *debugger) After(sol Solution) {
+	dbg.getOrAddID(nil, sol)
+}
+
+// Fork adds an id mapping for the new child.
+func (dbg *debugger) Fork(parent, child Solution) {
+	dbg.getOrAddID(parent, child)
+}
+
+// DebugWatcher implements a Watcher that prints a debug log.
+type DebugWatcher struct {
+	debugger
+	Logf func(string, ...interface{})
+}
+
+// NewDebugWatcher returns a new debug watcher.
+func NewDebugWatcher(logf func(string, ...interface{})) *DebugWatcher {
+	return &DebugWatcher{
+		debugger: debugger{
+			idOf: make(map[Solution]debugID),
+		},
+		Logf: logf,
+	}
 }
 
 // Result prints a "=== ..." line.
