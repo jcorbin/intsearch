@@ -12,11 +12,11 @@ import "fmt"
 //   prefix "sticks"
 //
 // For example:
-//     myf = PrefixedF(fmt.Printf, "hello", "world", "meh...)
-//     myf("such\n")
-//     myf("much\n")
-//     myf("amaze\n")
-//     myf("still amazing\n")
+//     myf = PrefixedF(log.Printf, "hello", "world", "meh...)
+//     myf("such")
+//     myf("much")
+//     myf("amaze")
+//     myf("still amazing")
 //
 // Would output:
 //     hello such
