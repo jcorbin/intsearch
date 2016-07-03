@@ -2,10 +2,13 @@ package opcode
 
 import (
 	"encoding/binary"
+	"flag"
 	"fmt"
 	"sync"
 	"unsafe"
 )
+
+var debug = flag.Bool("tinymachine.debug", false, "debug tinymachine running")
 
 const (
 	tinyMachineMemorySize   = 256
@@ -117,6 +120,9 @@ func (ctx *tinyMachineCtx) shiftq() (other *TinyMachine) {
 	if ctx.off < len(ctx.q) {
 		other, ctx.q[ctx.off] = ctx.q[ctx.off], nil
 		ctx.off++
+		if *debug {
+			fmt.Printf("%p SHIFT\n", other)
+		}
 	}
 	return
 }
@@ -126,6 +132,9 @@ func (ctx *tinyMachineCtx) pushq(other *TinyMachine) {
 		ctx.prune()
 	}
 	ctx.q = append(ctx.q, other)
+	if *debug {
+		fmt.Printf("%p PUSH\n", other)
+	}
 }
 
 func (ctx *tinyMachineCtx) prune() {
@@ -138,6 +147,9 @@ func (ctx *tinyMachineCtx) prune() {
 // Copy returns a copy of the current machine
 func (mach *TinyMachine) Copy() *TinyMachine {
 	other := mach.ctx.Get()
+	if other == mach {
+		panic("d'oh")
+	}
 	if other == nil {
 		other = &TinyMachine{
 			bo:  mach.bo,
@@ -156,7 +168,13 @@ func (mach *TinyMachine) Copy() *TinyMachine {
 			m:   mach.m,
 			ctx: mach.ctx,
 		}
+		if *debug {
+			fmt.Printf("%p ALLOC <- %p\n", other, mach)
+		}
 	} else {
+		if *debug {
+			fmt.Printf("%p REUSE <- %p\n", other, mach)
+		}
 		*other = *mach
 	}
 	return other
@@ -583,21 +601,40 @@ func (mach *TinyMachine) Step() {
 // may mutate after the result function returns.
 func (mach *TinyMachine) RunAll(res Resultor) Machine {
 	if mach.ctx != nil {
+		if *debug {
+			fmt.Printf("\n%p RUNALL ctx reset\n", mach)
+		}
 		mach.Reset()
 	} else {
+		if *debug {
+			fmt.Printf("\n%p RUNALL new ctx\n", mach)
+		}
 		mach.ctx = &tinyMachineCtx{root: mach}
 	}
 
 	ctx := mach.ctx
 	ctx.init(res)
 
+	i := 0
 	for ; mach != nil; mach = ctx.shiftq() {
+		if *debug {
+			fmt.Printf("%p RUN %v\n", mach, mach)
+		}
 		mach.Run()
+		if mach.Check() == nil {
+			i++
+			if *debug {
+				fmt.Printf("%p SOL_%d %v\n", mach, i, mach)
+			}
+		}
 		if ctx.result.Result(mach) {
 			return mach
 		}
 		if err := mach.checkState(); err != nil {
 			return mach
+		}
+		if *debug {
+			fmt.Printf("%p PUT\n", mach)
 		}
 		ctx.Put(mach)
 	}
