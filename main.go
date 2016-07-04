@@ -185,16 +185,10 @@ func main() {
 	// - as do program traces
 	// - the debug watcher always traces
 	annotated := *dumpProg || *trace || *debug
-	planProb := word.NewPlanProblem(&prob, annotated)
-	gen := enginef(planProb)
-
+	gen := enginef(word.NewPlanProblem(&prob, annotated))
 	if *dumpProg {
-		gen = word.MultiGen([]word.SolutionGen{
-			word.NewLogGen(planProb),
-			gen,
-		})
+		gen = word.Gens(word.NewLogGen(gen.Problem()), gen)
 	}
-
 	plan = planf(gen, *verify)
 
 	if *dumpProg {
