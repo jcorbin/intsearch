@@ -10,8 +10,10 @@ import (
 	"github.com/jcorbin/intsearch/word"
 )
 
-var debug = flag.Bool("debug", false, "debug failed solutions")
-var trace = flag.Bool("traceSol", false, "trace solutions")
+var (
+	debug = flag.Bool("debug", false, "debug failed solutions")
+	trace = flag.Bool("traceSol", false, "trace solutions")
+)
 
 // RunGenTest tests a SolutionGen against a particular planner.
 func RunGenTest(
