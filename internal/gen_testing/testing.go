@@ -79,10 +79,8 @@ func RunGenTest(
 	if t.Failed() && *debug {
 		t.Logf("re-running in debug mode")
 		gen = genf(word.NewPlanProblem(&prob, false))
-		plan = planf(word.MultiGen([]word.SolutionGen{
-			word.NewLogGenF(gen.Problem(), t.Logf),
-			gen,
-		}), true)
+		gen = word.Gens(word.NewLogGenF(gen.Problem(), t.Logf), gen)
+		plan = planf(gen, true)
 		plan.Run(word.NewDebugWatcher(logf))
 	}
 }
