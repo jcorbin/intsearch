@@ -13,6 +13,7 @@ import (
 var (
 	debug = flag.Bool("debug", false, "debug failed solutions")
 	trace = flag.Bool("traceSol", false, "trace solutions")
+	dump  = flag.Bool("dumpProg", false, "dump the program before testing")
 )
 
 // RunGenTest tests a SolutionGen against a particular planner.
@@ -41,7 +42,10 @@ func RunGenTest(
 		t.Logf(format, args...)
 	}
 
-	gen := genf(word.NewPlanProblem(&prob, false))
+	gen := genf(word.NewPlanProblem(&prob, *dump))
+	if *dump {
+		gen = word.Gens(word.NewLogGen(gen.Problem()), gen)
+	}
 	plan = planf(gen, true)
 
 	var sols []word.Solution
