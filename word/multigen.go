@@ -1,5 +1,10 @@
 package word
 
+// Gens is a convenience constructor for a MultiGen.
+func Gens(gs ...SolutionGen) SolutionGen {
+	return MultiGen(gs)
+}
+
 // MultiGen implements a simple one-to-many SolutionGen.  Its primary use case
 // is to combine an observability gen with a primary concrete gen.
 type MultiGen []SolutionGen
