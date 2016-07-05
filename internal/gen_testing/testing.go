@@ -137,9 +137,9 @@ func BenchGenRun(
 			return false
 		}))
 		if numGood == 0 {
-			b.Fatalf("didn't find any solution")
+			b.Fatalf("B[%v] didn't find any solution", n)
 		} else if numGood > 1 {
-			b.Fatalf("found too many solutions: %v", numGood)
+			b.Fatalf("B[%v] found too many solutions: %v", numGood, n)
 		}
 		if b.Failed() {
 			break
