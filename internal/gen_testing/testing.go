@@ -44,9 +44,14 @@ func RunGenTest(
 
 	gen := genf(word.NewPlanProblem(&prob, *dump))
 	if *dump {
-		gen = word.Gens(word.NewLogGen(gen.Problem()), gen)
+		gen = word.Gens(word.NewLogGenF(gen.Problem(), t.Logf), gen)
+		t.Logf("planning:")
 	}
 	plan = planf(gen, true)
+	if *dump {
+		t.Logf("plan dump:")
+		plan.Dump(t.Logf)
+	}
 
 	var sols []word.Solution
 
