@@ -1,3 +1,6 @@
+BENCH_NAME=Plan_topDown
+BENCH_TIME=3s
+
 PACKAGES=. ./word ./runnable ./opcode
 
 .PHONY: generate
@@ -24,6 +27,18 @@ lint: generate
 test: lint
 	go test -v -bench . -run . $(PACKAGES)
 
-%.prof: intsearch.test.%
+.PHONY: prof_clean
+prof_clean:
+	rm -rf *.prof.d
+
+.PRECIOUS: %.prof.d/test
+%.prof.d/test: %.test
+	[ -d $$(dirname $@) ] || mkdir $$(dirname $@)
+	ln $< $@
+
+%.prof.d/$(BENCH_NAME): %.prof.d/test
 	[ -d $@ ] || mkdir $@
-	$< -test.benchtime=3s -test.bench=Plan_topDown -test.benchmem -test.cpuprofile=$@/cpu -test.memprofile=$@/mem
+	$< -test.benchtime=$(BENCH_TIME) -test.bench=$(BENCH_NAME) -test.benchmem \
+		-test.cpuprofile=$@/cpu \
+		-test.memprofile=$@/mem \
+		2>&1 | tee $@/log
