@@ -54,22 +54,25 @@ func DecodeOp(bo binary.ByteOrder, buf []byte, i int) (Op, int) {
 	var op Op
 	op.Code = OpCode(buf[i])
 	i++
-	if n := op.Code.Arity(); n > 0 {
+	switch op.Code.Arity() {
+	case 1:
 		op.Arg1.Code = ArgCode(buf[i])
 		i++
-		if n > 1 {
-			op.Arg2.Code = ArgCode(buf[i])
-			i++
-			if op.Arg1.Code.Immediate() {
-				op.Arg1.Val = bo.Uint16(buf[i:])
-				i += 2
-			}
-			if op.Arg2.Code.Immediate() {
-				op.Arg2.Val = bo.Uint16(buf[i:])
-				i += 2
-			}
-		} else if op.Arg1.Code.Immediate() {
+		if op.Arg1.Code.Immediate() {
 			op.Arg1.Val = bo.Uint16(buf[i:])
+			i += 2
+		}
+	case 2:
+		op.Arg1.Code = ArgCode(buf[i])
+		i++
+		op.Arg2.Code = ArgCode(buf[i])
+		i++
+		if op.Arg1.Code.Immediate() {
+			op.Arg1.Val = bo.Uint16(buf[i:])
+			i += 2
+		}
+		if op.Arg2.Code.Immediate() {
+			op.Arg2.Val = bo.Uint16(buf[i:])
 			i += 2
 		}
 	}
