@@ -467,11 +467,6 @@ func (mach *TinyMachine) Step() {
 		val := mach.resolveArgVal(mach.op.Arg2)
 		*loc |= val & 0xff00 // TODO bit hacky
 
-	case SWAP: // a, b reg
-		l1 := mach.resolveArgLoc(mach.op.Arg1)
-		l2 := mach.resolveArgLoc(mach.op.Arg2)
-		*l1, *l2 = *l2, *l1
-
 	case JUMP: // offset
 		off := mach.resolveArgVal(mach.op.Arg1)
 		mach.pi += off

@@ -47,14 +47,6 @@ func (op Op) Validate() error {
 			return opErrorf(op, "missing arg2")
 		}
 
-	case SWAP: // a, b reg|mem
-		if op.Arg1.Code.Immediate() && !op.Arg1.Code.Indirect() {
-			return opErrorf(op, "expected arg1 to be register or memory")
-		}
-		if op.Arg2.Code.Immediate() && !op.Arg2.Code.Indirect() {
-			return opErrorf(op, "expected arg2 to be register or memory")
-		}
-
 	case JUMP: // offset imm
 		fallthrough
 	case JUMPF: // offset imm

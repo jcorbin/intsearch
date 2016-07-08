@@ -24,9 +24,6 @@ const (
 	// MOVEH copies the high byte from src to dst.
 	MOVEH // dst reg|mem, src mem|mem|value
 
-	// SWAP exchanges two registers
-	SWAP // a, b reg
-
 	// JUMP increments PI by an immediate offset.
 	JUMP // target offset
 
@@ -105,7 +102,6 @@ var opMeta = []struct {
 	{2, "MOVE", "INVALID", "$value"},     // MOVE
 	{2, "MOVEL", "INVALID", "$value"},    // MOVEL
 	{2, "MOVEH", "INVALID", "$value"},    // MOVEH
-	{2, "SWAP", "INVALID", "INVALID"},    // SWAP
 	{1, "JUMP", "+offset", "INVALID"},    // JUMP
 	{1, "JUMPF", "+offset", "INVALID"},   // JUMPF
 	{1, "JUMPT", "+offset", "INVALID"},   // JUMPT

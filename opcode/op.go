@@ -83,9 +83,6 @@ func MoveHOp(dst, src Arg) Op {
 	return Op{MOVEH, dst, src}
 }
 
-// SwapOp exchanges two registers
-func SwapOp(a, b byte) Op { return Op{SWAP, Register(a), Register(b)} }
-
 // JumpOp increments PI by an immediate offset.
 func JumpOp(offset int16) Op { return Op{JUMP, Immediate(uint16(offset)), ArgNone} }
 
