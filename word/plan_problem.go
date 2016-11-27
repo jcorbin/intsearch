@@ -23,7 +23,7 @@ func (pp *planProblemPool) Put(prob *PlanProblem) {
 // PlanProblem tracks solution planning state for a problem.
 type PlanProblem struct {
 	Problem
-	pool         planProblemPool
+	pool         *planProblemPool
 	Annotated    bool
 	Columns      []Column
 	LetCols      map[byte][]*Column
@@ -55,7 +55,9 @@ type SolutionGen interface {
 func NewPlanProblem(p *Problem, annotated bool) *PlanProblem {
 	C := p.NumColumns()
 	N := len(p.Letters)
+	pool := &planProblemPool{}
 	prob := &PlanProblem{
+		pool:         pool,
 		Problem:      *p,
 		Annotated:    annotated,
 		Columns:      make([]Column, C),
