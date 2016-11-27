@@ -42,6 +42,8 @@ type TinyMachine struct {
 	oc  uint16
 	m   [tinyMachineMemorySize]byte
 	ctx *tinyMachineCtx
+
+	opCache map[uint16]func(*TinyMachine)
 }
 
 // NewTinyMachine creates a new tiny machine with a loaded program, returning
@@ -274,6 +276,8 @@ func (mach *TinyMachine) CopyMemory(offset int, buf []byte) int {
 
 // Load loads a program after validating it (unless told to assume validity).
 func (mach *TinyMachine) Load(p []byte, assumeValid bool) error {
+	mach.opCache = make(map[uint16]func(*TinyMachine), 64*1024)
+
 	if !assumeValid {
 		if len(p) > 0xffff {
 			return fmt.Errorf("program too long at %d bytes, maximum is %d", len(p), 0xffff)
@@ -297,6 +301,33 @@ func (mach *TinyMachine) Load(p []byte, assumeValid bool) error {
 			}
 		}
 	}
+
+	// wrap cached ops with oplim logic, if needed
+
+	iOplim, iBranch := -1, -1
+
+	for i := 0; i < len(p); {
+		mach.op, i = DecodeOp(mach.bo, p, i)
+		if iOplim < 0 && mach.op.Code == OPLIM {
+			iOplim = i
+		}
+		if iBranch < 0 && mach.op.Code >= JUMP && mach.op.Code <= BRANCHT {
+			iBranch = i
+		}
+		mach.opCache[i] = mach.resolveCode(mach.op.Code)
+	}
+
+	if iOplim >= 0 {
+		if iBranch >= 0 && iOplim >= iBranch {
+			panic("unspported dynamic use of OPLIM")
+		}
+		for i, op := range mach.opCache {
+			if i > iOplim {
+				mach.opCache[i] = opLimited(op)
+			}
+		}
+	}
+
 	mach.p = p
 	mach.Reset()
 	return nil
@@ -313,16 +344,32 @@ const (
 
 // Run runs the, previously loaded, program on the machine.
 func (mach *TinyMachine) Run() {
-	if trc := mach.ctx.trace; trc != nil {
-		for !mach.h && int(mach.pi) < len(mach.p) {
-			trc.Before(mach)
-			mach.Step()
-			trc.After(mach)
+	if mach.ctx.trace != nil {
+		mach.runTraced()
+		return
+	}
+	for !mach.h && int(mach.pi) < len(mach.p) {
+		mach.step()
+	}
+}
+
+func (mach *TinyMachine) runTraced() {
+	trc := mach.ctx.trace
+	for !mach.h && int(mach.pi) < len(mach.p) {
+		trc.Before(mach)
+		mach.Step()
+		trc.After(mach)
+	}
+}
+
+func opLimited(op func(mach *TinyMachine)) func(mach *TinyMachine) {
+	return func(mach *TinyMachine) {
+		mach.oc++
+		if mach.oc >= mach.ol {
+			mach.h = true
+			break
 		}
-	} else {
-		for !mach.h && int(mach.pi) < len(mach.p) {
-			mach.Step()
-		}
+		op(mach)
 	}
 }
 
@@ -436,128 +483,232 @@ func (mach *TinyMachine) Step() {
 		}
 	}
 
-	switch mach.op.Code {
+	mach.step()
+}
 
+func (mach *TinyMachine) resolve() func(*TinyMachine) {
+	op, cached := mach.opCache[mach.pi]
+	if !cached {
+		op = mach.resolveCode(mach.op.Code)
+		mach.opCache[mach.pi] = op
+	}
+	return op
+}
+
+func (mach *TinyMachine) resolveCode(code OpCode) func(*TinyMachine) {
+	switch code {
 	case OPLIM:
-		val := mach.resolveArgVal(mach.op.Arg1)
-		if mach.ol == 0 || val < mach.ol {
-			mach.ol = val
-		} else {
-			panic("invalid attempt to raise op count limit")
-		}
-
+		return mach.doOplim
 	case HALT:
-		// halt is a single byte operation, rewind so that decode stays stuck.
-		mach.h = true
-		mach.pi--
-		return
-
+		return mach.doHalt
 	case MOVE:
-		loc := mach.resolveArgLoc(mach.op.Arg1)
-		val := mach.resolveArgVal(mach.op.Arg2)
-		*loc = val
-
+		return mach.doMove
 	case MOVEL:
-		loc := mach.resolveArgLoc(mach.op.Arg1)
-		val := mach.resolveArgVal(mach.op.Arg2)
-		*loc |= val & 0x00ff // TODO bit hacky
-
+		return mach.doMovel
 	case MOVEH:
-		loc := mach.resolveArgLoc(mach.op.Arg1)
-		val := mach.resolveArgVal(mach.op.Arg2)
-		*loc |= val & 0xff00 // TODO bit hacky
+		return mach.doMoveh
+	case JUMP:
+		return mach.doJump
+	case JUMPF:
+		return mach.doJumpf
+	case JUMPT:
+		return mach.doJumpt
+	case FORK:
+		return mach.doFork
+	case FORKF:
+		return mach.doForkf
+	case FORKT:
+		return mach.doForkt
+	case BRANCH:
+		return mach.doBranch
+	case BRANCHF:
+		return mach.doBranchf
+	case BRANCHT:
+		return mach.doBrancht
+	case LT:
+		return mach.doLt
+	case LTE:
+		return mach.doLte
+	case EQ:
+		return mach.doEq
+	case GTE:
+		return mach.doGte
+	case GT:
+		return mach.doGt
+	case NEG:
+		return mach.doNeg
+	case SUB:
+		return mach.doSub
+	case ADD:
+		return mach.doAdd
+	case MUL:
+		return mach.doMul
+	case DIV:
+		return mach.doDiv
+	case MOD:
+		return mach.doMod
+	}
+	panic("invalid op code")
+}
 
-	case JUMP: // offset
+func (mach *TinyMachine) step() {
+	mach.resolve()()
+}
+
+func (mach *TinyMachine) doOplim() {
+	val := mach.resolveArgVal(mach.op.Arg1)
+	if mach.ol == 0 || val < mach.ol {
+		mach.ol = val
+	} else {
+		panic("invalid attempt to raise op count limit")
+	}
+}
+
+func (mach *TinyMachine) doHalt() {
+	// halt is a single byte operation, rewind so that decode stays stuck.
+	mach.h = true
+	mach.pi--
+	break
+}
+
+func (mach *TinyMachine) doMove() {
+	loc := mach.resolveArgLoc(mach.op.Arg1)
+	val := mach.resolveArgVal(mach.op.Arg2)
+	*loc = val
+}
+
+func (mach *TinyMachine) doMovel() {
+	loc := mach.resolveArgLoc(mach.op.Arg1)
+	val := mach.resolveArgVal(mach.op.Arg2)
+	*loc |= val & 0x00ff // TODO bit hacky
+}
+
+func (mach *TinyMachine) doMoveh() {
+	loc := mach.resolveArgLoc(mach.op.Arg1)
+	val := mach.resolveArgVal(mach.op.Arg2)
+	*loc |= val & 0xff00 // TODO bit hacky
+}
+
+func (mach *TinyMachine) doJump() { // offset
+	off := mach.resolveArgVal(mach.op.Arg1)
+	mach.pi += off
+}
+
+func (mach *TinyMachine) doJumpf() { // offset
+	if !mach.t {
 		off := mach.resolveArgVal(mach.op.Arg1)
 		mach.pi += off
-	case JUMPF: // offset
-		if !mach.t {
-			off := mach.resolveArgVal(mach.op.Arg1)
-			mach.pi += off
-		}
-	case JUMPT: // offset
-		if mach.t {
-			off := mach.resolveArgVal(mach.op.Arg1)
-			mach.pi += off
-		}
+	}
+}
 
-	case FORK: // offset
+func (mach *TinyMachine) doJumpt() { // offset
+	if mach.t {
+		off := mach.resolveArgVal(mach.op.Arg1)
+		mach.pi += off
+	}
+}
+
+func (mach *TinyMachine) doFork() { // offset
+	off := mach.resolveArgVal(mach.op.Arg1)
+	mach.ctx.fork(mach, off)
+}
+
+func (mach *TinyMachine) doForkf() { // offset
+	if !mach.t {
 		off := mach.resolveArgVal(mach.op.Arg1)
 		mach.ctx.fork(mach, off)
-	case FORKF: // offset
-		if !mach.t {
-			off := mach.resolveArgVal(mach.op.Arg1)
-			mach.ctx.fork(mach, off)
-		}
-	case FORKT: // offset
-		if mach.t {
-			off := mach.resolveArgVal(mach.op.Arg1)
-			mach.ctx.fork(mach, off)
-		}
+	}
+}
 
-	case BRANCH: // offset
+func (mach *TinyMachine) doForkt() { // offset
+	if mach.t {
+		off := mach.resolveArgVal(mach.op.Arg1)
+		mach.ctx.fork(mach, off)
+	}
+}
+
+func (mach *TinyMachine) doBranch() { // offset
+	off := mach.resolveArgVal(mach.op.Arg1)
+	mach.ctx.branch(mach, off)
+}
+
+func (mach *TinyMachine) doBranchf() { // offset
+	if !mach.t {
 		off := mach.resolveArgVal(mach.op.Arg1)
 		mach.ctx.branch(mach, off)
-	case BRANCHF: // offset
-		if !mach.t {
-			off := mach.resolveArgVal(mach.op.Arg1)
-			mach.ctx.branch(mach, off)
-		}
-	case BRANCHT: // offset
-		if mach.t {
-			off := mach.resolveArgVal(mach.op.Arg1)
-			mach.ctx.branch(mach, off)
-		}
-
-	case LT: // a, b val
-		a := mach.resolveArgVal(mach.op.Arg1)
-		b := mach.resolveArgVal(mach.op.Arg2)
-		mach.t = int16(a) < int16(b)
-	case LTE: // a, b val
-		a := mach.resolveArgVal(mach.op.Arg1)
-		b := mach.resolveArgVal(mach.op.Arg2)
-		mach.t = int16(a) <= int16(b)
-	case EQ: // a, b val
-		a := mach.resolveArgVal(mach.op.Arg1)
-		b := mach.resolveArgVal(mach.op.Arg2)
-		mach.t = a == b
-	case GTE: // a, b val
-		a := mach.resolveArgVal(mach.op.Arg1)
-		b := mach.resolveArgVal(mach.op.Arg2)
-		mach.t = int16(a) >= int16(b)
-	case GT: // a, b val
-		a := mach.resolveArgVal(mach.op.Arg1)
-		b := mach.resolveArgVal(mach.op.Arg2)
-		mach.t = int16(a) > int16(b)
-
-	case NEG: // dst val
-		loc := mach.resolveArgLoc(mach.op.Arg1)
-		*loc = -*loc
-	case SUB: // dst reg|mem, val val
-		loc := mach.resolveArgLoc(mach.op.Arg1)
-		val := mach.resolveArgVal(mach.op.Arg2)
-		*loc -= val
-	case ADD: // dst reg|mem, val imm
-		loc := mach.resolveArgLoc(mach.op.Arg1)
-		val := mach.resolveArgVal(mach.op.Arg2)
-		*loc += val
-	case MUL: // dst reg|mem, val imm
-		loc := mach.resolveArgLoc(mach.op.Arg1)
-		v2 := mach.resolveArgVal(mach.op.Arg2)
-		*loc = uint16(int16(*loc) * int16(v2))
-	case DIV: // dst reg|mem, val imm
-		loc := mach.resolveArgLoc(mach.op.Arg1)
-		v2 := mach.resolveArgVal(mach.op.Arg2)
-		*loc = uint16(int16(*loc) / int16(v2))
-	case MOD: // dst reg|mem, val imm
-		loc := mach.resolveArgLoc(mach.op.Arg1)
-		v2 := mach.resolveArgVal(mach.op.Arg2)
-		*loc = uint16(int16(*loc) % int16(v2))
-
-	default:
-		panic("invalid mach.op")
 	}
-	return
+}
+
+func (mach *TinyMachine) doBrancht() { // offset
+	if mach.t {
+		off := mach.resolveArgVal(mach.op.Arg1)
+		mach.ctx.branch(mach, off)
+	}
+}
+
+func (mach *TinyMachine) doLt() { // a, b val
+	a := mach.resolveArgVal(mach.op.Arg1)
+	b := mach.resolveArgVal(mach.op.Arg2)
+	mach.t = int16(a) < int16(b)
+}
+
+func (mach *TinyMachine) doLte() { // a, b val
+	a := mach.resolveArgVal(mach.op.Arg1)
+	b := mach.resolveArgVal(mach.op.Arg2)
+	mach.t = int16(a) <= int16(b)
+}
+
+func (mach *TinyMachine) doEq() { // a, b val
+	a := mach.resolveArgVal(mach.op.Arg1)
+	b := mach.resolveArgVal(mach.op.Arg2)
+	mach.t = a == b
+}
+
+func (mach *TinyMachine) doGte() { // a, b val
+	a := mach.resolveArgVal(mach.op.Arg1)
+	b := mach.resolveArgVal(mach.op.Arg2)
+	mach.t = int16(a) >= int16(b)
+}
+
+func (mach *TinyMachine) doGt() { // a, b val
+	a := mach.resolveArgVal(mach.op.Arg1)
+	b := mach.resolveArgVal(mach.op.Arg2)
+	mach.t = int16(a) > int16(b)
+}
+
+func (mach *TinyMachine) doNeg() { // dst val
+	loc := mach.resolveArgLoc(mach.op.Arg1)
+	*loc = -*loc
+}
+
+func (mach *TinyMachine) doSub() { // dst reg|mem, val val
+	loc := mach.resolveArgLoc(mach.op.Arg1)
+	val := mach.resolveArgVal(mach.op.Arg2)
+	*loc -= val
+}
+
+func (mach *TinyMachine) doAdd() { // dst reg|mem, val imm
+	loc := mach.resolveArgLoc(mach.op.Arg1)
+	val := mach.resolveArgVal(mach.op.Arg2)
+	*loc += val
+}
+
+func (mach *TinyMachine) doMul() { // dst reg|mem, val imm
+	loc := mach.resolveArgLoc(mach.op.Arg1)
+	v2 := mach.resolveArgVal(mach.op.Arg2)
+	*loc = uint16(int16(*loc) * int16(v2))
+}
+
+func (mach *TinyMachine) doDiv() { // dst reg|mem, val imm
+	loc := mach.resolveArgLoc(mach.op.Arg1)
+	v2 := mach.resolveArgVal(mach.op.Arg2)
+	*loc = uint16(int16(*loc) / int16(v2))
+}
+
+func (mach *TinyMachine) doMod() { // dst reg|mem, val imm
+	loc := mach.resolveArgLoc(mach.op.Arg1)
+	v2 := mach.resolveArgVal(mach.op.Arg2)
+	*loc = uint16(int16(*loc) % int16(v2))
 }
 
 // RunAll runs the machine, and continues to run all deferred copies until none
