@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 )
@@ -67,8 +68,165 @@ func words2cols(w1, w2, w3 string) []col {
 	return r
 }
 
-func plan(w1, w2, w3 string) {
-	base := 10
+type context interface {
+	fork(state)
+}
+type step interface {
+	run(s *state) error
+}
+
+type state struct {
+	ctx   context
+	cond  bool
+	stack int
+	heap  int
+	mem   [1024]int
+}
+
+var (
+	errStackOverflow  = errors.New("stack overflow")
+	errStackUnderflow = errors.New("stack underflow")
+	errOutOfMemory    = errors.New("out of memory")
+	errSegFault       = errors.New("memory segmentation fault")
+)
+
+type literal int
+
+func (l literal) run(s *state) error {
+	i := s.stack
+	j := i + 1
+	if j >= s.heap {
+		return errStackOverflow
+	}
+	s.stack = j
+	s.mem[i] = int(l)
+	return nil
+}
+
+type alloc int
+
+func (b alloc) run(s *state) error {
+	i := s.heap
+	j := i - int(b)
+	if j <= s.stack {
+		return errOutOfMemory
+	}
+	s.heap = j
+	return nil
+}
+
+type dup struct{}
+
+func (op dup) run(s *state) error {
+	i := s.stack
+	j := i + 1
+	k := j + 1
+	if i <= 0 {
+		return errStackUnderflow
+	}
+	if j >= s.heap {
+		return errStackOverflow
+	}
+	if k >= s.heap {
+		return errStackOverflow
+	}
+	s.stack = j
+	s.mem[j] = s.mem[i]
+	return nil
+}
+
+type store int
+type load int
+
+func (addr store) run(s *state) error {
+	if int(addr) < s.heap {
+		return errSegFault
+	}
+	i := s.stack
+	if i <= 0 {
+		return errStackUnderflow
+	}
+	s.stack = i - 1
+	s.mem[addr] = s.mem[i]
+	return nil
+}
+
+func (addr load) run(s *state) error {
+	if int(addr) < s.heap {
+		return errSegFault
+	}
+	i := s.stack
+	j := i + 1
+	if j >= s.heap {
+		return errStackOverflow
+	}
+	s.stack = j
+	s.mem[i] = s.mem[addr]
+	return nil
+}
+
+type add struct{}
+type sub struct{}
+type mul struct{}
+type div struct{}
+type mod struct{}
+
+func (op add) run(s *state) error {
+	i := s.stack
+	if i < 2 {
+		return errStackUnderflow
+	}
+	j := i - 1
+	s.mem[j] += s.mem[i]
+	s.stack = j
+	return nil
+}
+
+func (op sub) run(s *state) error {
+	i := s.stack
+	if i < 2 {
+		return errStackUnderflow
+	}
+	j := i - 1
+	s.mem[j] -= s.mem[i]
+	s.stack = j
+	return nil
+}
+
+func (op mul) run(s *state) error {
+	i := s.stack
+	if i < 2 {
+		return errStackUnderflow
+	}
+	j := i - 1
+	s.mem[j] *= s.mem[i]
+	s.stack = j
+	return nil
+}
+
+func (op div) run(s *state) error {
+	i := s.stack
+	if i < 2 {
+		return errStackUnderflow
+	}
+	j := i - 1
+	s.mem[j] /= s.mem[i]
+	s.stack = j
+	return nil
+}
+
+func (op mod) run(s *state) error {
+	i := s.stack
+	if i < 2 {
+		return errStackUnderflow
+	}
+	j := i - 1
+	s.mem[j] %= s.mem[i]
+	s.stack = j
+	return nil
+}
+
+func plan(w1, w2, w3 string, base int) {
 	k := make(known, len(w1)+len(w2)+len(w3))
 	cols := words2cols(w1, w2, w3)
 	for i, col := range cols {
@@ -103,6 +261,16 @@ func plan(w1, w2, w3 string) {
 	}
 }
 
+type search struct {
+	frontier []state
+}
+
+func (s search) fork(st *state) {
+	st.cond = true
+	s.frontier = append(s.frontier, *st)
+	st.cond = false
+}
+
 func main() {
-	plan("send", "more", "money")
+	plan("send", "more", "money", 10)
 }
