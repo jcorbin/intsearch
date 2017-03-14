@@ -77,7 +77,6 @@ type step interface {
 
 type state struct {
 	ctx   context
-	cond  bool
 	stack int
 	heap  int
 	mem   [1024]int
@@ -116,6 +115,7 @@ func (b alloc) run(s *state) error {
 }
 
 type dup struct{}
+type swap struct{}
 
 func (op dup) run(s *state) error {
 	i := s.stack
@@ -132,6 +132,16 @@ func (op dup) run(s *state) error {
 	}
 	s.stack = j
 	s.mem[j] = s.mem[i]
+	return nil
+}
+
+func (op swap) run(s *state) error {
+	i := s.stack
+	if i < 2 {
+		return errStackUnderflow
+	}
+	j := i - 1
+	s.mem[i], s.mem[j] = s.mem[j], s.mem[i]
 	return nil
 }
 
@@ -226,6 +236,19 @@ func (op mod) run(s *state) error {
 	return nil
 }
 
+type lt struct{}
+type lte struct{}
+type eq struct{}
+type neq struct{}
+type gte struct{}
+type gt struct{}
+
+type jz struct{}
+type jnz struct{}
+
+type fz struct{}
+type fnz struct{}
+
 func plan(w1, w2, w3 string, base int) {
 	k := make(known, len(w1)+len(w2)+len(w3))
 	cols := words2cols(w1, w2, w3)
@@ -265,10 +288,16 @@ type search struct {
 	frontier []state
 }
 
-func (s search) fork(st *state) {
-	st.cond = true
-	s.frontier = append(s.frontier, *st)
-	st.cond = false
+func (s search) fork(st *state) error {
+	newst := *st
+	if err := literal(0).run(st); err != nil {
+		return err
+	}
+	if err := literal(1).run(&newst); err != nil {
+		return err
+	}
+	s.frontier = append(s.frontier, newst)
+	return nil
 }
 
 func main() {
