@@ -69,7 +69,9 @@ func words2cols(w1, w2, w3 string) []col {
 }
 
 type context interface {
-	fork(state)
+	emit(state)
+	fork(*state, int) error
+	branch(*state, int) error
 }
 type step interface {
 	run(s *state) error
@@ -77,9 +79,22 @@ type step interface {
 
 type state struct {
 	ctx   context
+	pc    int
+	prog  []step
 	stack int
 	heap  int
 	mem   [1024]int
+}
+
+func (st *state) run() error {
+	for st.pc < len(st.prog) {
+		op := st.prog[st.pc]
+		st.pc++
+		if err := op.run(st); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 var (
@@ -87,35 +102,107 @@ var (
 	errStackUnderflow = errors.New("stack underflow")
 	errOutOfMemory    = errors.New("out of memory")
 	errSegFault       = errors.New("memory segmentation fault")
+	errUsed           = errors.New("value used")
 )
 
-type literal int
+type halt struct{ error }
+type push int
+type pop struct{}
+type alloc int
+type dup struct{}
+type swap struct{}
+type store int
+type load int
+type loadOffset int
+type add struct{}
+type sub struct{}
+type mul struct{}
+type div struct{}
+type mod struct{}
+type lt struct{}
+type lte struct{}
+type eq struct{}
+type neq struct{}
+type gte struct{}
+type gt struct{}
+type jmp int
+type jz int
+type jnz int
+type fork int
+type fz int
+type fnz int
+type branch int
+type bz int
+type bnz int
 
-func (l literal) run(s *state) error {
+func (op halt) String() string         { return fmt.Sprintf("halt %v", op.error) }
+func (op push) String() string         { return fmt.Sprintf("push %d", int(op)) }
+func (op pop) String() string          { return fmt.Sprintf("pop") }
+func (op alloc) String() string        { return fmt.Sprintf("alloc %d", int(op)) }
+func (op dup) String() string          { return fmt.Sprintf("dup") }
+func (op swap) String() string         { return fmt.Sprintf("swap") }
+func (addr store) String() string      { return fmt.Sprintf("store %d", int(addr)) }
+func (addr load) String() string       { return fmt.Sprintf("load %d", int(addr)) }
+func (addr loadOffset) String() string { return fmt.Sprintf("loadOffset %d", int(addr)) }
+func (op add) String() string          { return fmt.Sprintf("add") }
+func (op sub) String() string          { return fmt.Sprintf("sub") }
+func (op mul) String() string          { return fmt.Sprintf("mul") }
+func (op div) String() string          { return fmt.Sprintf("div") }
+func (op mod) String() string          { return fmt.Sprintf("mod") }
+func (op lt) String() string           { return fmt.Sprintf("lt") }
+func (op lte) String() string          { return fmt.Sprintf("lte") }
+func (op eq) String() string           { return fmt.Sprintf("eq") }
+func (op neq) String() string          { return fmt.Sprintf("neq") }
+func (op gte) String() string          { return fmt.Sprintf("gte") }
+func (op gt) String() string           { return fmt.Sprintf("gt") }
+func (op jmp) String() string          { return fmt.Sprintf("jmp %d", int(op)) }
+func (op jz) String() string           { return fmt.Sprintf("jz %d", int(op)) }
+func (op jnz) String() string          { return fmt.Sprintf("jnz %d", int(op)) }
+func (op fork) String() string         { return fmt.Sprintf("fork %d", int(op)) }
+func (op fz) String() string           { return fmt.Sprintf("fz %d", int(op)) }
+func (op fnz) String() string          { return fmt.Sprintf("fnz %d", int(op)) }
+func (op branch) String() string       { return fmt.Sprintf("branch %d", int(op)) }
+func (op bz) String() string           { return fmt.Sprintf("bz %d", int(op)) }
+func (op bnz) String() string          { return fmt.Sprintf("bnz %d", int(op)) }
+
+func (op halt) run(s *state) error {
+	s.pc = len(s.prog)
+	if op.error != nil {
+		s.pc++
+	}
+	return op.error
+}
+
+func (op push) run(s *state) error {
 	i := s.stack
 	j := i + 1
 	if j >= s.heap {
 		return errStackOverflow
 	}
 	s.stack = j
-	s.mem[i] = int(l)
+	s.mem[i] = int(op)
 	return nil
 }
 
-type alloc int
+func (op pop) run(s *state) error {
+	i := s.stack
+	if i < 2 {
+		return errStackUnderflow
+	}
+	j := i - 1
+	s.stack = j
+	return nil
+}
 
-func (b alloc) run(s *state) error {
+func (op alloc) run(s *state) error {
 	i := s.heap
-	j := i - int(b)
+	j := i - int(op)
 	if j <= s.stack {
 		return errOutOfMemory
 	}
 	s.heap = j
 	return nil
 }
-
-type dup struct{}
-type swap struct{}
 
 func (op dup) run(s *state) error {
 	i := s.stack
@@ -145,9 +232,6 @@ func (op swap) run(s *state) error {
 	return nil
 }
 
-type store int
-type load int
-
 func (addr store) run(s *state) error {
 	if int(addr) < s.heap {
 		return errSegFault
@@ -175,11 +259,21 @@ func (addr load) run(s *state) error {
 	return nil
 }
 
-type add struct{}
-type sub struct{}
-type mul struct{}
-type div struct{}
-type mod struct{}
+func (addr loadOffset) run(s *state) error {
+	if int(addr) < s.heap {
+		return errSegFault
+	}
+	i := s.stack
+	if i < 0 {
+		return errStackUnderflow
+	}
+	j := int(addr) + s.mem[i]
+	if j < s.heap {
+		return errSegFault
+	}
+	s.mem[i] = s.mem[j]
+	return nil
+}
 
 func (op add) run(s *state) error {
 	i := s.stack
@@ -236,22 +330,195 @@ func (op mod) run(s *state) error {
 	return nil
 }
 
-type lt struct{}
-type lte struct{}
-type eq struct{}
-type neq struct{}
-type gte struct{}
-type gt struct{}
+func (op lt) run(s *state) error {
+	i := s.stack
+	if i < 2 {
+		return errStackUnderflow
+	}
+	j := i - 1
+	if s.mem[j] < s.mem[i] {
+		s.mem[j] = 1
+	} else {
+		s.mem[j] = 0
+	}
+	s.stack = j
+	return nil
+}
 
-type jz struct{}
-type jnz struct{}
+func (op lte) run(s *state) error {
+	i := s.stack
+	if i < 2 {
+		return errStackUnderflow
+	}
+	j := i - 1
+	if s.mem[j] <= s.mem[i] {
+		s.mem[j] = 1
+	} else {
+		s.mem[j] = 0
+	}
+	s.stack = j
+	return nil
+}
 
-type fz struct{}
-type fnz struct{}
+func (op eq) run(s *state) error {
+	i := s.stack
+	if i < 2 {
+		return errStackUnderflow
+	}
+	j := i - 1
+	if s.mem[j] == s.mem[i] {
+		s.mem[j] = 1
+	} else {
+		s.mem[j] = 0
+	}
+	s.stack = j
+	return nil
+}
 
-func plan(w1, w2, w3 string, base int) {
+func (op neq) run(s *state) error {
+	i := s.stack
+	if i < 2 {
+		return errStackUnderflow
+	}
+	j := i - 1
+	if s.mem[j] != s.mem[i] {
+		s.mem[j] = 1
+	} else {
+		s.mem[j] = 0
+	}
+	s.stack = j
+	return nil
+}
+
+func (op gte) run(s *state) error {
+	i := s.stack
+	if i < 2 {
+		return errStackUnderflow
+	}
+	j := i - 1
+	if s.mem[j] >= s.mem[i] {
+		s.mem[j] = 1
+	} else {
+		s.mem[j] = 0
+	}
+	s.stack = j
+	return nil
+}
+
+func (op gt) run(s *state) error {
+	i := s.stack
+	if i < 2 {
+		return errStackUnderflow
+	}
+	j := i - 1
+	if s.mem[j] > s.mem[i] {
+		s.mem[j] = 1
+	} else {
+		s.mem[j] = 0
+	}
+	s.stack = j
+	return nil
+}
+
+func (op jmp) run(s *state) error {
+	s.pc += int(op)
+	return nil
+}
+
+func (op jz) run(s *state) error {
+	i := s.stack
+	if i < 1 {
+		return errStackUnderflow
+	}
+	j := i - 1
+	if s.mem[j] == 0 {
+		s.pc += int(op)
+	}
+	s.stack = j
+	return nil
+}
+
+func (op jnz) run(s *state) error {
+	i := s.stack
+	if i < 1 {
+		return errStackUnderflow
+	}
+	j := i - 1
+	if s.mem[j] != 0 {
+		s.pc += int(op)
+	}
+	s.stack = j
+	return nil
+}
+
+func (op fork) run(s *state) error {
+	return s.ctx.fork(s, int(op))
+}
+
+func (op fz) run(s *state) error {
+	i := s.stack
+	if i < 1 {
+		return errStackUnderflow
+	}
+	j := i - 1
+	s.stack = j
+	if s.mem[j] == 0 {
+		return s.ctx.fork(s, int(op))
+	}
+	return nil
+}
+
+func (op fnz) run(s *state) error {
+	i := s.stack
+	if i < 1 {
+		return errStackUnderflow
+	}
+	j := i - 1
+	s.stack = j
+	if s.mem[j] != 0 {
+		return s.ctx.fork(s, int(op))
+	}
+	return nil
+}
+
+func (op branch) run(s *state) error {
+	return s.ctx.branch(s, int(op))
+}
+
+func (op bz) run(s *state) error {
+	i := s.stack
+	if i < 1 {
+		return errStackUnderflow
+	}
+	j := i - 1
+	s.stack = j
+	if s.mem[j] == 0 {
+		return s.ctx.branch(s, int(op))
+	}
+	return nil
+}
+
+func (op bnz) run(s *state) error {
+	i := s.stack
+	if i < 1 {
+		return errStackUnderflow
+	}
+	j := i - 1
+	s.stack = j
+	if s.mem[j] != 0 {
+		return s.ctx.branch(s, int(op))
+	}
+	return nil
+}
+
+func plan(w1, w2, w3 string, base int) []step {
+	var prog []step
+
 	k := make(known, len(w1)+len(w2)+len(w3))
 	cols := words2cols(w1, w2, w3)
+
+	// setup
+
 	for i, col := range cols {
 		// choose until at most one unknown
 		n, ci := k.countUnknown(col)
@@ -282,24 +549,54 @@ func plan(w1, w2, w3 string, base int) {
 			fmt.Printf("compute(c%d = %s / %d)\n", j, strings.Join(col.rhs(0, 1), "+"), base)
 		}
 	}
+
+	return prog
 }
 
 type search struct {
 	frontier []state
 }
 
-func (s search) fork(st *state) error {
+func (s *search) emit(st state) {
+	s.frontier = append(s.frontier, st)
+}
+
+func (s *search) fork(st *state, off int) error {
 	newst := *st
-	if err := literal(0).run(st); err != nil {
-		return err
-	}
-	if err := literal(1).run(&newst); err != nil {
-		return err
-	}
+	newst.pc += off
 	s.frontier = append(s.frontier, newst)
 	return nil
 }
 
+func (s *search) branch(st *state, off int) error {
+	s.frontier = append(s.frontier, *st)
+	st.pc += off
+	return nil
+}
+
+func (s *search) next() state {
+	st := s.frontier[0]
+	s.frontier = s.frontier[:copy(s.frontier, s.frontier[1:])]
+	return st
+}
+
+func initState(ctx context, prog []step) state {
+	st := state{prog: prog}
+	st.heap = len(st.mem)
+	ctx.emit(st)
+	return st
+}
+
 func main() {
-	plan("send", "more", "money", 10)
+	var srch search
+	prog := plan("send", "more", "money", 10)
+	initState(&srch, prog)
+
+	for len(srch.frontier) > 0 {
+		st := srch.next()
+		err := st.run()
+		if err == nil {
+			fmt.Printf("FOUND %+v\n", st)
+		}
+	}
 }
