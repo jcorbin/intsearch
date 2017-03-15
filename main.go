@@ -134,8 +134,11 @@ func (prob *problem) plan() {
 			prob.known[col[first]] = struct{}{}
 		} else {
 			// we have no unknows, check
-			fmt.Printf("check( %s   (mod %d) )\n",
-				col.Equation(carry), prob.base)
+			fmt.Printf("// check col_%d\n", i)
+			fmt.Printf("if (%s) %% %d != %s {\n",
+				col.RHS(carry), prob.base, string(col[2]))
+			fmt.Printf("  halt errCheckFailed")
+			fmt.Printf("}\n")
 		}
 
 		// compute outgoing carry
