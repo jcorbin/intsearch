@@ -107,6 +107,7 @@ func (prob *problem) plan() {
 		if i > 0 {
 			carry = fmt.Sprintf("C%d", i)
 		}
+		fmt.Printf("//// col[%d]: %v\n", i, col.Equation(carry))
 
 		// until we have a most one unknown, pick a value for the first unknown
 		n, first := prob.unknown(col)
@@ -149,6 +150,7 @@ func (prob *problem) plan() {
 				j,
 				string(col[0]), string(col[1]),
 				prob.base)
+			fmt.Printf("\n")
 		}
 	}
 }
