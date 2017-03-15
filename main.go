@@ -127,10 +127,10 @@ func (prob *problem) plan() {
 
 		// if we still have one unknown, solve for it
 		if n == 1 {
-			// TODO: actual formula
-			fmt.Printf("solve( %s   (mod %d) for %s )\n",
+			fmt.Printf("// solve %s   (mod %d) for %s\n",
 				col.Equation(carry), prob.base,
 				string(col[first]))
+			fmt.Printf("// TODO: implement\n")
 			prob.known[col[first]] = struct{}{}
 		} else {
 			// we have no unknows, check
