@@ -136,7 +136,18 @@ func (prob *problem) solveColumn(carry string, a, b, c byte, unk int) {
 }
 
 func (prob *problem) plan() {
+	fmt.Printf("//// setup\n")
+	fmt.Printf("// reserve haep space for the used array\n")
+	fmt.Printf("alloc %d\n", prob.base)
+	fmt.Printf("// reserve haep space for letter values\n")
+	fmt.Printf("alloc %d\n", prob.n)
+
+	// TODO: translate all letter access below into values[I]
+	// references
+
 	for i, col := range prob.cols {
+		fmt.Printf("\n")
+
 		var carry string
 		if i > 0 {
 			carry = fmt.Sprintf("C%d", i)
@@ -184,7 +195,6 @@ func (prob *problem) plan() {
 				j,
 				string(col[0]), string(col[1]),
 				prob.base)
-			fmt.Printf("\n")
 		}
 	}
 }
