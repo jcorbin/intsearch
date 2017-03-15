@@ -105,34 +105,35 @@ func (prob *problem) unknown(cc col) (int, int) {
 	return n, first
 }
 
-func (prob *problem) solveColumn(carry string, a, b, c byte, unk int) {
+func (prob *problem) solveColumn(carry string, addrs [3]int, unk int) {
+	i, j, k := addrs[0], addrs[1], addrs[2]
 	if unk == 2 {
 		// solve for c
 		if carry == "" {
-			fmt.Printf("val = %s + %s %% %d\n", string(a), string(b), prob.base)
+			fmt.Printf("val = values[%d] + values[%d] %% %d\n", i, j, prob.base)
 		} else {
-			fmt.Printf("val = %s + %s + %s %% %d\n", string(a), string(b), carry, prob.base)
+			fmt.Printf("val = values[%d] + values[%d] + %s %% %d\n", i, j, carry, prob.base)
 		}
 		fmt.Printf("halt errConflict if used[val] != 0\n")
 		fmt.Printf("used[val] = 1\n")
-		fmt.Printf("%s = val\n", string(c))
+		fmt.Printf("values[%d] = val\n", k)
 		return
 	}
 
 	// solving for b is same as solving for a
 	if unk == 1 {
-		unk, a, b = 0, b, a
+		unk, i, j = 0, j, i
 	}
 
 	// solve for a
 	if carry == "" {
-		fmt.Printf("val = %s - %s %% %d\n", string(c), string(b), prob.base)
+		fmt.Printf("val = values[%d] - values[%d] %% %d\n", k, j, prob.base)
 	} else {
-		fmt.Printf("val = %s - %s - %s %% %d\n", string(c), string(b), carry, prob.base)
+		fmt.Printf("val = values[%d] - values[%d] - %s %% %d\n", k, j, carry, prob.base)
 	}
 	fmt.Printf("halt errConflict if used[val] != 0\n")
 	fmt.Printf("mark used[val] = 1\n")
-	fmt.Printf("%s = val\n", string(a))
+	fmt.Printf("values[%d] = val\n", i)
 }
 
 func (prob *problem) plan() {
@@ -142,10 +143,24 @@ func (prob *problem) plan() {
 	fmt.Printf("// reserve haep space for letter values\n")
 	fmt.Printf("alloc %d\n", prob.n)
 
-	// TODO: translate all letter access below into values[I]
-	// references
+	valueAddrs := make(map[byte]int, prob.n)
 
 	for i, col := range prob.cols {
+
+		// assign letter value memory addresses on a first-encountered basis
+		var addrs [3]int
+		for i, c := range col {
+			if c == 0 {
+				continue
+			}
+			if addr, defined := valueAddrs[c]; defined {
+				addrs[i] = addr
+			} else {
+				addrs[i] = prob.base + len(valueAddrs)
+				valueAddrs[c] = addrs[i]
+			}
+		}
+
 		fmt.Printf("\n")
 
 		var carry string
@@ -153,6 +168,7 @@ func (prob *problem) plan() {
 			carry = fmt.Sprintf("C%d", i)
 		}
 		fmt.Printf("//// col[%d]: %v\n", i, col.Equation(carry))
+		fmt.Printf("////   values at %v\n", addrs)
 
 		// until we have a most one unknown, pick a value for the first unknown
 		n, first := prob.unknown(col)
@@ -160,10 +176,10 @@ func (prob *problem) plan() {
 			c := col[first]
 
 			fmt.Printf("// pick(%s)\n", string(c))
-			fmt.Printf("for 0 <= i < %v {\n", prob.base)
+			fmt.Printf("for 0 <= i < %d {\n", prob.base)
 			fmt.Printf("  continue if used[i] != 0\n")
-			fmt.Printf("  forkContinue if i < %v\n", prob.base-1)
-			fmt.Printf("  %v = i\n", c)
+			fmt.Printf("  forkContinue if i < %d\n", prob.base-1)
+			fmt.Printf("  values[%d] = i\n", addrs[first])
 			fmt.Printf("  used[i] = 1\n")
 			fmt.Printf("}\n")
 
@@ -176,13 +192,32 @@ func (prob *problem) plan() {
 			fmt.Printf("// solve %s   (mod %d) for %s\n",
 				col.Equation(carry), prob.base,
 				string(col[first]))
-			prob.solveColumn(carry, col[0], col[1], col[2], first)
+			prob.solveColumn(carry, addrs, first)
 			prob.known[col[first]] = struct{}{}
 		} else {
 			// we have no unknows, check
 			fmt.Printf("// check col_%d\n", i)
-			fmt.Printf("if (%s) %% %d != %s {\n",
-				col.RHS(carry), prob.base, string(col[2]))
+			fmt.Printf("if ")
+
+			open := false
+			if carry != "" {
+				fmt.Printf("carry")
+				open = true
+			}
+
+			for i := range []int{0, 1} {
+				if addrs[i] == 0 {
+					continue
+				}
+				if open {
+					fmt.Printf(" + values[%d]", addrs[i])
+				} else {
+					fmt.Printf("values[%d]", addrs[i])
+					open = true
+				}
+			}
+
+			fmt.Printf(" %% %d != values[%d] {\n", prob.base, addrs[2])
 			fmt.Printf("  halt errCheckFailed")
 			fmt.Printf("}\n")
 		}
@@ -191,10 +226,8 @@ func (prob *problem) plan() {
 		if i < len(prob.cols)-1 {
 			j := i + 1
 			fmt.Printf("// compute C%d\n", j)
-			fmt.Printf("C%d = %s + %s / %d\n",
-				j,
-				string(col[0]), string(col[1]),
-				prob.base)
+			fmt.Printf("C%d = values[%d] + values[%d] / %d\n",
+				j, addrs[0], addrs[1], prob.base)
 		}
 	}
 }
