@@ -59,9 +59,11 @@ func scanWords(w1, w2, w3 string) (map[byte]struct{}, []col) {
 		var a, b, c byte
 		if i < len(w1) {
 			a = w1[len(w1)-1-i]
+			lets[a] = struct{}{}
 		}
 		if i < len(w2) {
 			b = w2[len(w2)-1-i]
+			lets[b] = struct{}{}
 		}
 		c = w3[len(w3)-1-i]
 		cols[i] = col{a, b, c}
