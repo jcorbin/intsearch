@@ -101,6 +101,36 @@ func (prob *problem) unknown(cc col) (int, int) {
 	return n, first
 }
 
+func (prob *problem) solveColumn(carry string, a, b, c byte, unk int) {
+	if unk == 2 {
+		// solve for c
+		if carry == "" {
+			fmt.Printf("val = %s + %s %% %d\n", string(a), string(b), prob.base)
+		} else {
+			fmt.Printf("val = %s + %s + %s %% %d\n", string(a), string(b), carry, prob.base)
+		}
+		fmt.Printf("halt errConflict if val is used\n")
+		fmt.Printf("mark val used\n")
+		fmt.Printf("%s = val\n", string(c))
+		return
+	}
+
+	// solving for b is same as solving for a
+	if unk == 1 {
+		unk, a, b = 0, b, a
+	}
+
+	// solve for a
+	if carry == "" {
+		fmt.Printf("val = %s - %s %% %d\n", string(c), string(b), prob.base)
+	} else {
+		fmt.Printf("val = %s - %s - %s %% %d\n", string(c), string(b), carry, prob.base)
+	}
+	fmt.Printf("halt errConflict if val is used\n")
+	fmt.Printf("mark val used\n")
+	fmt.Printf("%s = val\n", string(a))
+}
+
 func (prob *problem) plan() {
 	for i, col := range prob.cols {
 		var carry string
@@ -131,7 +161,7 @@ func (prob *problem) plan() {
 			fmt.Printf("// solve %s   (mod %d) for %s\n",
 				col.Equation(carry), prob.base,
 				string(col[first]))
-			fmt.Printf("// TODO: implement\n")
+			prob.solveColumn(carry, col[0], col[1], col[2], first)
 			prob.known[col[first]] = struct{}{}
 		} else {
 			// we have no unknows, check
