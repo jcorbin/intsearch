@@ -109,8 +109,8 @@ func (prob *problem) solveColumn(carry string, a, b, c byte, unk int) {
 		} else {
 			fmt.Printf("val = %s + %s + %s %% %d\n", string(a), string(b), carry, prob.base)
 		}
-		fmt.Printf("halt errConflict if val is used\n")
-		fmt.Printf("mark val used\n")
+		fmt.Printf("halt errConflict if used[val] != 0\n")
+		fmt.Printf("used[val = 1\n")
 		fmt.Printf("%s = val\n", string(c))
 		return
 	}
@@ -126,8 +126,8 @@ func (prob *problem) solveColumn(carry string, a, b, c byte, unk int) {
 	} else {
 		fmt.Printf("val = %s - %s - %s %% %d\n", string(c), string(b), carry, prob.base)
 	}
-	fmt.Printf("halt errConflict if val is used\n")
-	fmt.Printf("mark val used\n")
+	fmt.Printf("halt errConflict if used[val] != 0\n")
+	fmt.Printf("mark used[val] = 1\n")
 	fmt.Printf("%s = val\n", string(a))
 }
 
@@ -146,10 +146,10 @@ func (prob *problem) plan() {
 
 			fmt.Printf("// pick(%s)\n", string(c))
 			fmt.Printf("for 0 <= i < %v {\n", prob.base)
-			fmt.Printf("  continue if i is used\n")
+			fmt.Printf("  continue if used[i] != 0\n")
 			fmt.Printf("  forkContinue if i < %v\n", prob.base-1)
 			fmt.Printf("  %v = i\n", c)
-			fmt.Printf("  mark i used\n")
+			fmt.Printf("  used[i] = 1\n")
 			fmt.Printf("}\n")
 
 			prob.known[c] = struct{}{}
