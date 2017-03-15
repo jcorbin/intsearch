@@ -114,11 +114,12 @@ func (prob *problem) plan() {
 			c := col[first]
 
 			fmt.Printf("// pick(%s)\n", string(c))
-			fmt.Printf("for 0 <= i < %v\n", prob.base)
+			fmt.Printf("for 0 <= i < %v {\n", prob.base)
 			fmt.Printf("  continue if i is used\n")
 			fmt.Printf("  forkContinue if i < %v\n", prob.base-1)
 			fmt.Printf("  assign %v = i\n", c)
 			fmt.Printf("  mark i used\n")
+			fmt.Printf("}\n")
 
 			prob.known[c] = struct{}{}
 			n, first = prob.unknown(col)
