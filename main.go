@@ -44,6 +44,7 @@ func (cc col) String() string {
 
 type problem struct {
 	base       int
+	n          int
 	w1, w2, w3 string
 	cols       []col // 0-indexed from the right
 	known      map[byte]struct{}
@@ -79,6 +80,7 @@ func initProblem(base int, w1, w2, w3 string) problem {
 	}
 	prob := problem{
 		base:  base,
+		n:     len(lets),
 		w1:    w1,
 		w2:    w2,
 		w3:    w3,
