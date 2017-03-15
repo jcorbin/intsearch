@@ -114,7 +114,7 @@ func (prob *problem) solveColumn(carry string, a, b, c byte, unk int) {
 			fmt.Printf("val = %s + %s + %s %% %d\n", string(a), string(b), carry, prob.base)
 		}
 		fmt.Printf("halt errConflict if used[val] != 0\n")
-		fmt.Printf("used[val = 1\n")
+		fmt.Printf("used[val] = 1\n")
 		fmt.Printf("%s = val\n", string(c))
 		return
 	}
