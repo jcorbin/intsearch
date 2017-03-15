@@ -140,8 +140,10 @@ func (prob *problem) plan() {
 
 		// compute outgoing carry
 		if i < len(prob.cols)-1 {
-			fmt.Printf("compute(C%d = %s + %s / %d)\n",
-				i+1,
+			j := i + 1
+			fmt.Printf("// compute C%d\n", j)
+			fmt.Printf("C%d = %s + %s / %d\n",
+				j,
 				string(col[0]), string(col[1]),
 				prob.base)
 		}
