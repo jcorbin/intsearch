@@ -4,37 +4,38 @@ import "fmt"
 
 type col [3]byte
 
-func (cc col) Equation(carry string) string {
+func (cc col) RHS(carry string) string {
 	if carry == "" {
 		if cc[0] == 0 && cc[1] == 0 {
-			return fmt.Sprintf("SHRUG %s", string(cc[2]))
-		} else if cc[0] == 0 {
-			return fmt.Sprintf("%s = %s",
-				string(cc[0]), string(cc[2]))
-		} else if cc[1] == 0 {
-			return fmt.Sprintf("%s = %s",
-				string(cc[1]), string(cc[2]))
+			return ""
 		}
-		return fmt.Sprintf("%s + %s = %s",
-			string(cc[0]), string(cc[1]), string(cc[2]))
+		if cc[0] == 0 {
+			return fmt.Sprintf("%s", string(cc[0]))
+		}
+		if cc[1] == 0 {
+			return fmt.Sprintf("%s", string(cc[1]))
+		}
+		return fmt.Sprintf("%s + %s", string(cc[0]), string(cc[1]))
 	}
 
 	if cc[0] == 0 && cc[1] == 0 {
-		return fmt.Sprintf("%s = %s",
-			carry,
-			string(cc[2]))
-	} else if cc[0] == 0 {
-		return fmt.Sprintf("%s + %s = %s",
-			carry,
-			string(cc[0]), string(cc[2]))
-	} else if cc[1] == 0 {
-		return fmt.Sprintf("%s + %s = %s",
-			carry,
-			string(cc[1]), string(cc[2]))
+		return carry
 	}
-	return fmt.Sprintf("%s + %s + %s = %s",
-		carry,
-		string(cc[0]), string(cc[1]), string(cc[2]))
+	if cc[0] == 0 {
+		return fmt.Sprintf("%s + %s", carry, string(cc[0]))
+	}
+	if cc[1] == 0 {
+		return fmt.Sprintf("%s + %s", carry, string(cc[1]))
+	}
+	return fmt.Sprintf("%s + %s + %s", carry, string(cc[0]), string(cc[1]))
+}
+
+func (cc col) Equation(carry string) string {
+	rhs := cc.RHS(carry)
+	if rhs == "" {
+		return fmt.Sprintf("SHRUG %s", string(cc[2]))
+	}
+	return fmt.Sprintf("%s = %s", rhs, string(cc[2]))
 }
 
 func (cc col) String() string {
