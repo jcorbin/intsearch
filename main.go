@@ -91,7 +91,7 @@ func (prob *problem) unknown(cc col) (int, int) {
 	n, first := 0, -1
 	for i, c := range cc {
 		_, known := prob.known[c]
-		if !known {
+		if !known && c != 0 {
 			n++
 			if first < 0 {
 				first = i
