@@ -512,32 +512,97 @@ func (op bnz) run(s *state) error {
 }
 
 func plan(w1, w2, w3 string, base int) []step {
-	var prog []step
-
-	k := make(known, len(w1)+len(w2)+len(w3))
-	cols := words2cols(w1, w2, w3)
+	prog := make([]step, 0, 1024)
 
 	// setup
+	// Memory Layout:
+	// - B-many used values (0 / non-zero)
+	// - N-many byte / value pairs
+
+	n := 0
+	addr := 1024 - 1 // top of memory
+	addr -= base     // used values
+	usedAddr := addr
+
+	valueAddr := make(map[byte]int, len(w1)+len(w2)+len(w3))
+	for _, w := range []string{w1, w2, w3} {
+		for i := range w {
+			b := w[i]
+			if _, seen := valueAddr[b]; !seen {
+				valueAddr[b] = addr
+				addr -= 2
+				n++
+			}
+		}
+	}
+
+	prog = append(prog, alloc(1024-addr))
+	for b, addr := range valueAddr {
+		prog = append(prog,
+			push(int(b)),
+			store(addr-1))
+	}
+
+	k := make(known, n)
+	cols := words2cols(w1, w2, w3)
 
 	for i, col := range cols {
 		// choose until at most one unknown
 		n, ci := k.countUnknown(col)
 		for n > 1 {
-			fmt.Printf("pick(%s)\n", string(col[ci]))
+			prog = append(prog,
+				push(0),              //
+				fork(4),              //
+				jmp(6),               // ------\
+				push(base-1),         // <---\ |
+				lt{},                 //     | |
+				bnz(3),               // >-\ | |
+				push(1),              //   | | |
+				add{},                //   | | |
+				jmp(-6),              // >-|-/ |
+				dup{},                // <-/---/
+				loadOffset(usedAddr), //
+				jz(1),
+				halt{errUsed},
+				dup{},
+				store(valueAddr[col[ci]]),
+			)
 			k.mark(col[ci])
 			n, ci = k.countUnknown(col)
 		}
 
 		if n == 1 {
 			// if we have one unknown, solve for it
+			// dup (carry)
 			switch ci {
 			case 0: // a = c - b - cx
+				// neg (carry)
+				// load c
+				// load b
+				// sub
 				fmt.Printf("solve(%s)\n", col.equation(0, 2, 1, i, "-", "="))
 			case 1: // b = c - a - cx
+				// neg (carry)
+				// load c
+				// load a
+				// sub
 				fmt.Printf("solve(%s)\n", col.equation(1, 2, 0, i, "-", "="))
 			case 2: // c = a + b + cx
+				// load a
+				// load b
+				// add
 				fmt.Printf("solve(%s %% %d)\n", col.equation(2, 0, 1, i, "+", "="), base)
 			}
+			// add (carry)
+			// push base
+			// mod
+			// dup (value)
+			// loadOffset usedAddr
+			// jz 1
+			// halt errUsed
+			// dup (value)
+			// storeOffset usedAddr
+			// store col[ci]
 			k.mark(col[ci])
 		} else {
 			// we know all chars in the column, check
@@ -588,15 +653,18 @@ func initState(ctx context, prog []step) state {
 }
 
 func main() {
-	var srch search
 	prog := plan("send", "more", "money", 10)
-	initState(&srch, prog)
-
-	for len(srch.frontier) > 0 {
-		st := srch.next()
-		err := st.run()
-		if err == nil {
-			fmt.Printf("FOUND %+v\n", st)
-		}
+	for i, op := range prog {
+		fmt.Printf("% 3d : %v\n", i, op)
 	}
+
+	// var srch search
+	// initState(&srch, prog)
+	// for len(srch.frontier) > 0 {
+	// 	st := srch.next()
+	// 	err := st.run()
+	// 	if err == nil {
+	// 		fmt.Printf("FOUND %+v\n", st)
+	// 	}
+	// }
 }
