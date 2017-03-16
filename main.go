@@ -60,7 +60,10 @@ func (p *problem) scan() {
 	}
 }
 
-var errConflict = errors.New("computed value conflict")
+var (
+	errConflict  = errors.New("computed value conflict")
+	errCheckFail = errors.New("column check failed")
+)
 
 type rem struct{ s string }
 type com struct {
@@ -168,6 +171,30 @@ func (p *problem) pick(s byte) {
 	p.known[s] = struct{}{}
 }
 
+func (p *problem) colVal(
+	carry bool,
+	op step,
+	c col,
+	ix ...int,
+) {
+	if carry {
+		p.emit(dup) // ... carry carry
+	}
+	n := 0
+	for _, k := range ix {
+		if c[k] != 0 {
+			n++
+			p.emit(push(c[k]), load)
+		}
+	}
+	for k := 0; k < n; k++ {
+		p.emit(op)
+	}
+	if carry {
+		p.emit(swap, op)
+	}
+}
+
 func (p *problem) solve(i int, c col, j int) {
 	carry := i < len(p.cols)-1
 	if !carry {
@@ -190,59 +217,39 @@ func (p *problem) solve(i int, c col, j int) {
 		))
 	}
 
-	if carry {
-		p.emit(dup)
-	}
-
 	// compute the unknown value
-	var (
-		op step
-		n  int
-		ix [2]int
-	)
 	switch j {
 	case 0:
 		// a in a + b = c
-		op, ix = sub, [2]int{2, 1}
+		p.colVal(carry, sub, c, 2, 1)
 	case 1:
 		// b in a + b = c
-		op, ix = sub, [2]int{2, 0}
+		p.colVal(carry, sub, c, 2, 0)
 	case 2:
 		// c in a + b = c
-		op, ix = add, [2]int{0, 1}
-	}
-	for _, k := range ix {
-		if c[k] != 0 {
-			n++
-			p.emit(push(c[k]), load)
-		}
-	}
-	for k := 0; k < n; k++ {
-		p.emit(op)
-	}
-	if carry {
-		p.emit(swap, op)
+		p.colVal(carry, add, c, 0, 1)
 	}
 
 	p.emit(
 		// check that the computed value isn't already used
-		dup,               // ... val val
-		load,              // ... val used[val]
-		jz(1),             // ... val
-		halt{errConflict}, //
+		dup,  // ... val val
+		load, // ... val used[val]
+		comd(jz(1), "halt if used"), // ... val
+		halt{errConflict},           // ...
 
 		// record the computed value
-		dup,       // ... val val
-		push(p.n), // ... val val n
-		add,       // ... val val+n
-		store,     // ...
+		push(c[j]), // ... val sym
+		push(p.n),  // ... val sym n
+		add,        // ... val sym+n
+		store,      // ...
 	)
 
 	p.known[c[j]] = struct{}{}
 }
 
 func (p *problem) check(i int, c col) {
-	if i == len(p.cols)-1 {
+	carry := i < len(p.cols)-1
+	if !carry {
 		p.emit(remf(
 			"check %q + %q == %q (mod %d)",
 			string(p.revsym[c[0]]),
@@ -259,6 +266,17 @@ func (p *problem) check(i int, c col) {
 			p.b,
 		))
 	}
+	p.colVal(carry, add, c, 0, 1) // ... carry => carry val
+	p.emit(
+		dup,        // ... val val
+		push(c[2]), // ... val val sym
+		push(p.n),  // ... val val sym n
+		add,        // ... val val sym+n
+		load,       // ... val value[sym]
+		eq,         // ... val==value[sym]
+		comd(jnz(1), "halt if =="), // ...
+		halt{errCheckFail},         // ...
+	)
 }
 
 func (p *problem) computeCarry(i int, c col) {
