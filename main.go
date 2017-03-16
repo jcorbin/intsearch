@@ -105,6 +105,32 @@ func (prob *problem) unknown(cc col) (int, int) {
 	return n, first
 }
 
+func (prob *problem) pickValue(addr int) {
+	fmt.Printf("i = 0\n")                // ... i
+	fmt.Printf("loop:\n")                //
+	fmt.Printf("dup\n")                  // ... i i
+	fmt.Printf("load\n")                 // ... i used[i]
+	fmt.Printf("jnz continue\n")         // ... i
+	fmt.Printf("dup\n")                  // ... i i
+	fmt.Printf("push %d\n", prob.base-1) // ... i i B-1
+	fmt.Printf("lt\n")                   // ... i i<B-1
+	fmt.Printf("fnz continue\n")         // ... i
+	fmt.Printf("dup\n")                  // ... i i
+	fmt.Printf("push %d\n", addr)        // ... i i addr
+	fmt.Printf("store\n")                // ... i
+	fmt.Printf("dup\n")                  // ... i i
+	fmt.Printf("push 1\n")               // ... i i 1
+	fmt.Printf("swap\n")                 // ... i 1 i
+	fmt.Printf("store\n")                // ... i
+	fmt.Printf("continue:\n")            //
+	fmt.Printf("push 1\n")               // ... i 1
+	fmt.Printf("add\n")                  // ... ++i
+	fmt.Printf("dup\n")                  // ... i i
+	fmt.Printf("push %d\n", prob.base)   // ... i i B
+	fmt.Printf("lt\n")                   // ... i i<B
+	fmt.Printf("jnz loop\n")             // ... i
+}
+
 func (prob *problem) solveColumn(carry string, addrs [3]int, unk int) {
 	fmt.Printf("val = ")
 	var any bool
@@ -183,32 +209,8 @@ func (prob *problem) plan() {
 		n, first := prob.unknown(col)
 		for n > 1 {
 			c := col[first]
-
-			fmt.Printf("- pick(%s)\n", string(c)) // ...
-			fmt.Printf("i = 0\n")                 // ... i
-			fmt.Printf("loop:\n")                 //
-			fmt.Printf("dup\n")                   // ... i i
-			fmt.Printf("load\n")                  // ... i used[i]
-			fmt.Printf("jnz continue\n")          // ... i
-			fmt.Printf("dup\n")                   // ... i i
-			fmt.Printf("push %d\n", prob.base-1)  // ... i i B-1
-			fmt.Printf("lt\n")                    // ... i i<B-1
-			fmt.Printf("fnz continue\n")          // ... i
-			fmt.Printf("dup\n")                   // ... i i
-			fmt.Printf("push %d\n", addrs[first]) // ... i i &addrs[first]
-			fmt.Printf("store\n")                 // ... i
-			fmt.Printf("dup\n")                   // ... i i
-			fmt.Printf("push 1\n")                // ... i i 1
-			fmt.Printf("swap\n")                  // ... i 1 i
-			fmt.Printf("store\n")                 // ... i
-			fmt.Printf("continue:\n")             //
-			fmt.Printf("push 1\n")                // ... i 1
-			fmt.Printf("add\n")                   // ... ++i
-			fmt.Printf("dup\n")                   // ... i i
-			fmt.Printf("push %d\n", prob.base)    // ... i i B
-			fmt.Printf("lt\n")                    // ... i i<B
-			fmt.Printf("jnz loop\n")              // ... i
-
+			fmt.Printf("- pick(%s)\n", string(c))
+			prob.pickValue(addrs[first])
 			prob.known[c] = struct{}{}
 			n, first = prob.unknown(col)
 		}
