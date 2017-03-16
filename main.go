@@ -179,9 +179,10 @@ func (prob *problem) checkColumn(carry bool, addrs [3]int) {
 }
 
 func (prob *problem) computeCarry(carry bool, addrs [3]int) {
-	fmt.Printf("C%d = (", j)
-	prob.opColumn(" + ", carry, addrs[0], addrs[1])
-	fmt.Printf(") / %d\n", prob.base)
+	// ... ?carry => ... carry
+	prob.columnValue(carry, "add", addrs[0], addrs[1])
+	fmt.Printf("push %d\n", prob.base) // ... val base
+	fmt.Printf("div\n")                // ... val/base
 }
 
 func (prob *problem) columnValue(carry bool, op string, addrs ...int) int {
@@ -203,27 +204,6 @@ func (prob *problem) columnValue(carry bool, op string, addrs ...int) int {
 		fmt.Printf("%s\n", op) // ... valO=carry
 	}
 	return n
-}
-
-func (prob *problem) opColumn(op, carry string, addrs ...int) bool {
-	open := false
-	if carry != "" {
-		fmt.Printf("carry")
-		open = true
-	}
-	any := false
-	for _, addr := range addrs {
-		if addr == 0 {
-			continue
-		}
-		any = true
-		if open {
-			fmt.Printf(op)
-		}
-		fmt.Printf("values[%d]", addr)
-		open = true
-	}
-	return any
 }
 
 func (prob *problem) plan() {
@@ -287,7 +267,7 @@ func (prob *problem) plan() {
 		if i < len(prob.cols)-1 {
 			j := i + 1
 			fmt.Printf("- compute C%d\n", j)
-			prob.computeCarry(carry, addrs)
+			prob.computeCarry(carry != "", addrs)
 		}
 	}
 }
