@@ -106,34 +106,22 @@ func (prob *problem) unknown(cc col) (int, int) {
 }
 
 func (prob *problem) solveColumn(carry string, addrs [3]int, unk int) {
-	i, j, k := addrs[0], addrs[1], addrs[2]
-	if unk == 2 {
-		// solve for c
-		if carry == "" {
-			fmt.Printf("val = values[%d] + values[%d] %% %d\n", i, j, prob.base)
-		} else {
-			fmt.Printf("val = values[%d] + values[%d] + %s %% %d\n", i, j, carry, prob.base)
-		}
-		fmt.Printf("halt errConflict if used[val] != 0\n")
-		fmt.Printf("used[val] = 1\n")
-		fmt.Printf("values[%d] = val\n", k)
-		return
+	fmt.Printf("val = ")
+	var any bool
+	switch unk {
+	case 0:
+		any = prob.opColumn(" - ", "-"+carry, addrs[1], addrs[2])
+	case 1:
+		any = prob.opColumn(" - ", "-"+carry, addrs[0], addrs[2])
+	case 2:
+		any = prob.opColumn(" + ", carry, addrs[0], addrs[1])
 	}
-
-	// solving for b is same as solving for a
-	if unk == 1 {
-		unk, i, j = 0, j, i
-	}
-
-	// solve for a
-	if carry == "" {
-		fmt.Printf("val = values[%d] - values[%d] %% %d\n", k, j, prob.base)
-	} else {
-		fmt.Printf("val = values[%d] - values[%d] - %s %% %d\n", k, j, carry, prob.base)
+	if any {
+		fmt.Printf(" %% %d\n", prob.base)
 	}
 	fmt.Printf("halt errConflict if used[val] != 0\n")
-	fmt.Printf("mark used[val] = 1\n")
-	fmt.Printf("values[%d] = val\n", i)
+	fmt.Printf("used[val] = 1\n")
+	fmt.Printf("values[%d] = val\n", addrs[2])
 }
 
 func (prob *problem) opColumn(op, carry string, addrs ...int) bool {
