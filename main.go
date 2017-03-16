@@ -132,23 +132,34 @@ func (prob *problem) pickValue(addr int) {
 	fmt.Printf("return:\n")              //
 }
 
-func (prob *problem) solveColumn(carry string, addrs [3]int, unk int) {
-	fmt.Printf("val = ")
-	var any bool
+func (prob *problem) solveColumn(carry bool, addrs [3]int, unk int) {
+	// ... ?carry => ... ?carry
+	if carry {
+		fmt.Printf("dup\n") // ... carry carry
+	}
+	var n int
 	switch unk {
 	case 0:
-		any = prob.opColumn(" - ", "-"+carry, addrs[1], addrs[2])
+		n = prob.columnValue(carry, "sub", addrs[1], addrs[2])
 	case 1:
-		any = prob.opColumn(" - ", "-"+carry, addrs[0], addrs[2])
+		n = prob.columnValue(carry, "sub", addrs[0], addrs[2])
 	case 2:
-		any = prob.opColumn(" + ", carry, addrs[0], addrs[1])
+		n = prob.columnValue(carry, "add", addrs[0], addrs[1])
 	}
-	if any {
-		fmt.Printf(" %% %d\n", prob.base)
+	if n > 0 {
+		fmt.Printf("push %d\n", prob.base) // ... val base
+		fmt.Printf("mod\n")                // ... val%=base
 	}
-	fmt.Printf("halt errConflict if used[val] != 0\n")
-	fmt.Printf("used[val] = 1\n")
-	fmt.Printf("values[%d] = val\n", addrs[2])
+	fmt.Printf("dup\n")               // ... val val
+	fmt.Printf("load\n")              // ... val used[val]
+	fmt.Printf("jz +1\n")             // ... val
+	fmt.Printf("halt errConflict\n")  //
+	fmt.Printf("dup\n")               // ... val val
+	fmt.Printf("push 1\n")            // ... val val 1
+	fmt.Printf("swap\n")              // ... val 1 val
+	fmt.Printf("store\n")             // ... val
+	fmt.Printf("push %d\n", addrs[2]) // ... val addrs[2]
+	fmt.Printf("store\n")             // ...
 }
 
 func (prob *problem) checkColumn(carry string, addrs [3]int) {
@@ -163,6 +174,27 @@ func (prob *problem) computeCarry(carry bool, addrs [3]int) {
 	fmt.Printf("C%d = (", j)
 	prob.opColumn(" + ", carry, addrs[0], addrs[1])
 	fmt.Printf(") / %d\n", prob.base)
+}
+
+func (prob *problem) columnValue(carry bool, op string, addrs ...int) int {
+	// ?carry => val
+	n := 0
+	for _, addr := range addrs {
+		if addr == 0 {
+			continue
+		}
+		n++
+		fmt.Printf("push %d\n", addr) // ... addr
+		fmt.Printf("load\n")          // ... arg=*addr
+	}
+	for i := 1; i < n; i++ {
+		fmt.Printf("%s\n", op) // ... ?carry arg arg => ... valO=arg
+	}
+	if carry && n > 0 {
+		fmt.Printf("swap\n")   // ... val carry
+		fmt.Printf("%s\n", op) // ... valO=carry
+	}
+	return n
 }
 
 func (prob *problem) opColumn(op, carry string, addrs ...int) bool {
@@ -235,7 +267,7 @@ func (prob *problem) plan() {
 			fmt.Printf("- solve %s   (mod %d) for %s\n",
 				col.Equation(carry), prob.base,
 				string(col[first]))
-			prob.solveColumn(carry, addrs, first)
+			prob.solveColumn(carry != "", addrs, first)
 			prob.known[col[first]] = struct{}{}
 		} else {
 			// we have no unknows, check
