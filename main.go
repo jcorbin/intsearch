@@ -248,8 +248,9 @@ func (prob *problem) plan() {
 		if i < len(prob.cols)-1 {
 			j := i + 1
 			fmt.Printf("- compute C%d\n", j)
-			fmt.Printf("C%d = values[%d] + values[%d] / %d\n",
-				j, addrs[0], addrs[1], prob.base)
+			fmt.Printf("C%d = ", j)
+			prob.sumColumn(carry, addrs)
+			fmt.Printf(" / %d\n", prob.base)
 		}
 	}
 }
