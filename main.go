@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 type step interface {
 }
@@ -57,14 +60,87 @@ func (p *problem) scan() {
 	}
 }
 
+var errConflict = errors.New("computed value conflict")
+
 type rem struct{ s string }
+type com struct {
+	step
+	s string
+}
+type halt struct{ error }
+type push int
+type jmp int
+type jnz int
+type jz int
+type fork int
+type fnz int
+type fz int
+type _load struct{}
+type _store struct{}
+type _dup struct{}
+type _swap struct{}
+type _add struct{}
+type _sub struct{}
+type _div struct{}
+type _mod struct{}
+type _lt struct{}
+type _lte struct{}
+type _eq struct{}
+type _neq struct{}
+type _gt struct{}
+type _gte struct{}
+
+func (r rem) String() string     { return fmt.Sprintf("-- %s", r.s) }
+func (c com) String() string     { return fmt.Sprintf("%v -- %s", c.step, c.s) }
+func (op halt) String() string   { return fmt.Sprintf("halt %v", op.error) }
+func (op push) String() string   { return fmt.Sprintf("push %d", int(op)) }
+func (op jmp) String() string    { return fmt.Sprintf("jmp %d", int(op)) }
+func (op jnz) String() string    { return fmt.Sprintf("jnz %d", int(op)) }
+func (op jz) String() string     { return fmt.Sprintf("jz %d", int(op)) }
+func (op fork) String() string   { return fmt.Sprintf("fork %d", int(op)) }
+func (op fnz) String() string    { return fmt.Sprintf("fnz %d", int(op)) }
+func (op fz) String() string     { return fmt.Sprintf("fz %d", int(op)) }
+func (op _load) String() string  { return "load" }
+func (op _store) String() string { return "store" }
+func (op _dup) String() string   { return "dup" }
+func (op _swap) String() string  { return "swap" }
+func (op _add) String() string   { return "add" }
+func (op _sub) String() string   { return "sub" }
+func (op _div) String() string   { return "div" }
+func (op _mod) String() string   { return "mod" }
+func (op _lt) String() string    { return "lt" }
+func (op _lte) String() string   { return "lte" }
+func (op _eq) String() string    { return "eq" }
+func (op _neq) String() string   { return "neq" }
+func (op _gt) String() string    { return "gt" }
+func (op _gte) String() string   { return "gte" }
+
+var (
+	load  = _load{}
+	store = _store{}
+	dup   = _dup{}
+	swap  = _swap{}
+	add   = _add{}
+	sub   = _sub{}
+	div   = _div{}
+	mod   = _mod{}
+	lt    = _lt{}
+	lte   = _lte{}
+	eq    = _eq{}
+	neq   = _neq{}
+	gt    = _gt{}
+	gte   = _gte{}
+)
 
 func remf(pat string, args ...interface{}) rem {
 	return rem{fmt.Sprintf(pat, args...)}
 }
 
-func (r rem) String() string {
-	return fmt.Sprintf("-- %s", r.s)
+func comd(s step, pat string, args ...interface{}) com {
+	return com{
+		step: s,
+		s:    fmt.Sprintf(pat, args...),
+	}
 }
 
 func (p *problem) pick(s byte) {
@@ -72,11 +148,29 @@ func (p *problem) pick(s byte) {
 		"pick %d (%q)",
 		s, string(p.revsym[s]),
 	))
+	p.emit(
+		push(0),      // ... i=0
+		remf("loop"), // ... i
+		dup,          // ... i i
+		push(p.b-1),  // ... i i b-1
+		lt,           // ... i i<b-1
+		fnz(1),       // ... i
+		jmp(5),       // ... i
+		remf("next"), // ... i
+		push(1),      // ... i 1
+		add,          // ... i++
+		dup,          // ... i i
+		push(p.b),    // ... i i b
+		lt,           // ... i i<b
+		jnz(-11),     // ... i
+		remf("continue"),
+	)
 	p.known[s] = struct{}{}
 }
 
 func (p *problem) solve(i int, c col, j int) {
-	if i == len(p.cols)-1 {
+	carry := i < len(p.cols)-1
+	if !carry {
 		p.emit(remf(
 			"solve for %q in %q + %q = %q (mod %d)",
 			string(p.revsym[c[j]]),
@@ -95,6 +189,55 @@ func (p *problem) solve(i int, c col, j int) {
 			p.b,
 		))
 	}
+
+	if carry {
+		p.emit(dup)
+	}
+
+	// compute the unknown value
+	var (
+		op step
+		n  int
+		ix [2]int
+	)
+	switch j {
+	case 0:
+		// a in a + b = c
+		op, ix = sub, [2]int{2, 1}
+	case 1:
+		// b in a + b = c
+		op, ix = sub, [2]int{2, 0}
+	case 2:
+		// c in a + b = c
+		op, ix = add, [2]int{0, 1}
+	}
+	for _, k := range ix {
+		if c[k] != 0 {
+			n++
+			p.emit(push(c[k]), load)
+		}
+	}
+	for k := 0; k < n; k++ {
+		p.emit(op)
+	}
+	if carry {
+		p.emit(swap, op)
+	}
+
+	p.emit(
+		// check that the computed value isn't already used
+		dup,               // ... val val
+		load,              // ... val used[val]
+		jz(1),             // ... val
+		halt{errConflict}, //
+
+		// record the computed value
+		dup,       // ... val val
+		push(p.n), // ... val val n
+		add,       // ... val val+n
+		store,     // ...
+	)
+
 	p.known[c[j]] = struct{}{}
 }
 
