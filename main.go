@@ -144,26 +144,26 @@ func comd(s step, pat string, args ...interface{}) com {
 }
 
 func (p *problem) pick(s byte) {
-	p.emit(remf(
-		"pick %d (%q)",
-		s, string(p.revsym[s]),
-	))
 	p.emit(
+		remf(
+			"pick %d (%q)",
+			s, string(p.revsym[s]),
+		),
 		push(0),      // ... i=0
 		remf("loop"), // ... i
 		dup,          // ... i i
 		push(p.b-1),  // ... i i b-1
 		lt,           // ... i i<b-1
-		fnz(1),       // ... i
-		jmp(5),       // ... i
-		remf("next"), // ... i
-		push(1),      // ... i 1
-		add,          // ... i++
-		dup,          // ... i i
-		push(p.b),    // ... i i b
-		lt,           // ... i i<b
-		jnz(-11),     // ... i
-		remf("continue"),
+		comd(fnz(1), "fork next"), // ... i
+		comd(jmp(6), "continue"),  // ... i
+		remf("next"),              // ... i
+		push(1),                   // ... i 1
+		add,                       // ... i++
+		dup,                       // ... i i
+		push(p.b),                 // ... i i b
+		lt,                        // ... i i<b
+		comd(jnz(-11), "loop"), // ... i
+		remf("continue"),       // ...
 	)
 	p.known[s] = struct{}{}
 }
@@ -309,14 +309,20 @@ func plan(w1, w2, w3 string, emit func(...step)) {
 	p.bottomUp()
 }
 
-func printSteps(steps ...step) {
-	for i, s := range steps {
-		fmt.Printf("% 3d: %v\n", i, s)
-	}
-}
-
 func main() {
+	i := 0
+
 	plan(
 		"send", "more", "money",
-		printSteps)
+		func(steps ...step) {
+			for _, s := range steps {
+				if _, ok := s.(rem); ok {
+					fmt.Printf("%v\n", s)
+					continue
+				}
+				fmt.Printf("   % 3d: %v\n", i, s)
+				i++
+			}
+		},
+	)
 }
