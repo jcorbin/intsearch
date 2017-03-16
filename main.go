@@ -136,7 +136,7 @@ func (prob *problem) solveColumn(carry string, addrs [3]int, unk int) {
 	fmt.Printf("values[%d] = val\n", i)
 }
 
-func (prob *problem) sumColumn(carry string, addrs [3]int) bool {
+func (prob *problem) opColumn(op, carry string, addrs [3]int) bool {
 	open := false
 	if carry != "" {
 		fmt.Printf("carry")
@@ -149,7 +149,7 @@ func (prob *problem) sumColumn(carry string, addrs [3]int) bool {
 		}
 		any = true
 		if open {
-			fmt.Printf(" + ")
+			fmt.Printf(op)
 		}
 		fmt.Printf("values[%d]", addrs[i])
 		open = true
@@ -237,7 +237,7 @@ func (prob *problem) plan() {
 			fmt.Printf("- check col_%d\n", i)
 			fmt.Printf("halt errCheckFailed if ")
 
-			if prob.sumColumn(carry, addrs) {
+			if prob.opColumn(" + ", carry, addrs) {
 				fmt.Printf(" %% %d", prob.base)
 			}
 
@@ -249,7 +249,7 @@ func (prob *problem) plan() {
 			j := i + 1
 			fmt.Printf("- compute C%d\n", j)
 			fmt.Printf("C%d = ", j)
-			prob.sumColumn(carry, addrs)
+			prob.opColumn(" + ", carry, addrs)
 			fmt.Printf(" / %d\n", prob.base)
 		}
 	}
