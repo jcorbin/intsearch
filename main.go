@@ -137,10 +137,10 @@ func (prob *problem) solveColumn(carry string, addrs [3]int, unk int) {
 }
 
 func (prob *problem) plan() {
-	fmt.Printf("//// setup\n")
-	fmt.Printf("// reserve haep space for the used array\n")
+	fmt.Printf("-- setup\n")
+	fmt.Printf("- reserve haep space for the used array\n")
 	fmt.Printf("alloc %d\n", prob.base)
-	fmt.Printf("// reserve haep space for letter values\n")
+	fmt.Printf("- reserve haep space for letter values\n")
 	fmt.Printf("alloc %d\n", prob.n)
 
 	valueAddrs := make(map[byte]int, prob.n)
@@ -167,15 +167,15 @@ func (prob *problem) plan() {
 		if i > 0 {
 			carry = fmt.Sprintf("C%d", i)
 		}
-		fmt.Printf("//// col[%d]: %v\n", i, col.Equation(carry))
-		fmt.Printf("////   values at %v\n", addrs)
+		fmt.Printf("-- col[%d]: %v\n", i, col.Equation(carry))
+		fmt.Printf("--   values at %v\n", addrs)
 
 		// until we have a most one unknown, pick a value for the first unknown
 		n, first := prob.unknown(col)
 		for n > 1 {
 			c := col[first]
 
-			fmt.Printf("// pick(%s)\n", string(c))
+			fmt.Printf("- pick(%s)\n", string(c))
 			fmt.Printf("i = 0\n")
 			fmt.Printf("loop:\n")
 			fmt.Printf("goto continue if used[i] != 0\n")
@@ -191,14 +191,14 @@ func (prob *problem) plan() {
 
 		// if we still have one unknown, solve for it
 		if n == 1 {
-			fmt.Printf("// solve %s   (mod %d) for %s\n",
+			fmt.Printf("- solve %s   (mod %d) for %s\n",
 				col.Equation(carry), prob.base,
 				string(col[first]))
 			prob.solveColumn(carry, addrs, first)
 			prob.known[col[first]] = struct{}{}
 		} else {
 			// we have no unknows, check
-			fmt.Printf("// check col_%d\n", i)
+			fmt.Printf("- check col_%d\n", i)
 			fmt.Printf("halt errCheckFailed if ")
 
 			open := false
@@ -230,7 +230,7 @@ func (prob *problem) plan() {
 		// compute outgoing carry
 		if i < len(prob.cols)-1 {
 			j := i + 1
-			fmt.Printf("// compute C%d\n", j)
+			fmt.Printf("- compute C%d\n", j)
 			fmt.Printf("C%d = values[%d] + values[%d] / %d\n",
 				j, addrs[0], addrs[1], prob.base)
 		}
