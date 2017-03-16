@@ -172,12 +172,12 @@ func (p *problem) pick(s byte) {
 }
 
 func (p *problem) colVal(
-	carry bool,
+	carry, keep bool,
 	op step,
 	c col,
 	ix ...int,
 ) {
-	if carry {
+	if carry && keep {
 		p.emit(dup) // ... carry carry
 	}
 	n := 0
@@ -221,13 +221,13 @@ func (p *problem) solve(i int, c col, j int) {
 	switch j {
 	case 0:
 		// a in a + b = c
-		p.colVal(carry, sub, c, 2, 1)
+		p.colVal(carry, true, sub, c, 2, 1)
 	case 1:
 		// b in a + b = c
-		p.colVal(carry, sub, c, 2, 0)
+		p.colVal(carry, true, sub, c, 2, 0)
 	case 2:
 		// c in a + b = c
-		p.colVal(carry, add, c, 0, 1)
+		p.colVal(carry, true, add, c, 0, 1)
 	}
 
 	p.emit(
@@ -266,7 +266,7 @@ func (p *problem) check(i int, c col) {
 			p.b,
 		))
 	}
-	p.colVal(carry, add, c, 0, 1) // ... carry => carry val
+	p.colVal(carry, true, add, c, 0, 1) // ... carry => carry val
 	p.emit(
 		dup,        // ... val val
 		push(c[2]), // ... val val sym
@@ -280,7 +280,8 @@ func (p *problem) check(i int, c col) {
 }
 
 func (p *problem) computeCarry(i int, c col) {
-	if i == len(p.cols)-1 {
+	carry := i < len(p.cols)-1
+	if !carry {
 		p.emit(remf(
 			"compute carry = (%q + %q) / %d",
 			string(p.revsym[c[0]]),
@@ -295,6 +296,11 @@ func (p *problem) computeCarry(i int, c col) {
 			p.b,
 		))
 	}
+	p.colVal(carry, false, add, c, 0, 1) // ... carry => val
+	p.emit(
+		push(p.b), // ... val b
+		div,       // ... val/b
+	)
 }
 
 func (p *problem) bottomUp() {
