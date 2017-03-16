@@ -159,6 +159,12 @@ func (prob *problem) checkColumn(carry string, addrs [3]int) {
 	fmt.Printf(" != values[%d]\n", addrs[2])
 }
 
+func (prob *problem) computeCarry(carry bool, addrs [3]int) {
+	fmt.Printf("C%d = (", j)
+	prob.opColumn(" + ", carry, addrs[0], addrs[1])
+	fmt.Printf(") / %d\n", prob.base)
+}
+
 func (prob *problem) opColumn(op, carry string, addrs ...int) bool {
 	open := false
 	if carry != "" {
@@ -241,9 +247,7 @@ func (prob *problem) plan() {
 		if i < len(prob.cols)-1 {
 			j := i + 1
 			fmt.Printf("- compute C%d\n", j)
-			fmt.Printf("C%d = (", j)
-			prob.opColumn(" + ", carry, addrs[0], addrs[1])
-			fmt.Printf(") / %d\n", prob.base)
+			prob.computeCarry(carry, addrs)
 		}
 	}
 }
