@@ -176,12 +176,14 @@ func (prob *problem) plan() {
 			c := col[first]
 
 			fmt.Printf("// pick(%s)\n", string(c))
-			fmt.Printf("for 0 <= i < %d {\n", prob.base)
-			fmt.Printf("  continue if used[i] != 0\n")
-			fmt.Printf("  forkContinue if i < %d\n", prob.base-1)
-			fmt.Printf("  values[%d] = i\n", addrs[first])
-			fmt.Printf("  used[i] = 1\n")
-			fmt.Printf("}\n")
+			fmt.Printf("i = 0\n")
+			fmt.Printf("loop:\n")
+			fmt.Printf("goto continue if used[i] != 0\n")
+			fmt.Printf("fork continue if i < %d\n", prob.base-1)
+			fmt.Printf("values[%d] = i\n", addrs[first])
+			fmt.Printf("used[i] = 1\n")
+			fmt.Printf("continue:\n")
+			fmt.Printf("goto loop if ++i < %d\n", prob.base)
 
 			prob.known[c] = struct{}{}
 			n, first = prob.unknown(col)
@@ -197,7 +199,7 @@ func (prob *problem) plan() {
 		} else {
 			// we have no unknows, check
 			fmt.Printf("// check col_%d\n", i)
-			fmt.Printf("if ")
+			fmt.Printf("halt errCheckFailed if ")
 
 			open := false
 			if carry != "" {
@@ -217,9 +219,7 @@ func (prob *problem) plan() {
 				}
 			}
 
-			fmt.Printf(" %% %d != values[%d] {\n", prob.base, addrs[2])
-			fmt.Printf("  halt errCheckFailed")
-			fmt.Printf("}\n")
+			fmt.Printf(" %% %d != values[%d]\n", prob.base, addrs[2])
 		}
 
 		// compute outgoing carry
