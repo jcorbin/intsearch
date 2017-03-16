@@ -136,6 +136,27 @@ func (prob *problem) solveColumn(carry string, addrs [3]int, unk int) {
 	fmt.Printf("values[%d] = val\n", i)
 }
 
+func (prob *problem) sumColumn(carry string, addrs [3]int) bool {
+	open := false
+	if carry != "" {
+		fmt.Printf("carry")
+		open = true
+	}
+	any := false
+	for i := range []int{0, 1} {
+		if addrs[i] == 0 {
+			continue
+		}
+		any = true
+		if open {
+			fmt.Printf(" + ")
+		}
+		fmt.Printf("values[%d]", addrs[i])
+		open = true
+	}
+	return any
+}
+
 func (prob *problem) plan() {
 	fmt.Printf("-- setup\n")
 	fmt.Printf("- reserve haep space for the used array\n")
@@ -216,26 +237,7 @@ func (prob *problem) plan() {
 			fmt.Printf("- check col_%d\n", i)
 			fmt.Printf("halt errCheckFailed if ")
 
-			open := false
-			if carry != "" {
-				fmt.Printf("carry")
-				open = true
-			}
-
-			any := false
-			for i := range []int{0, 1} {
-				if addrs[i] == 0 {
-					continue
-				}
-				any = true
-				if open {
-					fmt.Printf(" + values[%d]", addrs[i])
-				} else {
-					fmt.Printf("values[%d]", addrs[i])
-					open = true
-				}
-			}
-			if any {
+			if prob.sumColumn(carry, addrs) {
 				fmt.Printf(" %% %d", prob.base)
 			}
 
