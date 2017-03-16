@@ -162,12 +162,20 @@ func (prob *problem) solveColumn(carry bool, addrs [3]int, unk int) {
 	fmt.Printf("store\n")             // ...
 }
 
-func (prob *problem) checkColumn(carry string, addrs [3]int) {
-	fmt.Printf("halt errCheckFailed if ")
-	if prob.opColumn(" + ", carry, addrs[0], addrs[1]) {
-		fmt.Printf(" %% %d", prob.base)
+func (prob *problem) checkColumn(carry bool, addrs [3]int) {
+	// ... ?carry => ?carry
+	if carry {
+		fmt.Printf("dup\n") // ... carry carry
 	}
-	fmt.Printf(" != values[%d]\n", addrs[2])
+	if prob.columnValue(carry, "add", addrs[0], addrs[1]) > 0 {
+		fmt.Printf("push %d\n", prob.base) // ... val base
+		fmt.Printf("mod\n")                // ... val=base
+	}
+	fmt.Printf("push %d\n", addrs[2])   // ... checkVal addrs[2]
+	fmt.Printf("load\n")                // ... checkVal loadVal
+	fmt.Printf("eq\n")                  // ... checkVal==loadVal
+	fmt.Printf("jz +1\n")               // ...
+	fmt.Printf("halt errCheckFailed\n") //
 }
 
 func (prob *problem) computeCarry(carry bool, addrs [3]int) {
@@ -272,7 +280,7 @@ func (prob *problem) plan() {
 		} else {
 			// we have no unknows, check
 			fmt.Printf("- check col_%d\n", i)
-			prob.checkColumn(carry, addrs)
+			prob.checkColumn(carry != "", addrs)
 		}
 
 		// compute outgoing carry
