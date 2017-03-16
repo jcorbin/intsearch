@@ -151,6 +151,14 @@ func (prob *problem) solveColumn(carry string, addrs [3]int, unk int) {
 	fmt.Printf("values[%d] = val\n", addrs[2])
 }
 
+func (prob *problem) checkColumn(carry string, addrs [3]int) {
+	fmt.Printf("halt errCheckFailed if ")
+	if prob.opColumn(" + ", carry, addrs[0], addrs[1]) {
+		fmt.Printf(" %% %d", prob.base)
+	}
+	fmt.Printf(" != values[%d]\n", addrs[2])
+}
+
 func (prob *problem) opColumn(op, carry string, addrs ...int) bool {
 	open := false
 	if carry != "" {
@@ -226,13 +234,7 @@ func (prob *problem) plan() {
 		} else {
 			// we have no unknows, check
 			fmt.Printf("- check col_%d\n", i)
-			fmt.Printf("halt errCheckFailed if ")
-
-			if prob.opColumn(" + ", carry, addrs[0], addrs[1]) {
-				fmt.Printf(" %% %d", prob.base)
-			}
-
-			fmt.Printf(" != values[%d]\n", addrs[2])
+			prob.checkColumn(carry, addrs)
 		}
 
 		// compute outgoing carry
