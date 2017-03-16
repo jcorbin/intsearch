@@ -207,10 +207,12 @@ func (prob *problem) plan() {
 				open = true
 			}
 
+			any := false
 			for i := range []int{0, 1} {
 				if addrs[i] == 0 {
 					continue
 				}
+				any = true
 				if open {
 					fmt.Printf(" + values[%d]", addrs[i])
 				} else {
@@ -218,8 +220,11 @@ func (prob *problem) plan() {
 					open = true
 				}
 			}
+			if any {
+				fmt.Printf(" %% %d", prob.base)
+			}
 
-			fmt.Printf(" %% %d != values[%d]\n", prob.base, addrs[2])
+			fmt.Printf(" != values[%d]\n", addrs[2])
 		}
 
 		// compute outgoing carry
