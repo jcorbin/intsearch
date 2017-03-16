@@ -118,10 +118,10 @@ func (prob *problem) pickValue(addr int) {
 	fmt.Printf("dup\n")                  // ... i i
 	fmt.Printf("push %d\n", addr)        // ... i i addr
 	fmt.Printf("store\n")                // ... i
-	fmt.Printf("dup\n")                  // ... i i
-	fmt.Printf("push 1\n")               // ... i i 1
-	fmt.Printf("swap\n")                 // ... i 1 i
-	fmt.Printf("store\n")                // ... i
+	fmt.Printf("push 1\n")               // ... i 1
+	fmt.Printf("swap\n")                 // ... 1 i
+	fmt.Printf("store\n")                // ...
+	fmt.Printf("jmp return\n")           // ...
 	fmt.Printf("continue:\n")            //
 	fmt.Printf("push 1\n")               // ... i 1
 	fmt.Printf("add\n")                  // ... ++i
@@ -129,6 +129,7 @@ func (prob *problem) pickValue(addr int) {
 	fmt.Printf("push %d\n", prob.base)   // ... i i B
 	fmt.Printf("lt\n")                   // ... i i<B
 	fmt.Printf("jnz loop\n")             // ... i
+	fmt.Printf("return:\n")              //
 }
 
 func (prob *problem) solveColumn(carry string, addrs [3]int, unk int) {
