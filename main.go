@@ -190,8 +190,12 @@ func (p *problem) colVal(
 	for k := 0; k < n; k++ {
 		p.emit(op)
 	}
-	if carry {
-		p.emit(swap, op)
+	if carry && n > 0 {
+		if op == sub || op == div {
+			p.emit(swap, op)
+		} else {
+			p.emit(op)
+		}
 	}
 }
 
@@ -317,7 +321,9 @@ func (p *problem) bottomUp() {
 		} else {
 			p.check(i, c)
 		}
-		p.computeCarry(i, c)
+		if i > 0 {
+			p.computeCarry(i, c)
+		}
 	}
 }
 
