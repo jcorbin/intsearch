@@ -261,37 +261,27 @@ func plan(w1, w2, w3 string, emit func(...step)) {
 	p.bottomUp()
 }
 
-type stepPrinter struct {
-	i int
-}
-
-func (sp *stepPrinter) print(s step) {
-	if _, ok := s.(rem); ok {
-		fmt.Printf("%v\n", s)
-		return
-	}
-	if ms, ok := s.(machStep); ok {
-		fmt.Printf("   % 3d: %v\n", sp.i, ms)
-		sp.i++
-		return
-	}
-	fmt.Printf("??????: %v\n", s)
-}
-
 func main() {
-	var (
-		sp   stepPrinter
-		prog = make([]machStep, 0, 512)
-	)
+	var prog = make([]machStep, 0, 512)
 
 	plan(
 		"send", "more", "money",
 		func(ss ...step) {
 			for _, s := range ss {
-				sp.print(s)
-				if ms, ok := s.(machStep); ok {
-					prog = append(prog, ms)
+				if _, ok := s.(rem); ok {
+					fmt.Printf("%v\n", s)
+					continue
 				}
+				ts := s
+				if c, ok := ts.(com); ok {
+					ts = c.step
+				}
+				if ms, ok := ts.(machStep); ok {
+					fmt.Printf("   % 3d: %v\n", len(prog), s)
+					prog = append(prog, ms)
+					continue
+				}
+				fmt.Printf("??????: %v\n", s)
 			}
 		},
 	)
