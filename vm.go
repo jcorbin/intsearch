@@ -88,7 +88,7 @@ func (m *mach) needStack(n int) error {
 
 func (m *mach) addr(offset int) (int, error) {
 	addr := m.heap - offset
-	if addr < m.stack || addr > len(m.mem) {
+	if addr < m.stack || addr >= len(m.mem) {
 		return 0, errSegfault
 	}
 	return addr, nil
