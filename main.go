@@ -255,19 +255,27 @@ func plan(w1, w2, w3 string, emit func(...step)) {
 	p.bottomUp()
 }
 
+type stepPrinter struct {
+	i int
+}
+
+func (sp *stepPrinter) print(s step) {
+	if _, ok := s.(rem); ok {
+		fmt.Printf("%v\n", s)
+		return
+	}
+	fmt.Printf("   % 3d: %v\n", sp.i, s)
+	sp.i++
+}
+
 func main() {
-	i := 0
+	var sp stepPrinter
 
 	plan(
 		"send", "more", "money",
-		func(steps ...step) {
-			for _, s := range steps {
-				if _, ok := s.(rem); ok {
-					fmt.Printf("%v\n", s)
-					continue
-				}
-				fmt.Printf("   % 3d: %v\n", i, s)
-				i++
+		func(ss ...step) {
+			for _, s := range ss {
+				sp.print(s)
 			}
 		},
 	)
