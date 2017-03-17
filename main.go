@@ -270,12 +270,14 @@ func (sp *stepPrinter) print(s step) {
 
 func main() {
 	var sp stepPrinter
+	mach := newMach()
 
 	plan(
 		"send", "more", "money",
 		func(ss ...step) {
 			for _, s := range ss {
 				sp.print(s)
+				mach.compile(s)
 			}
 		},
 	)
