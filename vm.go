@@ -2,6 +2,14 @@ package main
 
 import "errors"
 
+var (
+	errStackOverflow  = errors.New("stack overflow")
+	errStackUnderflow = errors.New("stack underflow")
+	errSegfault       = errors.New("stack segfault")
+	errOutOfMemory    = errors.New("out of memory")
+	errFrontierFull   = errors.New("frontier full")
+)
+
 const _machSize = 256
 
 type machStep interface {
@@ -10,29 +18,57 @@ type machStep interface {
 
 type mach struct {
 	emit            func(*mach) error
-	prog            []step
+	prog            []machStep
 	mem             [_machSize]int
 	pc, heap, stack int
 }
 
-func newMach() *mach {
-	return &mach{
-		prog: make([]step, 0, 512),
+type machSearch struct {
+	frontier chan *mach
+}
+
+func (s machSearch) emit(m *mach) error {
+	select {
+	case s.frontier <- m:
+		return nil
+	default:
+		return errFrontierFull
 	}
 }
 
-func (m *mach) compile(s step) {
-	if ms, ok := s.(machStep); ok {
-		m.prog = append(m.prog, ms)
+func runSearch(prog []machStep, emit func(m *mach) bool) {
+	s := machSearch{
+		frontier: make(chan *mach, 1024),
+	}
+	s.frontier <- &mach{
+		prog: prog,
+		emit: s.emit,
+	}
+	for {
+		select {
+		case m := <-s.frontier:
+			if err := m.run(); err != nil {
+				continue
+			}
+			if emit(m) {
+				return
+			}
+		default:
+			return
+		}
 	}
 }
 
-var (
-	errStackOverflow  = errors.New("stack overflow")
-	errStackUnderflow = errors.New("stack underflow")
-	errSegfault       = errors.New("stack segfault")
-	errOutOfMemory    = errors.New("out of memory")
-)
+func (m *mach) run() error {
+	for m.pc < len(m.prog) {
+		ms := m.prog[m.pc]
+		m.pc++
+		if err := ms.step(m); err != nil {
+			return err
+		}
+	}
+	return nil
+}
 
 func (m *mach) fork(offset int) error {
 	newm := *m
@@ -223,9 +259,99 @@ func (op _mod) step(m *mach) error {
 	m.mem[i] %= val
 	return nil
 }
-func (op _lt) step(m *mach) error  {}
-func (op _lte) step(m *mach) error {}
-func (op _eq) step(m *mach) error  {}
-func (op _neq) step(m *mach) error {}
-func (op _gt) step(m *mach) error  {}
-func (op _gte) step(m *mach) error {}
+func (op _lt) step(m *mach) error {
+	val, err := m.pop()
+	if err != nil {
+		return err
+	}
+	if err := m.needStack(1); err != nil {
+		return err
+	}
+	i := m.stack - 1
+	if m.mem[i] < val {
+		m.mem[i] = 1
+	} else {
+		m.mem[i] = 0
+	}
+	return nil
+}
+func (op _lte) step(m *mach) error {
+	val, err := m.pop()
+	if err != nil {
+		return err
+	}
+	if err := m.needStack(1); err != nil {
+		return err
+	}
+	i := m.stack - 1
+	if m.mem[i] <= val {
+		m.mem[i] = 1
+	} else {
+		m.mem[i] = 0
+	}
+	return nil
+}
+func (op _eq) step(m *mach) error {
+	val, err := m.pop()
+	if err != nil {
+		return err
+	}
+	if err := m.needStack(1); err != nil {
+		return err
+	}
+	i := m.stack - 1
+	if m.mem[i] == val {
+		m.mem[i] = 1
+	} else {
+		m.mem[i] = 0
+	}
+	return nil
+}
+func (op _neq) step(m *mach) error {
+	val, err := m.pop()
+	if err != nil {
+		return err
+	}
+	if err := m.needStack(1); err != nil {
+		return err
+	}
+	i := m.stack - 1
+	if m.mem[i] != val {
+		m.mem[i] = 1
+	} else {
+		m.mem[i] = 0
+	}
+	return nil
+}
+func (op _gt) step(m *mach) error {
+	val, err := m.pop()
+	if err != nil {
+		return err
+	}
+	if err := m.needStack(1); err != nil {
+		return err
+	}
+	i := m.stack - 1
+	if m.mem[i] > val {
+		m.mem[i] = 1
+	} else {
+		m.mem[i] = 0
+	}
+	return nil
+}
+func (op _gte) step(m *mach) error {
+	val, err := m.pop()
+	if err != nil {
+		return err
+	}
+	if err := m.needStack(1); err != nil {
+		return err
+	}
+	i := m.stack - 1
+	if m.mem[i] <= val {
+		m.mem[i] = 1
+	} else {
+		m.mem[i] = 0
+	}
+	return nil
+}

@@ -269,16 +269,26 @@ func (sp *stepPrinter) print(s step) {
 }
 
 func main() {
-	var sp stepPrinter
-	mach := newMach()
+	var (
+		sp   stepPrinter
+		prog = make([]machStep, 0, 512)
+	)
 
 	plan(
 		"send", "more", "money",
 		func(ss ...step) {
 			for _, s := range ss {
 				sp.print(s)
-				mach.compile(s)
+				if ms, ok := s.(machStep); ok {
+					prog = append(prog, ms)
+				}
 			}
 		},
 	)
+
+	fmt.Printf("\nSEARCHING...\n")
+	runSearch(prog, func(m *mach) bool {
+		fmt.Printf("GOT: %+v\n", m)
+		return false
+	})
 }
