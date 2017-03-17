@@ -92,20 +92,14 @@ func (p *prob) scan() error {
 func (p *prob) pick(s byte, emit func(...interface{})) {
 	loop := label("loop")
 	next := label("return")
-	ret := label("return")
 
 	emit(
 		push(0),
 		loop,
 
-		// fork next if i < b-1
-		push(p.b-1), lt,
-		next.comeFrom(fnzFrom),
+		push(p.b-1), lt, next.comeFrom(fnzFrom), // fork next if i < b-1
 
-		// return if !used[i] else halt errUsed
-		dup, load,
-		ret.comeFrom(jzFrom),
-		halt(errUsed),
+		dup, load, hnz(errUsed), // halt if used[i]
 
 		next,
 		push(1), add,
@@ -113,20 +107,67 @@ func (p *prob) pick(s byte, emit func(...interface{})) {
 		loop.comeFrom(jnzFrom),
 		halt(errDead),
 
-		ret,
 		dup, push(1), swap, store, // used[i] = 1
 		push(p.n+s), store, // value[s] = i
 	)
 }
 
-// func (p *prob) solve(carry bool, c col, u int, emit func(...interface{}))
+func (p *prob) solve(carry bool, c col, u int, emit func(...interface{})) {
+	// determine op and values under op:
+	//   0 -> solve for a in a + b = c
+	//        compute a = c - b - carry % B
+	//   1 -> solve for b in a + b = c
+	//        compute b = c - a - carry % B
+	//   2 -> solve for c in a + b = c
+	//        compute c = a + b + carry % B
+	var (
+		op interface{}
+		ix [2]int
+	)
+	switch u {
+	case 0:
+		op = sub
+		ix = [2]int{2, 1}
+	case 1:
+		op = sub
+		ix = [2]int{2, 0}
+	case 2:
+		op = add
+		ix = [2]int{0, 1}
+	}
+
+	// emit steps for the computation determined by ix and op
+	n := 0
+	if carry {
+		emit(dup)
+		n++
+	}
+	for _, i := range ix {
+		s := c[i]
+		if s != 0 {
+			emit(push(p.n), push(s), add, load) // value[s]
+			n++
+		}
+	}
+	for i := 1; i < n; i++ {
+		emit(op)
+	}
+
+	emit(
+		push(p.b), mod,
+		dup, load, hnz(errUsed), // halt if used[i]
+		dup, push(1), swap, store, // used[i] = 1
+		push(p.n+s), store, // value[s] = i
+	)
+}
+
 // func (p *prob) check(carry bool, c col, emit func(...interface{}))
 // func (p *prob) computeCarry(carry bool, c col, emit func(...interface{}))
 
 func (p *prob) bottomUp(emit func(...interface{})) error {
 	for i := 1; i <= len(p.cols); i-- {
 		c := p.cols[len(p.cols)-i]
-		// carry := i > 1
+		carry := i > 1
 
 		// pick until we have more than one unknown
 		n, u := c.unknown(p.known)
@@ -135,13 +176,13 @@ func (p *prob) bottomUp(emit func(...interface{})) error {
 			n, u = c.unknown(p.known)
 		}
 
-		// // compute the remaining unknown...
-		// if n == 1 {
-		// 	p.solve(carry, c, u, emit)
+		// compute the remaining unknown...
+		if n == 1 {
+			p.solve(carry, c, u, emit)
 		// } else {
 		// 	// ...or check if none
 		// 	p.check(carry, c, emit)
-		// }
+		}
 
 		// // compute carry
 		// p.computeCarry(carry, c, emit)
