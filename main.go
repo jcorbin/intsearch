@@ -270,8 +270,12 @@ func (sp *stepPrinter) print(s step) {
 		fmt.Printf("%v\n", s)
 		return
 	}
-	fmt.Printf("   % 3d: %v\n", sp.i, s)
-	sp.i++
+	if ms, ok := s.(machStep); ok {
+		fmt.Printf("   % 3d: %v\n", sp.i, ms)
+		sp.i++
+		return
+	}
+	fmt.Printf("??????: %v\n", s)
 }
 
 func main() {
