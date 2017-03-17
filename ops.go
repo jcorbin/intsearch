@@ -32,35 +32,23 @@ type label string
 
 type labelRef struct {
 	name label
-	ref  func(int) interface{}
+	ref  func(int) machStep
 }
 
-func (op label) comeFrom(ref func(int) interface{}) interface{} {
+func (op label) comeFrom(ref func(int) machStep) interface{} {
 	return labelRef{op, ref}
 }
 
-func compileLabelRefs(steps []interface{}) []interface{} {
-	labels := make(map[label]int, len(steps))
-	pending := make(map[label][]int, len(steps))
-	for i, step := range steps {
-		switch s := step.(type) {
-		case label:
-			labels[s] = i
-			if pend := pending[s]; len(pend) > 0 {
-				for _, refi := range pend {
-					steps[refi] = steps[refi].(labelRef).ref(i)
-				}
-				delete(pending, s)
-			}
-		case labelRef:
-			if j, def := labels[s.name]; def {
-				steps[i] = s.ref(j)
-				continue
-			}
-			pending[s.name] = append(pending[s.name], i)
-		}
+func (op label) annotate(ann map[string]int, i int) {
+	ann[string(op)] = i
+}
+
+func (op labelRef) resolve(ann map[string]int) machStep {
+	n := string(op.name)
+	if i, def := ann[n]; def {
+		return op.ref(i)
 	}
-	return steps
+	return nil
 }
 
 type _halt struct{ error }
@@ -75,9 +63,9 @@ type fnz int
 type jnz int
 type jz int
 
-func fnzFrom(off int) interface{} { return fnz(off) }
-func jzFrom(off int) interface{}  { return jz(off) }
-func jnzFrom(off int) interface{} { return jnz(off) }
+func fnzFrom(off int) machStep { return fnz(off) }
+func jzFrom(off int) machStep  { return jz(off) }
+func jnzFrom(off int) machStep { return jnz(off) }
 
 type _add struct{}
 type _sub struct{}
@@ -104,7 +92,7 @@ func (op push) String() string     { return fmt.Sprintf("push %d", int(op)) }
 func (op fnz) String() string      { return fmt.Sprintf("fnz %d", int(op)) }
 func (op jnz) String() string      { return fmt.Sprintf("jnz %d", int(op)) }
 func (op jz) String() string       { return fmt.Sprintf("jz %d", int(op)) }
-func (op labelRef) String() string { return fmt.Sprintf("%v <- %v", op.name, funcName(op.ref)) }
+func (op labelRef) String() string { return fmt.Sprintf("%v <- %v", funcName(op.ref), op.name) }
 func (op _halt) String() string    { return fmt.Sprintf("halt %v", op.error) }
 func (op _hnz) String() string     { return fmt.Sprintf("hnz %v", op.error) }
 func (op _hz) String() string      { return fmt.Sprintf("hz %v", op.error) }
