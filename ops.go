@@ -12,6 +12,7 @@ package main
 
 // halt(error)
 // hnz(error)
+// hz(error)
 
 // fnz(off int)
 // jnz(off int)
@@ -24,5 +25,7 @@ package main
 // add
 // sub
 // mod
+// div
 
 // lt
+// eq

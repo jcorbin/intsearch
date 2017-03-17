@@ -137,6 +137,28 @@ func (p *prob) solve(carry bool, c col, u int, emit func(...interface{})) {
 	}
 
 	// emit steps for the computation determined by ix and op
+	p.colVal(emit, carry, op, ix[0], ix[1])
+
+	emit(
+		push(p.b), mod,
+		dup, load, hnz(errUsed), // halt if used[i]
+		dup, push(1), swap, store, // used[i] = 1
+		push(p.n+col[u]), store, // value[col[u]] = i
+	)
+}
+
+func (p *prob) check(carry bool, c col, emit func(...interface{})) {
+	p.colVal(emit, carry, add, c[0], c[1])
+	emit(
+		push(p.b), div,
+		push(p.n+c[2]), load,
+		eq, hz(errCheck),
+	)
+}
+
+// func (p *prob) computeCarry(carry bool, c col, emit func(...interface{}))
+
+func (p *prob) colVal(emit func(...interface{}), carry, op interface{}, ix ...int) {
 	n := 0
 	if carry {
 		emit(dup)
@@ -152,17 +174,7 @@ func (p *prob) solve(carry bool, c col, u int, emit func(...interface{})) {
 	for i := 1; i < n; i++ {
 		emit(op)
 	}
-
-	emit(
-		push(p.b), mod,
-		dup, load, hnz(errUsed), // halt if used[i]
-		dup, push(1), swap, store, // used[i] = 1
-		push(p.n+s), store, // value[s] = i
-	)
 }
-
-// func (p *prob) check(carry bool, c col, emit func(...interface{}))
-// func (p *prob) computeCarry(carry bool, c col, emit func(...interface{}))
 
 func (p *prob) bottomUp(emit func(...interface{})) error {
 	for i := 1; i <= len(p.cols); i-- {
@@ -179,9 +191,9 @@ func (p *prob) bottomUp(emit func(...interface{})) error {
 		// compute the remaining unknown...
 		if n == 1 {
 			p.solve(carry, c, u, emit)
-		// } else {
-		// 	// ...or check if none
-		// 	p.check(carry, c, emit)
+		} else {
+			// ...or check if none
+			p.check(carry, c, emit)
 		}
 
 		// // compute carry
