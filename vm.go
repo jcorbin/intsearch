@@ -41,8 +41,9 @@ func runSearch(prog []machStep, emit func(m *mach) bool) error {
 		frontier: make(chan *mach, 1024),
 	}
 	s.frontier <- &mach{
-		prog: prog,
 		emit: s.emit,
+		prog: prog,
+		heap: _machSize,
 	}
 	var err error
 	for {
