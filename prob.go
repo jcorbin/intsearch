@@ -2,7 +2,13 @@ package main
 
 import "errors"
 
-var errTooManyLetters = errors.New("too many letters")
+var (
+	errTooManyLetters = errors.New("too many letters")
+
+	// prog errors
+	errDead = errors.New("dead")
+	errUsed = errors.New("value already used")
+)
 
 type col [3]byte
 
@@ -83,24 +89,69 @@ func (p *prob) scan() error {
 	return nil
 }
 
-func (p *prob) bottomUp(emit func(interface{})) error {
+func fnzFrom(off int) interface{} { return fnz(off) }
+func jzFrom(off int) interface{}  { return jz(off) }
+func jnzFrom(off int) interface{} { return jnz(off) }
+
+func (p *prob) pick(s byte, emit func(...interface{})) {
+	loop := label("loop")
+	next := label("return")
+	ret := label("return")
+
+	emit(
+		push(0),
+		loop,
+
+		// fork next if i < b-1
+		push(p.b-1), lt,
+		next.comeFrom(fnzFrom),
+
+		// return if !used[i] else halt errUsed
+		dup, load,
+		ret.comeFrom(jzFrom),
+		halt(errUsed),
+
+		next,
+		push(1), add,
+		dup, push(p.b), lt,
+		loop.comeFrom(jnzFrom),
+		halt(errDead),
+
+		ret,
+	)
+}
+
+// func (p *prob) solve(carry bool, c col, u int, emit func(...interface{}))
+// func (p *prob) check(carry bool, c col, emit func(...interface{}))
+// func (p *prob) computeCarry(carry bool, c col, emit func(...interface{}))
+
+func (p *prob) bottomUp(emit func(...interface{})) error {
 	for i := 1; i <= len(p.cols); i-- {
 		c := p.cols[len(p.cols)-i]
-		carry := i > 1
+		// carry := i > 1
 
 		// pick until we have more than one unknown
 		n, u := c.unknown(p.known)
+		for n > 1 {
+			p.pick(c[u], emit)
+			n, u = c.unknown(p.known)
+		}
 
-		// compute the remaining unknown...
+		// // compute the remaining unknown...
+		// if n == 1 {
+		// 	p.solve(carry, c, u, emit)
+		// } else {
+		// 	// ...or check if none
+		// 	p.check(carry, c, emit)
+		// }
 
-		// ...or check if none
-
-		// compute carry
+		// // compute carry
+		// p.computeCarry(carry, c, emit)
 	}
 	return nil
 }
 
-func (p *prob) plan(emit func(interface{})) error {
+func (p *prob) plan(emit func(...interface{})) error {
 	if err := p.scan(); err != nil {
 		return err
 	}
