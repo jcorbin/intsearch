@@ -36,7 +36,7 @@ func (s machSearch) emit(m *mach) error {
 	}
 }
 
-func runSearch(prog []machStep, emit func(m *mach) bool) {
+func runSearch(prog []machStep, emit func(m *mach) bool) error {
 	s := machSearch{
 		frontier: make(chan *mach, 1024),
 	}
@@ -44,17 +44,19 @@ func runSearch(prog []machStep, emit func(m *mach) bool) {
 		prog: prog,
 		emit: s.emit,
 	}
+	var err error
 	for {
 		select {
 		case m := <-s.frontier:
-			if err := m.run(); err != nil {
+			err = m.run()
+			if err != nil {
 				continue
 			}
 			if emit(m) {
-				return
+				return nil
 			}
 		default:
-			return
+			return err
 		}
 	}
 }

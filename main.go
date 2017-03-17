@@ -293,8 +293,10 @@ func main() {
 	)
 
 	fmt.Printf("\nSEARCHING...\n")
-	runSearch(prog, func(m *mach) bool {
+	if err := runSearch(prog, func(m *mach) bool {
 		fmt.Printf("GOT: %+v\n", m)
 		return false
-	})
+	}); err != nil {
+		fmt.Printf("FAIL: %v\n", err)
+	}
 }
