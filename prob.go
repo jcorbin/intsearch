@@ -89,10 +89,6 @@ func (p *prob) scan() error {
 	return nil
 }
 
-func fnzFrom(off int) interface{} { return fnz(off) }
-func jzFrom(off int) interface{}  { return jz(off) }
-func jnzFrom(off int) interface{} { return jnz(off) }
-
 func (p *prob) pick(s byte, emit func(...interface{})) {
 	loop := label("loop")
 	next := label("return")
@@ -118,6 +114,8 @@ func (p *prob) pick(s byte, emit func(...interface{})) {
 		halt(errDead),
 
 		ret,
+		dup, push(1), swap, store, // used[i] = 1
+		push(p.n+s), store, // value[s] = i
 	)
 }
 
