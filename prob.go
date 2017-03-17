@@ -6,8 +6,9 @@ var (
 	errTooManyLetters = errors.New("too many letters")
 
 	// prog errors
-	errDead = errors.New("dead")
-	errUsed = errors.New("value already used")
+	errDead  = errors.New("dead")
+	errUsed  = errors.New("value already used")
+	errCheck = errors.New("column check failed")
 )
 
 type col [3]byte
@@ -150,13 +151,19 @@ func (p *prob) solve(carry bool, c col, u int, emit func(...interface{})) {
 func (p *prob) check(carry bool, c col, emit func(...interface{})) {
 	p.colVal(emit, carry, add, c[0], c[1])
 	emit(
-		push(p.b), div,
+		push(p.b), mod,
 		push(p.n+c[2]), load,
 		eq, hz(errCheck),
 	)
 }
 
-// func (p *prob) computeCarry(carry bool, c col, emit func(...interface{}))
+func (p *prob) computeCarry(carry bool, c col, emit func(...interface{})) {
+	p.colVal(emit, false, add, c[0], c[1])
+	if carry {
+		emit(add)
+	}
+	emit(push(p.b), div)
+}
 
 func (p *prob) colVal(emit func(...interface{}), carry, op interface{}, ix ...int) {
 	n := 0
@@ -196,8 +203,8 @@ func (p *prob) bottomUp(emit func(...interface{})) error {
 			p.check(carry, c, emit)
 		}
 
-		// // compute carry
-		// p.computeCarry(carry, c, emit)
+		// compute carry
+		p.computeCarry(carry, c, emit)
 	}
 	return nil
 }
