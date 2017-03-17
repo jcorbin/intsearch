@@ -6,6 +6,7 @@ type step interface {
 }
 
 var (
+	alloc = _alloc{}
 	load  = _load{}
 	store = _store{}
 	dup   = _dup{}
@@ -35,6 +36,7 @@ type jz int
 type fork int
 type fnz int
 type fz int
+type _alloc struct{}
 type _load struct{}
 type _store struct{}
 type _dup struct{}
@@ -60,6 +62,7 @@ func (op jz) String() string     { return fmt.Sprintf("jz %d", int(op)) }
 func (op fork) String() string   { return fmt.Sprintf("fork %d", int(op)) }
 func (op fnz) String() string    { return fmt.Sprintf("fnz %d", int(op)) }
 func (op fz) String() string     { return fmt.Sprintf("fz %d", int(op)) }
+func (op _alloc) String() string { return "alloc" }
 func (op _load) String() string  { return "load" }
 func (op _store) String() string { return "store" }
 func (op _dup) String() string   { return "dup" }

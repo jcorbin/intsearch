@@ -133,6 +133,17 @@ func (op _swap) step(m *mach) error {
 	m.mem[i], m.mem[j] = m.mem[j], m.mem[i]
 	return nil
 }
+func (op _alloc) step(m *mach) error {
+	offset, err := m.pop()
+	if err != nil {
+		return err
+	}
+	nh := m.heap - offset
+	if nh <= m.stack {
+		return errOutOfMemory
+	}
+	return nil
+}
 func (op _load) step(m *mach) error {
 	if err := m.needStack(1); err != nil {
 		return err

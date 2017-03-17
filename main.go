@@ -252,6 +252,12 @@ func plan(w1, w2, w3 string, emit func(...step)) {
 		emit: emit,
 	}
 	p.scan()
+	p.emit(
+		comd(push(p.b), "[%d]used", p.b),
+		comd(push(p.n), "[%d]values", p.n),
+		add,
+		alloc,
+	)
 	p.bottomUp()
 }
 
