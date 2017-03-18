@@ -228,36 +228,60 @@ func (op _swap) step(m *mach) error {
 	if err != nil {
 		return err
 	}
-	if err := m.push(a); err != nil {
+	if err := m.push(b); err != nil {
 		return err
 	}
-	return m.push(b)
+	return m.push(a)
 }
 
 func (m *mach) load(off int) (byte, error) {
 	if off < 0 {
 		return 0, errSegfault
 	}
-	i := m.heap + off
-	if i < m.stack || i >= _machSize {
+	i := _machSize - off - 1
+	// i := m.heap + off
+	if i < m.heap || i >= _machSize {
 		return 0, errSegfault
 	}
 	return m.mem[i], nil
 }
 
+func (m *mach) store(v byte, off int) error {
+	if off < 0 {
+		return errSegfault
+	}
+	i := m.heap + off
+	if i < m.stack || i >= _machSize {
+		return errSegfault
+	}
+	m.mem[i] = v
+	return nil
+}
+
 func (op _load) step(m *mach) error {
-	v, err := m.peek()
+	off, err := m.peek()
 	if err != nil {
 		return err
 	}
-	mv, err := m.load(int(v))
+	mv, err := m.load(int(off))
 	if err != nil {
 		return err
 	}
 	m.mem[m.stack-1] = mv
 	return nil
 }
-func (op _store) step(_ *mach) error { return errUnimplemented }
+
+func (op _store) step(m *mach) error {
+	off, err := m.pop()
+	if err != nil {
+		return err
+	}
+	v, err := m.pop()
+	if err != nil {
+		return err
+	}
+	return m.store(v, int(off))
+}
 
 func (op _halt) step(_ *mach) error { return op.err }
 

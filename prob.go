@@ -111,7 +111,7 @@ func (p *prob) pick(s byte, emit func(...interface{})) {
 		ret,
 		dup, load, hnz(errUsed), // halt if used[i]
 		dup, push(1), swap, store, // used[i] = 1
-		push(p.n+int(s)), store, // value[s] = i
+		push(p.n+int(s)-1), store, // value[s] = i
 	)
 	p.known[s] = struct{}{}
 }
@@ -149,7 +149,7 @@ func (p *prob) solve(carry bool, c col, u int, emit func(...interface{})) {
 		push(p.b), mod,
 		dup, load, hnz(errUsed), // halt if used[i]
 		dup, push(1), swap, store, // used[i] = 1
-		push(p.n+int(s)), store, // value[col[u]] = i
+		push(p.n+int(s)-1), store, // value[col[u]] = i
 	)
 	p.known[s] = struct{}{}
 }
@@ -179,7 +179,7 @@ func (p *prob) colVal(emit func(...interface{}), carry bool, op interface{}, sym
 	}
 	for _, s := range syms {
 		if s != 0 {
-			emit(push(p.n), push(s), add, load) // value[s]
+			emit(push(p.n+int(s)-1), load) // value[s]
 			n++
 		}
 	}
