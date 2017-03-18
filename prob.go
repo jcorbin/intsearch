@@ -7,8 +7,8 @@ var (
 
 	// prog errors
 	errDead  = errors.New("dead")
-	errUsed  = errors.New("value already used")
-	errCheck = errors.New("column check failed")
+	errUsed  = errors.New("used")
+	errCheck = errors.New("check")
 )
 
 type col [3]byte
@@ -92,15 +92,15 @@ func (p *prob) scan() error {
 
 func (p *prob) pick(s byte, emit func(...interface{})) {
 	loop := label("loop")
-	next := label("return")
+	next := label("next")
+	ret := label("return")
 
 	emit(
 		push(0),
 		loop,
 
-		push(p.b-1), lt, next.comeFrom(fnzFrom), // fork next if i < b-1
-
-		dup, load, hnz(errUsed), // halt if used[i]
+		dup, push(p.b-1), lt, next.comeFrom(fnzFrom), // fork next if i < b-1
+		ret.comeFrom(jmpFrom),
 
 		next,
 		push(1), add,
@@ -108,6 +108,8 @@ func (p *prob) pick(s byte, emit func(...interface{})) {
 		loop.comeFrom(jnzFrom),
 		halt(errDead),
 
+		ret,
+		dup, load, hnz(errUsed), // halt if used[i]
 		dup, push(1), swap, store, // used[i] = 1
 		push(p.n+int(s)), store, // value[s] = i
 	)
@@ -217,5 +219,6 @@ func (p *prob) plan(emit func(...interface{})) error {
 		return err
 	}
 	p.known = make(map[byte]struct{}, p.n)
+	emit(push(p.b), push(p.n), add, alloc)
 	return p.bottomUp(emit)
 }
