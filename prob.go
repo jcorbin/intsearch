@@ -159,7 +159,7 @@ func (p *prob) check(carry bool, c col, emit func(...interface{})) {
 	emit(
 		push(p.b), mod,
 		push(p.n+int(c[2])), load,
-		eq, hz(errCheck),
+		dup, eq, hz(errCheck),
 	)
 }
 
@@ -209,7 +209,9 @@ func (p *prob) bottomUp(emit func(...interface{})) error {
 		}
 
 		// compute carry
-		p.computeCarry(carry, c, emit)
+		if i < len(p.cols)-1 {
+			p.computeCarry(carry, c, emit)
+		}
 	}
 	return nil
 }

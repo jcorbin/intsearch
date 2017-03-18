@@ -283,7 +283,9 @@ func (op _store) step(m *mach) error {
 	return m.store(v, int(off))
 }
 
-func (op _halt) step(_ *mach) error { return op.err }
+func (op _halt) step(_ *mach) error {
+	return op.err
+}
 
 func (op _hnz) step(m *mach) error {
 	v, err := m.pop()

@@ -27,23 +27,23 @@ func plan(w1, w2, w3 string) (*mach, error) {
 			i := len(prog)
 			switch ts := step.(type) {
 			case annotator:
-				// fmt.Printf(">>> %v\n", step)
+				fmt.Printf(">>> %v\n", step)
 				ts.annotate(ann, i)
 			case resolver:
 				res = append(res, resi{ts, i})
-				// fmt.Printf("% 3d: TODO %v\n", i, ts)
+				fmt.Printf("% 3d: TODO %v\n", i, ts)
 				prog = append(prog, nil)
 			case machStep:
-				// fmt.Printf("% 3d: %v\n", i, step)
+				fmt.Printf("% 3d: %v\n", i, step)
 				prog = append(prog, ts)
 			default:
-				// fmt.Printf("-- %v\n", step)
+				fmt.Printf("-- %v\n", step)
 			}
 		}
 
 		for _, ri := range res {
 			prog[ri.i] = ri.resolver.resolve(ann, ri.i)
-			// fmt.Printf("RES % 3d: %v\n", ri.i, prog[ri.i])
+			fmt.Printf("RES % 3d: %v\n", ri.i, prog[ri.i])
 		}
 
 	}); err != nil {
