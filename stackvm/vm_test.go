@@ -1,7 +1,6 @@
 package stackvm_test
 
 import (
-	"fmt"
 	"strconv"
 	"testing"
 
@@ -24,13 +23,26 @@ func TestVM(t *testing.T) {
 		},
 
 		{
-			name: "if 23mul 6eq then 42 else 99 end",
+			name: "If 23mul 6eq Then 42 Else 99 End",
 			code: []interface{}{
 				If, Push(2), Push(3), Mul, Push(6), Eq,
 				Then, Push(42),
 				Else, Push(99), End,
 			},
-			stack: []byte{43},
+			stack: []byte{42},
+		},
+
+		{
+			name: "Each dupdec Loop If dup2mod Then 3mulinc Else 2div End Done",
+			code: []interface{}{
+				Push(3),
+				While, Dup, Dec, Loop,
+				If, Dup, Push(2), Mod,
+				Then, Push(2), Div,
+				Else, Push(3), Mul, Inc, End,
+				End,
+			},
+			stack: []byte{1},
 		},
 	} {
 
@@ -65,9 +77,9 @@ func (tc vmTestCase) run(t *testing.T) {
 }
 
 func (tc vmTestCase) trace(t *testing.T) {
-	fmt.Printf("CODE: %v\n", tc.code)
+	t.Logf("CODE: %v", tc.code)
 
-	var d dumper
+	d := dumper{t.Logf}
 	m, err := Compile(tc.code)
 	require.NoError(t, err, "unexpected Compile error")
 	if err := m.Trace(d); tc.err == nil {
@@ -79,36 +91,38 @@ func (tc vmTestCase) trace(t *testing.T) {
 	assert.Equal(t, tc.heap, m.Heap(), "expected final Mach.Heap()")
 }
 
-type dumper struct{}
+type dumper struct {
+	logf func(string, ...interface{})
+}
 
 func (d dumper) Begin(m *Mach) {
 	prog := m.Prog()
 	w := len(strconv.Itoa(len(prog)))
-	fmt.Printf("PROG:\n")
+	d.logf("PROG:")
 	for i, op := range prog {
-		fmt.Printf("[%*d]: %v\n", w, i, op)
+		d.logf("[%*d]: %v", w, i, op)
 	}
-	fmt.Printf("BEGIN @%v\n", m.PC())
+	d.logf("BEGIN @%v", m.PC())
 }
 func (d dumper) End(m *Mach, err error) {
 	if err != nil {
-		fmt.Printf("END ERR @%v\n", m.PC())
+		d.logf("END ERR @%v", m.PC())
 		return
 	}
-	fmt.Printf("END @%v\n", m.PC())
+	d.logf("END @%v", m.PC())
 }
 
 func (d dumper) Before(m *Mach, pc int, op Op) {
-	fmt.Printf(">>> % 3d: % 10v -- heap=%v stack=%v\n",
+	d.logf(">>> % 3d: % 10v -- heap=%v stack=%v",
 		pc, op, m.Heap(), m.Stack())
 }
 
 func (d dumper) After(m *Mach, pc int, last, next Op, err error) {
 	if err != nil {
-		fmt.Printf("--> ERR: % 10v -- heap=%v stack=%v\n",
+		d.logf("--> ERR: % 10v -- heap=%v stack=%v",
 			err, m.Heap(), m.Stack())
 		return
 	}
-	fmt.Printf("--> % 3d:            -- heap=%v stack=%v\n",
+	d.logf("--> % 3d:            -- heap=%v stack=%v",
 		pc, m.Heap(), m.Stack())
 }

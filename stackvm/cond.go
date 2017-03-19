@@ -6,13 +6,13 @@ func condJnz(off int) Op { return Jnz(off) }
 func condJz(off int) Op  { return Jz(off) }
 
 var (
-	// If starts an `if PRED... then BODY... [else BODY...] end` structure.
-	If = _guard{name: "If", acond: condJz}
+	// If starts an `If PRED... Then BODY... [Else BODY...] End`.
+	If = _guard{"If", condJz}
 
-	// Unless starts an `Unless PRED... then BODY... [else BODY...] end` structure.
-	Unless = _guard{name: "Unless", acond: condJnz}
+	// Unless starts an `Unless PRED... Then BODY... [Else BODY...] End`.
+	Unless = _guard{"Unless", condJnz}
 
-	// Then starts the body of an If or Unless
+	// Then starts the body of an If or Unless.
 	Then = _then{}
 
 	// Else starts the alternate body of an If or Unless
@@ -56,6 +56,14 @@ func (gc *_guardCtx) consume(x interface{}) ([]Op, error) {
 	return nil, nil
 }
 
+func (gc *_guardCtx) consumeOps(ops ...Op) error {
+	if gc.cur == nil {
+		return fmt.Errorf("unexpected %v ops after end of %s", ops, gc.name)
+	}
+	gc.cur = append(gc.cur, ops...)
+	return nil
+}
+
 func (gc *_guardCtx) finalize() []Op {
 	if len(gc.alt) == 0 {
 		ops := make([]Op, 0, len(gc.pred)+1+len(gc.body))
@@ -73,11 +81,6 @@ func (gc *_guardCtx) finalize() []Op {
 	return ops
 }
 
-func (gc *_guardCtx) consumeOps(ops ...Op) error {
-	gc.cur = append(gc.cur, ops...)
-	return nil
-}
-
 func (gc *_guardCtx) String() string {
 	var next string
 	s := gc.name
@@ -91,6 +94,7 @@ func (gc *_guardCtx) String() string {
 	}
 	if len(gc.alt) > 0 {
 		s += fmt.Sprintf(" Else %v", gc.alt)
+		next = ""
 	}
 
 	if gc.cur != nil {
