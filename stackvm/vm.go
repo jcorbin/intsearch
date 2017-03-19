@@ -10,6 +10,8 @@ var (
 	errOutOfMemory    = errors.New("out of memory")
 	errSegfault       = errors.New("segfault")
 	errPCRange        = errors.New("PC out of range")
+	errCannotFork     = errors.New("cannot fork")
+	errFullQ          = errors.New("refusing to fork, queue full")
 )
 
 // TODO: fork
@@ -17,6 +19,7 @@ var (
 // Mach is a stack machine
 type Mach struct {
 	prog  []Op
+	emit  func(*Mach) error
 	err   error
 	pc    int
 	heap  int
@@ -32,6 +35,11 @@ type Op interface {
 // Prog returns a copy of the compiled program.
 func (m *Mach) Prog() []Op {
 	return append([]Op(nil), m.prog...)
+}
+
+// Err returns any runtime error.
+func (m *Mach) Err() error {
+	return m.err
 }
 
 // PC returns the index, in Prog(), of the next Op to be executed.
@@ -66,11 +74,54 @@ func (m *Mach) Run() error {
 	return m.err
 }
 
+type runq struct {
+	q []*Mach
+}
+
+func (rq *runq) emit(n *Mach) error {
+	if len(rq.q) == cap(rq.q) {
+		return errFullQ
+	}
+	rq.q = append(rq.q, n)
+	return nil
+}
+
+func (rq *runq) next() *Mach {
+	if len(rq.q) == 0 {
+		return nil
+	}
+	m := rq.q[0]
+	rq.q = rq.q[:copy(rq.q, rq.q[1:])]
+	return m
+}
+
+// RunAll runs the current machine and any forked copies until error or program
+// termination. Pending machines are kept on a fixed-size queue; when this
+// queue is full, forks will fail. After a machine terminates, the given emit
+// function is called on it. If the emit function returns non-nil error, that
+// error is returned immediately from RunAll and no further machines are ran.
+func (m *Mach) RunAll(maxPending int, emit func(*Mach) error) error {
+	if m.err != nil {
+		return m.err
+	}
+	rq := runq{make([]*Mach, 0, maxPending)}
+	m.emit = rq.emit
+	for m != nil {
+		m.Run()
+		if err := emit(m); err != nil {
+			return err
+		}
+		m = rq.next()
+	}
+	return nil
+}
+
 // Tracer observes stack machine execution.
 type Tracer interface {
 	Begin(m *Mach)
 	End(m *Mach, err error)
 	Before(m *Mach, pc int, op Op)
+	Fork(m, n *Mach, pc int, next Op)
 	After(m *Mach, pc int, last, next Op, err error)
 }
 
@@ -105,6 +156,24 @@ func (m *Mach) jump(off int) error {
 	}
 	m.pc = i
 	return nil
+}
+
+func (m *Mach) copy() *Mach {
+	n := *m
+	return &n
+}
+
+func (m *Mach) fork(off int) error {
+	i := m.pc + off
+	if i < 0 || i > len(m.prog) {
+		return errPCRange
+	}
+	if m.emit == nil {
+		return errCannotFork
+	}
+	n := m.copy()
+	n.pc = i
+	return m.emit(n)
 }
 
 func (m *Mach) ref(off int) (i int, err error) {

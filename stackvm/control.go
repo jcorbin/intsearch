@@ -11,12 +11,16 @@ type Jnz int
 // Jz pops a stack value, and jumps if it is zero.
 type Jz int
 
-// Fork
-// Fnz
-// Fz
-// Branch
-// Bnz
-// Bz
+// Fork copies the current machine, and the child jumps.
+type Fork int
+
+// Fnz pops a stack vaule, and forks if it is non-zero.
+type Fnz int
+
+// Fz pops a stack vaule, and forks if it is zero.
+type Fz int
+
+// TODO Branch Bnz Bz
 
 func (op Jmp) run(m *Mach) error {
 	return m.jump(int(op))

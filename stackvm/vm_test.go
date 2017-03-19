@@ -117,6 +117,11 @@ func (d dumper) Before(m *Mach, pc int, op Op) {
 		pc, op, m.Heap(), m.Stack())
 }
 
+func (d dumper) Fork(m, n *Mach, pc int, next Op) {
+	d.logf("==> % 3d: % 10v --heap=%v stack=%v",
+		pc, next, n.Heap(), n.Stack())
+}
+
 func (d dumper) After(m *Mach, pc int, last, next Op, err error) {
 	if err != nil {
 		d.logf("--> ERR: % 10v -- heap=%v stack=%v",
