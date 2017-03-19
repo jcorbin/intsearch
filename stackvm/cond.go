@@ -4,6 +4,8 @@ import "fmt"
 
 func condJnz(off int) Op { return Jnz(off) }
 func condJz(off int) Op  { return Jz(off) }
+func condFnz(off int) Op { return Fnz(off) }
+func condFz(off int) Op  { return Fz(off) }
 
 var (
 	// If starts an `If PRED... Then BODY... [Else BODY...] End`.
@@ -65,19 +67,20 @@ func (gc *_guardCtx) consumeOps(ops ...Op) error {
 }
 
 func (gc *_guardCtx) finalize() []Op {
-	if len(gc.alt) == 0 {
-		ops := make([]Op, 0, len(gc.pred)+1+len(gc.body))
-		ops = append(ops, gc.pred...)
-		ops = append(ops, gc.acond(len(gc.body)))
-		ops = append(ops, gc.body...)
-		return ops
+	nPred := len(gc.pred) + 1
+	nBody := len(gc.body)
+	nAlt := len(gc.alt)
+	if nAlt > 0 {
+		nBody++
 	}
-	ops := make([]Op, 0, len(gc.pred)+1+len(gc.body)+1+len(gc.alt))
+	ops := make([]Op, 0, nPred+nBody+nAlt)
 	ops = append(ops, gc.pred...)
-	ops = append(ops, gc.acond(len(gc.body)+1))
+	ops = append(ops, gc.acond(nBody))
 	ops = append(ops, gc.body...)
-	ops = append(ops, Jmp(len(gc.alt)))
-	ops = append(ops, gc.alt...)
+	if nAlt > 0 {
+		ops = append(ops, Jmp(nAlt))
+		ops = append(ops, gc.alt...)
+	}
 	return ops
 }
 

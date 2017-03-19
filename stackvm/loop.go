@@ -3,36 +3,67 @@ package stackvm
 import "fmt"
 
 var (
-	// While starts a `While PRED... Loop BODY... End`.
-	While = _each{"While", condJz}
+	// Each starts an `Each PRED... Do BODY... End`: repeatedly run PRED and
+	// BODY as long as PRED is true.
+	Each = _each{"Each", condJz}
 
-	// Until starts an `Until PRED... Loop BODY... End`.
-	Until = _each{"Until", condJnz}
+	// Much starts a `Much PRED... Then NEXT... [Else EXIT] End`: if PRED is
+	// true, fork NEXT and loop; otherwise run any EXIT.
+	Much = _much{"Much", condJz, condFnz}
 
-	// Loop starts the body of a While or Until.
-	Loop = _loop{}
+	// Do starts the body of a Each.
+	Do = _do{}
 )
 
 type _each struct {
 	name  string
 	econd func(off int) Op
 }
-type _loop struct{}
+type _much struct {
+	name  string
+	econd func(off int) Op
+	fcond func(off int) Op
+}
+type _do struct{}
 
 func (e _each) compile() consumer { return &_eachCtx{_each: e, cur: []Op{}} }
+func (m _much) compile() consumer { return &_muchCtx{_much: m, cur: []Op{}} }
 
 type _eachCtx struct {
 	_each
 	cur, pred, body []Op
 }
 
+type _muchCtx struct {
+	_much
+	cur, pred, next, exit []Op
+}
+
 func (ec *_eachCtx) consume(x interface{}) ([]Op, error) {
 	switch x.(type) {
-	case _loop:
+	case _do:
 		ec.pred, ec.cur = ec.cur, []Op{}
 	case _end:
 		ec.body, ec.cur = ec.cur, nil
 		return ec.finalize(), nil
+	}
+	return nil, nil
+}
+
+func (mc *_muchCtx) consume(x interface{}) ([]Op, error) {
+	switch x.(type) {
+	case _then:
+		mc.pred, mc.cur = mc.cur, []Op{}
+	case _else:
+		mc.next, mc.cur = mc.cur, []Op{}
+	case _end:
+		if mc.next == nil {
+			mc.next = mc.cur
+		} else {
+			mc.exit = mc.cur
+		}
+		mc.cur = nil
+		return mc.finalize(), nil
 	}
 	return nil, nil
 }
@@ -45,13 +76,44 @@ func (ec *_eachCtx) consumeOps(ops ...Op) error {
 	return nil
 }
 
+func (mc *_muchCtx) consumeOps(ops ...Op) error {
+	if mc.cur == nil {
+		return fmt.Errorf("unexpected %v ops after end of %s", ops, mc.name)
+	}
+	mc.cur = append(mc.cur, ops...)
+	return nil
+}
+
 func (ec *_eachCtx) finalize() []Op {
-	n := len(ec.pred) + 1 + len(ec.body) + 1
-	ops := make([]Op, 0, n)
+	nPred := len(ec.pred) + 1
+	nBody := len(ec.body) + 1
+	ops := make([]Op, 0, nPred+nBody)
 	ops = append(ops, ec.pred...)
-	ops = append(ops, ec.econd(len(ec.body)+1))
+	ops = append(ops, ec.econd(nBody))
 	ops = append(ops, ec.body...)
-	ops = append(ops, Jmp(-n))
+	ops = append(ops, Jmp(-nPred-nBody))
+	return ops
+}
+
+func (mc *_muchCtx) finalize() []Op {
+	nExit := len(mc.exit)
+	if nExit > 0 {
+		panic("not implemented")
+	}
+
+	nNext := len(mc.next)
+	nPred := len(mc.pred)
+	nHead := nPred + nNext
+	ops := make([]Op, 0, 1+nHead+5)
+	ops = append(ops, Jmp(nNext))
+	ops = append(ops, mc.next...)
+	ops = append(ops, mc.pred...)
+	ops = append(ops,
+		Dup, mc.econd(2),
+		mc.fcond(-3-nHead), Jmp(1),
+		Pop,
+	)
+
 	return ops
 }
 
@@ -60,10 +122,10 @@ func (ec *_eachCtx) String() string {
 	s := ec.name
 	if len(ec.pred) > 0 {
 		s += fmt.Sprintf(" %v", ec.pred)
-		next = "Loop"
+		next = "Do"
 	}
 	if len(ec.body) > 0 {
-		s += fmt.Sprintf(" Loop %v", ec.body)
+		s += fmt.Sprintf(" Do %v", ec.body)
 		next = ""
 	}
 
@@ -80,8 +142,9 @@ func (ec *_eachCtx) String() string {
 }
 
 func (e _each) String() string { return e.name }
-func (l _loop) String() string { return "Loop" }
+func (m _much) String() string { return m.name }
+func (d _do) String() string   { return "Do" }
 
 // TODO: can't do break or continue currently, since Compile delegates
 // directly rather than intermediating
-// Loop ... Break ... Continue ... End
+// Do ... Break ... Continue ... End

@@ -1,6 +1,7 @@
 package stackvm_test
 
 import (
+	"errors"
 	"strconv"
 	"testing"
 
@@ -10,7 +11,7 @@ import (
 	. "github.com/jcorbin/intsearch/stackvm"
 )
 
-func TestVM(t *testing.T) {
+func TestVM_Run(t *testing.T) {
 	for _, tc := range []vmTestCase{
 
 		{
@@ -19,7 +20,9 @@ func TestVM(t *testing.T) {
 				Push(2), Push(3), Add,
 				Push(5), Eq,
 			},
-			stack: []byte{1},
+			results: []vmTestResult{
+				{stack: []byte{1}},
+			},
 		},
 
 		{
@@ -29,20 +32,53 @@ func TestVM(t *testing.T) {
 				Then, Push(42),
 				Else, Push(99), End,
 			},
-			stack: []byte{42},
+			results: []vmTestResult{
+				{stack: []byte{42}},
+			},
 		},
 
 		{
-			name: "Each dupdec Loop If dup2mod Then 3mulinc Else 2div End Done",
+			name: "collatz(3)",
 			code: []interface{}{
 				Push(3),
-				While, Dup, Dec, Loop,
+				Each, Dup, Dec, Do,
 				If, Dup, Push(2), Mod,
 				Then, Push(2), Div,
 				Else, Push(3), Mul, Inc, End,
 				End,
 			},
-			stack: []byte{1},
+			results: []vmTestResult{
+				{stack: []byte{1}},
+			},
+		},
+
+		{
+			name: "much collatz(x) for 0 <= x <= 9",
+			code: []interface{}{
+				Push(5), Alloc,
+				Push(0),
+				Push(0), Much, Dup, Push(9), Lt, Then, Inc, End,
+				Each, Dup, Dec, Do,
+				If, Dup, Push(2), Mod,
+				Then, Push(3), Mul, Inc,
+				Else, Push(2), Div, End,
+				Swap, Inc, Over, Over, Store, Swap,
+				End,
+			},
+
+			results: []vmTestResult{
+
+				{stack: []byte{1}},
+				{stack: []byte{1}},
+				{stack: []byte{1}},
+				{stack: []byte{1}},
+				{stack: []byte{1}},
+				{stack: []byte{1}},
+				{stack: []byte{1}},
+				{stack: []byte{1}},
+				{stack: []byte{1}},
+				{stack: []byte{1}},
+			},
 		},
 	} {
 
@@ -57,38 +93,85 @@ func TestVM(t *testing.T) {
 }
 
 type vmTestCase struct {
-	name  string
-	code  []interface{}
+	name    string
+	code    []interface{}
+	err     error
+	results []vmTestResult
+}
+
+type vmTestResult struct {
 	err   error
 	stack []byte
 	heap  []byte
 }
 
 func (tc vmTestCase) run(t *testing.T) {
-	m, err := Compile(tc.code)
-	require.NoError(t, err, "unexpected Compile error")
+	m := tc.makeMachine(t)
 	if err := m.Run(); tc.err == nil {
 		assert.NoError(t, err)
 	} else {
 		assert.EqualError(t, err, tc.err.Error(), "expected Mach.Run error")
 	}
-	assert.Equal(t, tc.stack, m.Stack(), "expected final Mach.Stack()")
-	assert.Equal(t, tc.heap, m.Heap(), "expected final Mach.Heap()")
+	if len(tc.results) == 1 {
+		tc.results[0].check(t, m)
+	}
 }
 
 func (tc vmTestCase) trace(t *testing.T) {
-	t.Logf("CODE: %v", tc.code)
+	// t.Logf("CODE: %v", tc.code)
 
-	d := dumper{t.Logf}
-	m, err := Compile(tc.code)
-	require.NoError(t, err, "unexpected Compile error")
-	if err := m.Trace(d); tc.err == nil {
+	t.Logf("CODE")
+	w := len(strconv.Itoa(len(tc.code)))
+	for i, code := range tc.code {
+		t.Logf("[%*d]: %v", w, i, code)
+	}
+
+	m := tc.makeMachine(t)
+
+	t.Logf("PROG:")
+	prog := m.Prog()
+	w = len(strconv.Itoa(len(prog)))
+	for i, op := range prog {
+		t.Logf("[%*d]: %v", w, i, op)
+	}
+
+	if err := m.Trace(dumper{t.Logf}); tc.err == nil {
 		assert.NoError(t, err)
 	} else {
 		assert.EqualError(t, err, tc.err.Error(), "expected Mach.Run error")
 	}
-	assert.Equal(t, tc.stack, m.Stack(), "expected final Mach.Stack()")
-	assert.Equal(t, tc.heap, m.Heap(), "expected final Mach.Heap()")
+	if len(tc.results) == 1 {
+		tc.results[0].check(t, m)
+	}
+}
+
+var errTooMuch = errors.New("too many results")
+
+func (tc vmTestCase) makeMachine(t *testing.T) *Mach {
+	m, err := Compile(tc.code)
+	require.NoError(t, err, "unexpected Compile error")
+	if len(tc.results) > 1 {
+		i := 0
+		m.Handle(len(tc.results)-1, HandleFunc(func(n *Mach) error {
+			if i < len(tc.results) {
+				tc.results[i].check(t, n)
+				i++
+				return nil
+			}
+			return errTooMuch
+		}))
+	}
+	return m
+}
+
+func (res vmTestResult) check(t *testing.T, m *Mach) {
+	if err := m.Err(); res.err == nil {
+		assert.NoError(t, err, "unexpected result error")
+	} else {
+		assert.EqualError(t, err, res.err.Error(), "expected result error")
+	}
+	assert.Equal(t, res.stack, m.Stack(), "expected final Mach.Stack()")
+	assert.Equal(t, res.heap, m.Heap(), "expected final Mach.Heap()")
 }
 
 type dumper struct {
@@ -96,12 +179,6 @@ type dumper struct {
 }
 
 func (d dumper) Begin(m *Mach) {
-	prog := m.Prog()
-	w := len(strconv.Itoa(len(prog)))
-	d.logf("PROG:")
-	for i, op := range prog {
-		d.logf("[%*d]: %v", w, i, op)
-	}
 	d.logf("BEGIN @%v", m.PC())
 }
 func (d dumper) End(m *Mach, err error) {
@@ -118,7 +195,7 @@ func (d dumper) Before(m *Mach, pc int, op Op) {
 }
 
 func (d dumper) Fork(m, n *Mach, pc int, next Op) {
-	d.logf("==> % 3d: % 10v --heap=%v stack=%v",
+	d.logf("==> % 3d: % 10v -- heap=%v stack=%v",
 		pc, next, n.Heap(), n.Stack())
 }
 
